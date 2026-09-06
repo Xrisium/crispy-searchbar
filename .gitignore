@@ -399,3 +399,7 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Local-only agent development guidance (never published to the repository)
+.agents/
+/AGENTS.md
