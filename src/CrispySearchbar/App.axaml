@@ -1,0 +1,37 @@
+﻿<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CrispySearchbar.App"
+             RequestedThemeVariant="Default">
+  <Application.Styles>
+    <FluentTheme />
+  </Application.Styles>
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="SearchSurfaceBrush" Color="#FBFBFD" />
+          <SolidColorBrush x:Key="SearchSurfaceBorderBrush" Color="#33000000" />
+          <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1A1A1E" />
+          <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B6B72" />
+          <SolidColorBrush x:Key="TextPlaceholderBrush" Color="#9A9AA0" />
+          <SolidColorBrush x:Key="AccentBrush" Color="#3B6EF6" />
+          <SolidColorBrush x:Key="DividerBrush" Color="#14000000" />
+          <SolidColorBrush x:Key="SelectionBrush" Color="#263B6EF6" />
+          <SolidColorBrush x:Key="HoverBrush" Color="#0F000000" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="SearchSurfaceBrush" Color="#222226" />
+          <SolidColorBrush x:Key="SearchSurfaceBorderBrush" Color="#2EFFFFFF" />
+          <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F2F2F4" />
+          <SolidColorBrush x:Key="TextSecondaryBrush" Color="#A6A6AC" />
+          <SolidColorBrush x:Key="TextPlaceholderBrush" Color="#77777D" />
+          <SolidColorBrush x:Key="AccentBrush" Color="#6C8CFF" />
+          <SolidColorBrush x:Key="DividerBrush" Color="#1FFFFFFF" />
+          <SolidColorBrush x:Key="SelectionBrush" Color="#336C8CFF" />
+          <SolidColorBrush x:Key="HoverBrush" Color="#12FFFFFF" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>

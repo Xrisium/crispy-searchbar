@@ -1,0 +1,33 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrispySearchbar.Core", "src\CrispySearchbar.Core\CrispySearchbar.Core.csproj", "{7C9E4D0A-5B21-4F68-A2D7-8B3E1C0F9A22}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrispySearchbar", "src\CrispySearchbar\CrispySearchbar.csproj", "{3B4A2F11-2D6C-4A3B-9E18-2F0D4C9E1A11}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrispySearchbar.Core.Tests", "tests\CrispySearchbar.Core.Tests\CrispySearchbar.Core.Tests.csproj", "{A5D8B6C3-7E40-4B2A-9F3C-6D1E8A0B4C33}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7C9E4D0A-5B21-4F68-A2D7-8B3E1C0F9A22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C9E4D0A-5B21-4F68-A2D7-8B3E1C0F9A22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C9E4D0A-5B21-4F68-A2D7-8B3E1C0F9A22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C9E4D0A-5B21-4F68-A2D7-8B3E1C0F9A22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B4A2F11-2D6C-4A3B-9E18-2F0D4C9E1A11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B4A2F11-2D6C-4A3B-9E18-2F0D4C9E1A11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B4A2F11-2D6C-4A3B-9E18-2F0D4C9E1A11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B4A2F11-2D6C-4A3B-9E18-2F0D4C9E1A11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5D8B6C3-7E40-4B2A-9F3C-6D1E8A0B4C33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5D8B6C3-7E40-4B2A-9F3C-6D1E8A0B4C33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5D8B6C3-7E40-4B2A-9F3C-6D1E8A0B4C33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5D8B6C3-7E40-4B2A-9F3C-6D1E8A0B4C33}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
