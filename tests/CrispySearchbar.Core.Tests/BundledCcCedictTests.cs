@@ -6,7 +6,7 @@ namespace CrispySearchbar.Core.Tests;
 public class BundledCcCedictTests
 {
     [Fact]
-    public void BundledCcCedict_LoadsAndAnswersCommonBidirectionalQueries()
+    public void BundledCcCedict_LoadsAndAnswersChineseQueries()
     {
         var dataPath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory,
@@ -17,15 +17,12 @@ public class BundledCcCedictTests
         var index = CedictIndexLoader.LoadFile(dataPath);
 
         Assert.True(index.Count >= 124_000, $"Expected full CC-CEDICT, got {index.Count} entries.");
-        Assert.Equal("苹果", index.Search("apple")[0].Simplified);
+        Assert.Equal("苹果", index.Search("苹果")[0].Simplified);
         Assert.Contains(index.Search("你好"), entry => entry.Simplified == "你好");
         Assert.Contains(index.Search("學校"), entry => entry.Simplified == "学校");
-        var searchResults = index.SearchHits("search");
-        Assert.NotEmpty(searchResults);
-        Assert.All(searchResults.Take(3), hit => Assert.Equal("search", hit.EnglishForm));
+        Assert.Contains(index.Search("跑"), entry => entry.Simplified == "跑");
 
-        var waterResults = index.SearchHits("water");
-        Assert.Equal("water", waterResults[0].EnglishForm);
-        Assert.Equal("水", waterResults[0].Entry.Simplified);
+        // 汉英方向索引不负责英文查询：英文输入应交给 ECDICT（英汉）数据源。
+        Assert.Empty(index.Search("apple"));
     }
 }

@@ -15,7 +15,13 @@ public sealed class AppSettings
     public string AskAiUrlTemplate { get; set; } =
         "https://chat.deepseek.com/?q={0}";
     /// <summary>
-    /// CC-CEDICT 词典文件路径；留空时依次使用用户数据目录、程序目录中的 cedict_ts.u8。
+    /// CC-CEDICT（汉英）词典文件路径；留空时依次使用用户数据目录、程序目录中的 cedict_ts.u8。
     /// </summary>
     public string? DictionaryFilePath { get; set; }
+
+    /// <summary>
+    /// ECDICT（英汉）词典文件路径；留空时依次使用用户数据目录、程序目录中的 ecdict.csv。
+    /// </summary>
+    public string? EcdictFilePath { get; set; }
 }
+

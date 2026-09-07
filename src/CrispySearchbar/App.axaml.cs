@@ -32,12 +32,16 @@ public partial class App : Application
             };
 
             var modes = SearchModeCatalog.CreateDefault(settings);
-            var dictionaryDataSource = new AppDictionaryDataSource(settings.DictionaryFilePath);
+            // 启动即后台加载两套词典资源；任务只创建一次，应用退出前不会重新加载。
+            var dictionaryResources = new AppDictionaryResources(
+                settings.DictionaryFilePath,
+                settings.EcdictFilePath);
+            var dictionaryLoadTask = dictionaryResources.LoadAsync(CancellationToken.None);
             var viewModel = new MainWindowViewModel(
                 modes,
                 BrowserLauncher.Open,
                 clearQueryOnHide: settings.ClearQueryOnHide,
-                loadDictionary: dictionaryDataSource.LoadAsync);
+                loadDictionary: () => dictionaryLoadTask);
             var mainWindow = new MainWindow { DataContext = viewModel };
             _mainWindow = mainWindow;
 
@@ -98,5 +102,6 @@ public partial class App : Application
         }
     }
 }
+
 
 

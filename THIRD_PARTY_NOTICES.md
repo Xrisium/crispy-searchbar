@@ -52,6 +52,7 @@
 | 数据 | 版本/获取 | 许可证 | 说明 |
 |---|---|---|---|
 | CC-CEDICT（`data/cc-cedict/cedict_ts.u8`） | 2026-09-07 release，125009 条 | [CC BY-SA 4.0](licenses/CC-BY-SA-4.0.txt) | 来源：MDBG（https://www.mdbg.net/chinese/dictionary?page=cedict）；数据目录内同时保留 `LICENSE.txt` 与 `NOTICE`，便于随数据单独分发。 |
+| ECDICT（`data/ecdict/ecdict.csv`） | 2026-09-08 upstream master，约 77 万条 | [MIT](licenses/MIT.txt) | 来源：https://github.com/skywind3000/ECDICT（Copyright (c) 2025 Linwei）；数据目录内保留 `LICENSE.txt` 与 `NOTICE`，便于随数据单独分发。 |
 
 ## 测试与开发依赖（不进发布产物）
 
@@ -75,3 +76,4 @@
 - 许可证文本以各包自身携带的许可证文件、SPDX 官方文本或官方项目仓库为准；本目录中的 `licenses/` 文件与 NuGet 包缓存/上游仓库中的原文应保持一致。
 - 正式发布二进制时，发布流程应把根目录 `THIRD_PARTY_NOTICES.md` 与 `licenses/` 下的许可证全文随产物一并提供。
 - 后续引入任何新的第三方包、字体、图标或词典数据时，先确认其许可证与再分发条款，再按本文件“许可证原文集中管理”一节的约定补充原文并更新表格。
+

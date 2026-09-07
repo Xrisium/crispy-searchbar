@@ -3,7 +3,7 @@ namespace CrispySearchbar.Core.Dictionary;
 /// <summary>从磁盘加载 CC-CEDICT 文本并构建索引。应在后台任务中调用，避免阻塞 UI。</summary>
 public static class CedictIndexLoader
 {
-    public static DictionaryIndex LoadFile(string filePath)
+    public static CedictIndex LoadFile(string filePath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
         if (!File.Exists(filePath))
@@ -12,6 +12,7 @@ public static class CedictIndexLoader
         }
 
         var entries = CedictParser.ParseLines(File.ReadLines(filePath));
-        return DictionaryIndex.Build(entries);
+        return CedictIndex.Build(entries);
     }
 }
+

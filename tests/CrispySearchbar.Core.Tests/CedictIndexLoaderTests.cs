@@ -23,7 +23,8 @@ public class CedictIndexLoaderTests
             var index = CedictIndexLoader.LoadFile(path);
 
             Assert.Equal(2, index.Count);
-            Assert.Equal("苹果", index.Search("apple")[0].Simplified);
+            Assert.Equal("苹果", index.Search("苹果")[0].Simplified);
+            Assert.Empty(index.Search("apple"));
         }
         finally
         {

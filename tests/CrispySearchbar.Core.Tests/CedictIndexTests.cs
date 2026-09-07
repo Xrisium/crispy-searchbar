@@ -3,31 +3,8 @@ using Xunit;
 
 namespace CrispySearchbar.Core.Tests;
 
-public class DictionaryIndexTests
+public class CedictIndexTests
 {
-    [Fact]
-    public void Search_EnglishWord_FindsChineseEntryAndIsCaseInsensitive()
-    {
-        var index = BuildSampleIndex();
-
-        var results = index.Search("apple");
-
-        Assert.Equal("苹果", results[0].Simplified);
-        Assert.Equal("苹果", index.Search("APPLE")[0].Simplified);
-        Assert.Equal("苹果", index.Search("apple!")[0].Simplified);
-    }
-
-    [Fact]
-    public void Search_EnglishPrefix_PrefersFullWordBeforePrefixMatch()
-    {
-        var index = BuildSampleIndex();
-
-        var results = index.Search("run");
-
-        Assert.Equal("跑", results[0].Simplified);
-        Assert.Equal("跑鞋", results[1].Simplified);
-    }
-
     [Fact]
     public void Search_ChineseSimplifiedAndTraditional_ReturnSameEntry()
     {
@@ -64,6 +41,14 @@ public class DictionaryIndexTests
     }
 
     [Fact]
+    public void Search_EnglishQuery_IsNotAnsweredByChineseIndex()
+    {
+        var index = BuildSampleIndex();
+
+        Assert.Empty(index.Search("apple"));
+    }
+
+    [Fact]
     public void Search_ResultLimit_IsHonored()
     {
         var index = BuildSampleIndex();
@@ -96,13 +81,13 @@ public class DictionaryIndexTests
     [Fact]
     public void Build_EmptyInput_ReturnsEmptyIndex()
     {
-        var index = DictionaryIndex.Build([]);
+        var index = CedictIndex.Build([]);
 
         Assert.Equal(0, index.Count);
-        Assert.Empty(index.Search("apple"));
+        Assert.Empty(index.Search("苹果"));
     }
 
-    private static DictionaryIndex BuildSampleIndex() => DictionaryIndex.Build(new[]
+    private static CedictIndex BuildSampleIndex() => CedictIndex.Build(new[]
     {
         Entry("蘋果", "苹果", "píng guǒ", "apple", "apple (computer)"),
         Entry("蘋果樹", "苹果树", "píng guǒ shù", "apple tree"),

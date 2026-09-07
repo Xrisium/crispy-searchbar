@@ -2,17 +2,20 @@ using CrispySearchbar.Core.Dictionary;
 
 namespace CrispySearchbar.Dictionary;
 
-/// <summary>词典数据加载结果：成功时包含索引；失败时只给用户可读提示。</summary>
+/// <summary>
+/// 词典资源加载结果：两个方向各带索引或失败提示。
+/// 加载一旦完成便在整个应用生命周期内复用，不会重复加载。
+/// </summary>
 public sealed record DictionaryLoadResult(
-    DictionaryIndex? Index,
-    string? DataFilePath,
-    string? Message)
+    CedictIndex? CedictIndex,
+    string? CedictMessage,
+    EcdictIndex? EcdictIndex,
+    string? EcdictMessage)
 {
-    public bool IsReady => Index is not null;
+    public bool HasCedict => CedictIndex is not null;
 
-    public static DictionaryLoadResult Missing(string message)
-        => new(Index: null, DataFilePath: null, Message: message);
+    public bool HasEcdict => EcdictIndex is not null;
 
-    public static DictionaryLoadResult Failed(string? dataFilePath, string message)
-        => new(Index: null, DataFilePath: dataFilePath, Message: message);
+    public static DictionaryLoadResult MissingAll(string message)
+        => new(CedictIndex: null, CedictMessage: message, EcdictIndex: null, EcdictMessage: message);
 }

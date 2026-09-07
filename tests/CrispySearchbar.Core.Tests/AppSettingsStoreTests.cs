@@ -25,6 +25,7 @@ public class AppSettingsStoreTests
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
             Assert.True(settings.ClearQueryOnHide);
             Assert.Null(settings.DictionaryFilePath);
+            Assert.Null(settings.EcdictFilePath);
             Assert.True(File.Exists(Path.Combine(dir, AppSettingsStore.FileName)));
         }
         finally
@@ -44,12 +45,13 @@ public class AppSettingsStoreTests
             using var document = JsonDocument.Parse(json);
 
             var names = document.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
-            Assert.Equal(5, names.Length);
+            Assert.Equal(6, names.Length);
             Assert.Contains("theme", names);
             Assert.Contains("searchEngine", names);
             Assert.Contains("clearQueryOnHide", names);
             Assert.Contains("askAiUrlTemplate", names);
             Assert.Contains("dictionaryFilePath", names);
+            Assert.Contains("ecdictFilePath", names);
         }
         finally
         {
@@ -70,6 +72,7 @@ public class AppSettingsStoreTests
                 AskAiUrlTemplate = "https://chat.deepseek.com/?q={0}",
                 ClearQueryOnHide = false,
                 DictionaryFilePath = "C:\\dict\\cedict_ts.u8",
+                EcdictFilePath = "C:\\dict\\ecdict.csv",
             };
 
             AppSettingsStore.Save(expected, dir);
@@ -80,6 +83,7 @@ public class AppSettingsStoreTests
             Assert.Equal(expected.AskAiUrlTemplate, loaded.AskAiUrlTemplate);
             Assert.False(loaded.ClearQueryOnHide);
             Assert.Equal("C:\\dict\\cedict_ts.u8", loaded.DictionaryFilePath);
+            Assert.Equal("C:\\dict\\ecdict.csv", loaded.EcdictFilePath);
         }
         finally
         {
@@ -103,6 +107,7 @@ public class AppSettingsStoreTests
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
             Assert.True(settings.ClearQueryOnHide);
             Assert.Null(settings.DictionaryFilePath);
+            Assert.Null(settings.EcdictFilePath);
         }
         finally
         {
@@ -113,6 +118,3 @@ public class AppSettingsStoreTests
     private static string CreateTempDirectory()
         => Path.Combine(Path.GetTempPath(), "crispy-searchbar-tests-" + Guid.NewGuid().ToString("N"));
 }
-
-
-

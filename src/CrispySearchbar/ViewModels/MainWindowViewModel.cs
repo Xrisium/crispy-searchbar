@@ -19,7 +19,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private readonly IReadOnlyList<SearchMode> _modes;
     private readonly Action<string> _openUrl;
-    private readonly Func<CancellationToken, Task<DictionaryLoadResult>>? _loadDictionary;
+    private readonly Func<Task<DictionaryLoadResult>>? _loadDictionary;
     private readonly bool _clearQueryOnHide;
 
     private int _modeIndex;
@@ -28,16 +28,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private Task<DictionaryLoadResult>? _dictionaryLoadTask;
     private CancellationTokenSource? _dictionaryQueryCts;
     private int _dictionarySearchVersion;
-    private IReadOnlyList<DictionarySearchHit> _dictionaryMatches = Array.Empty<DictionarySearchHit>();
+    private IReadOnlyList<DictionaryCandidateViewModel> _dictionaryMatches = Array.Empty<DictionaryCandidateViewModel>();
     private int _dictionarySelectedIndex = -1;
-    private DictionarySearchHit? _dictionaryDetailHit;
+    private DictionaryCandidateViewModel? _dictionaryDetailHit;
     private string _dictionaryHint = EmptyDictionaryHint;
 
     public MainWindowViewModel(
         IReadOnlyList<SearchMode> modes,
         Action<string> openUrl,
         bool clearQueryOnHide = true,
-        Func<CancellationToken, Task<DictionaryLoadResult>>? loadDictionary = null)
+        Func<Task<DictionaryLoadResult>>? loadDictionary = null)
     {
         _modes = modes;
         _openUrl = openUrl;
@@ -91,7 +91,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
-    public DictionarySearchHit? DictionaryDetailHit
+    public DictionaryCandidateViewModel? DictionaryDetailHit
     {
         get => _dictionaryDetailHit;
         private set
@@ -106,64 +106,28 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
-    public DictionaryEntry? DictionaryDetailEntry => DictionaryDetailHit?.Entry;
-
-    /// <summary>详情主标题：英文命中显示英文词条，中文命中显示简体词头。</summary>
-    public string DictionaryDetailTitle
-    {
-        get
-        {
-            if (DictionaryDetailHit is not { } hit)
-            {
-                return string.Empty;
-            }
-
-            if (hit.IsEnglishMatch && !string.IsNullOrWhiteSpace(hit.EnglishForm))
-            {
-                return hit.EnglishForm!;
-            }
-
-            return hit.Entry.Simplified;
-        }
-    }
+    public string DictionaryDetailTitle => DictionaryDetailHit?.DetailTitle ?? string.Empty;
 
     public bool DictionaryDetailHasSubtitle => !string.IsNullOrWhiteSpace(DictionaryDetailSubtitle);
 
-    public string DictionaryDetailSubtitle
+    public string DictionaryDetailSubtitle => DictionaryDetailHit?.DetailSubtitle ?? string.Empty;
+
+    /// <summary>释义以“• ”分行预览，避免详情视图引入额外数据模板。</summary>
+    public string DictionaryDetailDefinitionText
     {
         get
         {
-            if (DictionaryDetailHit is not { } hit)
+            var definitions = DictionaryDetailHit?.Definitions;
+            if (definitions is null || definitions.Count == 0)
             {
                 return string.Empty;
             }
 
-            var parts = new List<string>(3);
-            var entry = hit.Entry;
-            if (hit.IsEnglishMatch)
-            {
-                parts.Add(ChineseHeadwordLine(entry));
-            }
-            else if (!string.Equals(entry.Traditional, entry.Simplified, StringComparison.Ordinal))
-            {
-                parts.Add(entry.Traditional);
-            }
-
-            if (!string.IsNullOrWhiteSpace(entry.Pinyin))
-            {
-                parts.Add(entry.Pinyin);
-            }
-
-            return string.Join(" · ", parts);
+            return string.Join("\n", definitions.Select(definition => "• " + definition));
         }
     }
 
-    public IReadOnlyList<string> DictionaryDetailDefinitions =>
-        DictionaryDetailEntry?.Definitions ?? [];
-
-    /// <summary>释义以“• ”分行预览，避免详情视图引入额外数据模板。</summary>
-    public string DictionaryDetailDefinitionText =>
-        string.Join("\n", DictionaryDetailDefinitions.Select(definition => "• " + definition));
+    public string DictionaryDetailSource => DictionaryDetailHit?.Source ?? string.Empty;
 
     public string Query
     {
@@ -347,22 +311,46 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 return;
             }
 
-            if (!result.IsReady)
+            // 中文输入特征 → 汉英（CC-CEDICT）；其余按英汉（ECDICT）查询。
+            var direction = DictionaryQueryClassifier.Detect(query);
+            if (direction == DictionaryQueryDirection.ChineseToEnglish)
             {
-                DictionaryHint = result.Message ?? EmptyDictionaryHint;
-                NotifyDictionaryState();
-                return;
-            }
+                if (result.CedictIndex is null)
+                {
+                    DictionaryHint = result.CedictMessage ?? EmptyDictionaryHint;
+                    NotifyDictionaryState();
+                    return;
+                }
 
-            var matches = await Task.Run(
-                () => result.Index!.SearchHits(query, DictionaryMaxResults),
-                cancellation.Token);
-            if (version != _dictionarySearchVersion || cancellation.IsCancellationRequested)
+                var matches = await Task.Run(
+                    () => result.CedictIndex.Search(query, DictionaryMaxResults),
+                    cancellation.Token);
+                if (version != _dictionarySearchVersion || cancellation.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                ApplyChineseMatches(query, matches);
+            }
+            else
             {
-                return;
-            }
+                if (result.EcdictIndex is null)
+                {
+                    DictionaryHint = result.EcdictMessage ?? EmptyDictionaryHint;
+                    NotifyDictionaryState();
+                    return;
+                }
 
-            ApplyDictionaryMatches(query, matches);
+                var matches = await Task.Run(
+                    () => result.EcdictIndex.Search(query, DictionaryMaxResults),
+                    cancellation.Token);
+                if (version != _dictionarySearchVersion || cancellation.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                ApplyEnglishMatches(query, matches);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -389,20 +377,33 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
         if (_loadDictionary is null)
         {
-            return Task.FromResult(DictionaryLoadResult.Missing("词典数据源未配置。"));
+            return Task.FromResult(DictionaryLoadResult.MissingAll("词典数据源未配置。"));
         }
 
-        _dictionaryLoadTask = _loadDictionary(CancellationToken.None);
+        // 加载任务由应用启动时创建一次；后续查询只等待同一个已完成任务，不重新加载。
+        _dictionaryLoadTask = _loadDictionary();
         return _dictionaryLoadTask;
     }
 
-    private void ApplyDictionaryMatches(string query, IReadOnlyList<DictionarySearchHit> matches)
+    private void ApplyChineseMatches(string query, IReadOnlyList<DictionaryEntry> matches)
+    {
+        var viewModels = matches.Select(entry => (DictionaryCandidateViewModel)new ChineseDictionaryCandidateViewModel(entry)).ToArray();
+        ApplyDictionaryMatches(query, viewModels);
+    }
+
+    private void ApplyEnglishMatches(string query, IReadOnlyList<EcdictEntry> matches)
+    {
+        var viewModels = matches.Select(entry => (DictionaryCandidateViewModel)new EnglishDictionaryCandidateViewModel(entry)).ToArray();
+        ApplyDictionaryMatches(query, viewModels);
+    }
+
+    private void ApplyDictionaryMatches(string query, IReadOnlyList<DictionaryCandidateViewModel> matches)
     {
         DictionaryCandidates.Clear();
         _dictionaryMatches = matches;
         foreach (var match in matches)
         {
-            DictionaryCandidates.Add(new DictionaryCandidateViewModel(match));
+            DictionaryCandidates.Add(match);
         }
 
         DictionarySelectedIndex = matches.Count > 0 ? 0 : -1;
@@ -412,7 +413,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         NotifyDictionaryState();
     }
 
-    private void ShowDictionaryDetail(DictionarySearchHit hit)
+    private void ShowDictionaryDetail(DictionaryCandidateViewModel hit)
     {
         _dictionaryQueryCts?.Cancel();
         _dictionarySearchVersion++;
@@ -434,7 +435,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private void ClearDictionarySearchResults()
     {
         DictionaryCandidates.Clear();
-        _dictionaryMatches = Array.Empty<DictionarySearchHit>();
+        _dictionaryMatches = Array.Empty<DictionaryCandidateViewModel>();
         _dictionarySelectedIndex = -1;
         _dictionaryDetailHit = null;
     }
@@ -449,18 +450,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(DictionaryHint));
         OnPropertyChanged(nameof(DictionarySelectedIndex));
         OnPropertyChanged(nameof(DictionaryDetailHit));
-        OnPropertyChanged(nameof(DictionaryDetailEntry));
         OnPropertyChanged(nameof(DictionaryDetailTitle));
         OnPropertyChanged(nameof(DictionaryDetailSubtitle));
         OnPropertyChanged(nameof(DictionaryDetailHasSubtitle));
-        OnPropertyChanged(nameof(DictionaryDetailDefinitions));
         OnPropertyChanged(nameof(DictionaryDetailDefinitionText));
+        OnPropertyChanged(nameof(DictionaryDetailSource));
     }
-
-    private static string ChineseHeadwordLine(DictionaryEntry entry)
-        => string.Equals(entry.Traditional, entry.Simplified, StringComparison.Ordinal)
-            ? entry.Simplified
-            : $"{entry.Simplified} / {entry.Traditional}";
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

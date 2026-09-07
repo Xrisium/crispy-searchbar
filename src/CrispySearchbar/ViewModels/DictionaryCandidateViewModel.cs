@@ -1,64 +1,30 @@
-using CrispySearchbar.Core.Dictionary;
-
 namespace CrispySearchbar.ViewModels;
 
 /// <summary>
-/// 候选列表中一行词条的显示模型。
-/// 英文查询按英-汉方向展示：主行是英文词条，副行是中文对应词与拼音。
-/// 中文查询保持汉-英方向展示。
+/// 词典候选行/详情的数据模型基类：
+/// 汉英查询使用 CC-CEDICT 词条，英汉查询使用 ECDICT 词条。
 /// </summary>
-public sealed class DictionaryCandidateViewModel
+public abstract class DictionaryCandidateViewModel
 {
-    private readonly DictionarySearchHit _hit;
+    /// <summary>候选主行：中文词头（汉英）或英文词条（英汉）。</summary>
+    public abstract string HeadwordLine { get; }
 
-    public DictionaryCandidateViewModel(DictionarySearchHit hit)
-    {
-        _hit = hit;
-    }
+    /// <summary>候选副行：拼音/音标与首条释义的摘要。</summary>
+    public abstract string DetailLine { get; }
 
-    public DictionaryEntry Entry => _hit.Entry;
+    /// <summary>详情主标题。</summary>
+    public abstract string DetailTitle { get; }
 
-    public bool IsEnglishMatch => _hit.IsEnglishMatch;
+    /// <summary>详情副标题（繁体、拼音或音标），可为空。</summary>
+    public abstract string DetailSubtitle { get; }
 
-    /// <summary>英文查询命中的英文词形；中文查询为 null。</summary>
-    public string? EnglishForm => _hit.EnglishForm;
+    /// <summary>详情释义列表。</summary>
+    public abstract IReadOnlyList<string> Definitions { get; }
 
-    /// <summary>主行：英文方向显示英文词条，中文方向显示简体/繁体词头。</summary>
-    public string HeadwordLine => IsEnglishMatch
-        ? (EnglishForm ?? Entry.Simplified)
-        : ChineseHeadwordLine;
+    /// <summary>来源词典标识。</summary>
+    public abstract string Source { get; }
 
-    /// <summary>副行：英文方向显示中文词头与拼音；中文方向显示拼音与首条释义。</summary>
-    public string DetailLine
-    {
-        get
-        {
-            if (IsEnglishMatch)
-            {
-                return string.Join(" · ", Parts(ChineseHeadwordLine, Entry.Pinyin));
-            }
-
-            var parts = new List<string>(2);
-            if (!string.IsNullOrWhiteSpace(Entry.Pinyin))
-            {
-                parts.Add(Entry.Pinyin);
-            }
-
-            if (Entry.Definitions.Count > 0)
-            {
-                parts.Add(Entry.Definitions[0]);
-            }
-
-            return string.Join(" · ", parts);
-        }
-    }
-
-    public string ChineseHeadwordLine =>
-        string.Equals(Entry.Traditional, Entry.Simplified, StringComparison.Ordinal)
-            ? Entry.Simplified
-            : $"{Entry.Simplified} / {Entry.Traditional}";
-
-    private static List<string> Parts(params string?[] values)
+    protected static string JoinParts(params string?[] values)
     {
         var parts = new List<string>(values.Length);
         foreach (var value in values)
@@ -69,6 +35,6 @@ public sealed class DictionaryCandidateViewModel
             }
         }
 
-        return parts;
+        return string.Join(" · ", parts);
     }
 }

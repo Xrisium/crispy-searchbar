@@ -188,7 +188,7 @@
                          TextWrapping="Wrap"
                          LineHeight="21" />
 
-              <TextBlock Text="{Binding DictionaryDetailEntry.Source}"
+              <TextBlock Text="{Binding DictionaryDetailSource}"
                          FontSize="11"
                          Foreground="{DynamicResource TextPlaceholderBrush}" />
             </StackPanel>
@@ -198,3 +198,4 @@
     </Popup>
   </Panel>
 </Window>
+
