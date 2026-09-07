@@ -1,8 +1,16 @@
+using CrispySearchbar.Core.Localization;
+
 namespace CrispySearchbar.Core.Configuration;
 
 /// <summary>应用设置。新增字段必须提供可直接运行的默认值。</summary>
 public sealed class AppSettings
 {
+    /// <summary>
+    /// 界面语言代码（BCP 47），当前支持 zh-Hans/en，默认 zh-Hans。
+    /// 未知值由 AppStrings.For 回退到默认简体中文。
+    /// </summary>
+    public string Language { get; set; } = AppLanguage.SimplifiedChinese;
+
     public ThemePreference Theme { get; set; } = ThemePreference.System;
 
     /// <summary>网页搜索使用的默认搜索引擎，可选 baidu/google/bing，默认 baidu。</summary>
@@ -24,4 +32,3 @@ public sealed class AppSettings
     /// </summary>
     public string? EcdictFilePath { get; set; }
 }
-

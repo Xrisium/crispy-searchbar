@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using CrispySearchbar.Core.Dictionary;
+using CrispySearchbar.Core.Localization;
 using CrispySearchbar.Core.Modes;
 using CrispySearchbar.Core.Search;
 using CrispySearchbar.Dictionary;
@@ -14,8 +15,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public const int DictionaryMaxResults = 12;
 
     private const string DictionaryModeKey = "dictionary";
-    private const string EmptyDictionaryHint = "输入英文单词或中文词语，↑/↓ 选择，Enter 查看释义";
-    private const string LoadingDictionaryHint = "正在加载词典数据…";
+
+    private string EmptyDictionaryHint => _strings.DictionaryEmptyHint;
+
+    private string LoadingDictionaryHint => _strings.DictionaryLoadingHint;
+
+    private readonly AppStrings _strings;
 
     private readonly IReadOnlyList<SearchMode> _modes;
     private readonly Action<string> _openUrl;
@@ -33,18 +38,22 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private IReadOnlyList<DictionaryCandidateViewModel> _dictionaryMatches = Array.Empty<DictionaryCandidateViewModel>();
     private int _dictionarySelectedIndex = -1;
     private DictionaryCandidateViewModel? _dictionaryDetailHit;
-    private string _dictionaryHint = EmptyDictionaryHint;
+    private string _dictionaryHint = string.Empty;
 
     public MainWindowViewModel(
+        AppStrings strings,
         IReadOnlyList<SearchMode> modes,
         Action<string> openUrl,
         bool clearQueryOnHide = true,
         Func<Task<DictionaryLoadResult>>? loadDictionary = null)
     {
+        ArgumentNullException.ThrowIfNull(strings);
+        _strings = strings;
         _modes = modes;
         _openUrl = openUrl;
         _clearQueryOnHide = clearQueryOnHide;
         _loadDictionary = loadDictionary;
+        _dictionaryHint = _strings.DictionaryEmptyHint;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -464,7 +473,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 return;
             }
 
-            DictionaryHint = $"词典数据加载失败：{ex.Message}";
+            DictionaryHint = _strings.FormatDictionaryLoadFailed(ex.Message);
             NotifyDictionaryState();
         }
     }
@@ -478,7 +487,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
         if (_loadDictionary is null)
         {
-            return Task.FromResult(DictionaryLoadResult.MissingAll("词典数据源未配置。"));
+            return Task.FromResult(DictionaryLoadResult.MissingAll(_strings.DictionaryDataSourceNotConfigured));
         }
 
         // 加载任务由应用启动时创建一次；后续查询只等待同一个已完成任务，不重新加载。
@@ -509,7 +518,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
         DictionarySelectedIndex = matches.Count > 0 ? 0 : -1;
         DictionaryHint = matches.Count == 0
-            ? $"没有找到“{query}”的条目"
+            ? _strings.FormatDictionaryNoResults(query)
             : string.Empty;
         NotifyDictionaryState();
     }

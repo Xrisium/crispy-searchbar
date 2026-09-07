@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using CrispySearchbar.Core.Configuration;
+using CrispySearchbar.Core.Localization;
 using CrispySearchbar.Core.Modes;
 using CrispySearchbar.Dictionary;
 using CrispySearchbar.Platform;
@@ -24,6 +25,7 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var settings = AppSettingsStore.LoadOrDefault();
+            var strings = AppStrings.For(settings.Language);
             RequestedThemeVariant = settings.Theme switch
             {
                 ThemePreference.Light => ThemeVariant.Light,
@@ -31,13 +33,15 @@ public partial class App : Application
                 _ => ThemeVariant.Default,
             };
 
-            var modes = SearchModeCatalog.CreateDefault(settings);
+            var modes = SearchModeCatalog.CreateDefault(settings, strings);
             // 启动即后台加载两套词典资源；任务只创建一次，应用退出前不会重新加载。
             var dictionaryResources = new AppDictionaryResources(
+                strings,
                 settings.DictionaryFilePath,
                 settings.EcdictFilePath);
             var dictionaryLoadTask = dictionaryResources.LoadAsync(CancellationToken.None);
             var viewModel = new MainWindowViewModel(
+                strings,
                 modes,
                 BrowserLauncher.Open,
                 clearQueryOnHide: settings.ClearQueryOnHide,
@@ -53,7 +57,11 @@ public partial class App : Application
             _hotkeyService.Pressed += ToggleSearchBar;
             _hotkeyService.Start();
 
-            _trayIconService = new TrayIconService(ToggleSearchBar, OpenConfigFile, ExitApplication);
+            _trayIconService = new TrayIconService(
+                strings,
+                ToggleSearchBar,
+                OpenConfigFile,
+                ExitApplication);
 
             // 首次启动也直接显示并聚焦输入框。
             mainWindow.ShowFromTray();
@@ -103,6 +111,3 @@ public partial class App : Application
         }
     }
 }
-
-
-

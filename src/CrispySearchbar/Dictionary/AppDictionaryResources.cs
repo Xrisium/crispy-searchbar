@@ -1,4 +1,5 @@
 using CrispySearchbar.Core.Dictionary;
+using CrispySearchbar.Core.Localization;
 
 namespace CrispySearchbar.Dictionary;
 
@@ -12,14 +13,23 @@ public sealed class AppDictionaryResources
     public const string CedictFileName = "cedict_ts.u8";
     public const string EcdictFileName = "ecdict.csv";
 
+    private const string CedictDisplayName = "CC-CEDICT";
+    private const string EcdictDisplayName = "ECDICT";
     private const string CedictDownloadUrl = "https://www.mdbg.net/chinese/dictionary?page=cedict";
     private const string EcdictDownloadUrl = "https://github.com/skywind3000/ECDICT";
 
+    private readonly AppStrings _strings;
     private readonly string? _cedictFilePath;
     private readonly string? _ecdictFilePath;
 
-    public AppDictionaryResources(string? cedictFilePath, string? ecdictFilePath)
+    public AppDictionaryResources(
+        AppStrings strings,
+        string? cedictFilePath,
+        string? ecdictFilePath)
     {
+        ArgumentNullException.ThrowIfNull(strings);
+
+        _strings = strings;
         _cedictFilePath = NormalizeConfiguredPath(cedictFilePath);
         _ecdictFilePath = NormalizeConfiguredPath(ecdictFilePath);
     }
@@ -59,8 +69,9 @@ public sealed class AppDictionaryResources
             CedictUserDataFilePath,
             CedictBundledDataFilePath,
             CedictFileName,
-            "CC-CEDICT",
-            CedictDownloadUrl);
+            CedictDisplayName,
+            CedictDownloadUrl,
+            _strings);
         if (path is null)
         {
             return (null, message);
@@ -70,9 +81,13 @@ public sealed class AppDictionaryResources
         {
             return (CedictIndexLoader.LoadFile(path), null);
         }
+        catch (FileNotFoundException ex)
+        {
+            return (null, _strings.FormatDictionaryReadFailed(CedictDisplayName, ex.FileName));
+        }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            return (null, $"CC-CEDICT 词典数据读取失败：{ex.Message}");
+            return (null, _strings.FormatDictionaryReadFailed(CedictDisplayName, ex.Message));
         }
     }
 
@@ -83,8 +98,9 @@ public sealed class AppDictionaryResources
             EcdictUserDataFilePath,
             EcdictBundledDataFilePath,
             EcdictFileName,
-            "ECDICT",
-            EcdictDownloadUrl);
+            EcdictDisplayName,
+            EcdictDownloadUrl,
+            _strings);
         if (path is null)
         {
             return (null, message);
@@ -94,9 +110,13 @@ public sealed class AppDictionaryResources
         {
             return (EcdictIndexLoader.LoadFile(path), null);
         }
+        catch (FileNotFoundException ex)
+        {
+            return (null, _strings.FormatDictionaryReadFailed(EcdictDisplayName, ex.FileName));
+        }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            return (null, $"ECDICT 词典数据读取失败：{ex.Message}");
+            return (null, _strings.FormatDictionaryReadFailed(EcdictDisplayName, ex.Message));
         }
     }
 
@@ -106,14 +126,15 @@ public sealed class AppDictionaryResources
         string bundledFilePath,
         string fileName,
         string displayName,
-        string downloadUrl)
+        string downloadUrl,
+        AppStrings strings)
     {
         if (configuredPath is not null)
         {
             var full = Path.GetFullPath(configuredPath);
             return File.Exists(full)
                 ? (full, null)
-                : (null, $"在 settings.json 中指定的 {displayName} 词典文件不存在：{configuredPath}");
+                : (null, strings.FormatConfiguredDictionaryFileMissing(displayName, configuredPath));
         }
 
         if (File.Exists(userDataFilePath))
@@ -126,9 +147,12 @@ public sealed class AppDictionaryResources
             return (bundledFilePath, null);
         }
 
-        return (null, $"未找到 {displayName} 词典数据文件（{fileName}）。"
-            + $"可将文件放到：{userDataFilePath} 或 {bundledFilePath}。"
-            + $"下载地址：{downloadUrl}");
+        return (null, strings.FormatDictionaryDataFileNotFound(
+            displayName,
+            fileName,
+            userDataFilePath,
+            bundledFilePath,
+            downloadUrl));
     }
 
     private static string? NormalizeConfiguredPath(string? path)

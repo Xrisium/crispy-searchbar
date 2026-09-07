@@ -1,5 +1,6 @@
 using System.Text.Json;
 using CrispySearchbar.Core.Configuration;
+using CrispySearchbar.Core.Localization;
 using Xunit;
 
 namespace CrispySearchbar.Core.Tests;
@@ -20,6 +21,7 @@ public class AppSettingsStoreTests
         {
             var settings = AppSettingsStore.LoadOrDefault(dir);
 
+            Assert.Equal(AppLanguage.SimplifiedChinese, settings.Language);
             Assert.Equal(ThemePreference.System, settings.Theme);
             Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
@@ -45,7 +47,8 @@ public class AppSettingsStoreTests
             using var document = JsonDocument.Parse(json);
 
             var names = document.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
-            Assert.Equal(6, names.Length);
+            Assert.Equal(7, names.Length);
+            Assert.Contains("language", names);
             Assert.Contains("theme", names);
             Assert.Contains("searchEngine", names);
             Assert.Contains("clearQueryOnHide", names);
@@ -67,6 +70,7 @@ public class AppSettingsStoreTests
         {
             var expected = new AppSettings
             {
+                Language = AppLanguage.English,
                 Theme = ThemePreference.Dark,
                 SearchEngine = SearchEngineKind.Google,
                 AskAiUrlTemplate = "https://chat.deepseek.com/?q={0}",
@@ -78,6 +82,7 @@ public class AppSettingsStoreTests
             AppSettingsStore.Save(expected, dir);
             var loaded = AppSettingsStore.LoadOrDefault(dir);
 
+            Assert.Equal(AppLanguage.English, loaded.Language);
             Assert.Equal(ThemePreference.Dark, loaded.Theme);
             Assert.Equal(SearchEngineKind.Google, loaded.SearchEngine);
             Assert.Equal(expected.AskAiUrlTemplate, loaded.AskAiUrlTemplate);
@@ -102,6 +107,7 @@ public class AppSettingsStoreTests
 
             var settings = AppSettingsStore.LoadOrDefault(dir);
 
+            Assert.Equal(AppLanguage.SimplifiedChinese, settings.Language);
             Assert.Equal(ThemePreference.System, settings.Theme);
             Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);

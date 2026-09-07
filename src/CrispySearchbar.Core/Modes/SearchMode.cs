@@ -1,6 +1,8 @@
+using CrispySearchbar.Core.Localization;
+
 namespace CrispySearchbar.Core.Modes;
 
-/// <summary>一种可切换的搜索模式。</summary>
+/// <summary>一种可切换的搜索模式。显示文案由调用方按当前语言传入。</summary>
 public sealed record SearchMode(
     string Key,
     string Title,
@@ -8,15 +10,12 @@ public sealed record SearchMode(
     string ActionHint,
     string? UrlTemplate)
 {
-    public static SearchMode WebSearch(string urlTemplate)
-        => new("web-search", "网页搜索", "输入关键词，按 Enter 搜索",
-            "按 Enter 使用默认搜索引擎打开", urlTemplate);
+    public static SearchMode WebSearch(SearchModeTexts texts, string urlTemplate)
+        => new("web-search", texts.Title, texts.Watermark, texts.ActionHint, urlTemplate);
 
-    public static SearchMode AskAi(string urlTemplate)
-        => new("ask-ai", "问问大肥鱼", "输入问题，按 Enter 跳转到 DeepSeek 网页端",
-            "按 Enter 跳转到 DeepSeek 网页端", urlTemplate);
+    public static SearchMode AskAi(SearchModeTexts texts, string urlTemplate)
+        => new("ask-ai", texts.Title, texts.Watermark, texts.ActionHint, urlTemplate);
 
-    public static SearchMode Dictionary { get; } = new(
-        "dictionary", "词典", "输入英文单词或中文词语",
-        "输入后实时查词，Enter 查看释义", UrlTemplate: null);
+    public static SearchMode Dictionary(SearchModeTexts texts)
+        => new("dictionary", texts.Title, texts.Watermark, texts.ActionHint, UrlTemplate: null);
 }

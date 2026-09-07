@@ -1,4 +1,6 @@
-﻿namespace CrispySearchbar.Core.Configuration;
+using CrispySearchbar.Core.Localization;
+
+namespace CrispySearchbar.Core.Configuration;
 
 /// <summary>内置搜索引擎与 URL 模板的映射；配置选择使用这里定义的名字。</summary>
 public static class SearchEngineCatalog
@@ -14,11 +16,10 @@ public static class SearchEngineCatalog
         _ => "https://www.baidu.com/s?wd={0}",
     };
 
-    public static string GetDisplayName(SearchEngineKind engine) => engine switch
+    /// <summary>搜索引擎显示名随当前语言变化，显示文案统一来自 AppStrings。</summary>
+    public static string GetDisplayName(SearchEngineKind engine, AppStrings strings)
     {
-        SearchEngineKind.Baidu => "百度",
-        SearchEngineKind.Google => "Google",
-        SearchEngineKind.Bing => "必应",
-        _ => engine.ToString(),
-    };
+        ArgumentNullException.ThrowIfNull(strings);
+        return strings.GetSearchEngineDisplayName(engine);
+    }
 }

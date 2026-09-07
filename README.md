@@ -52,6 +52,7 @@ Example file:
 
 ```json
 {
+  "language": "zh-Hans",
   "theme": "system",
   "searchEngine": "baidu",
   "clearQueryOnHide": true,
@@ -60,11 +61,14 @@ Example file:
 }
 ```
 
+- `language`: `zh-Hans` (default, Simplified Chinese) or `en` (English). Unsupported values fall back to `zh-Hans`.
 - `theme`: `system`, `light` or `dark`.
 - `searchEngine`: `baidu` (default), `google` or `bing`.
 - `clearQueryOnHide`: `true` (default) clears the typed query whenever the search bar is hidden; `false` keeps it.
 - `askAiUrlTemplate`: must contain `{0}`, replaced by the URL-encoded query.
 - `dictionaryFilePath`: optional absolute path to a CC-CEDICT file; `null` uses the user data directory, then the bundled file.
+
+All user-visible UI text is centralized in `src/CrispySearchbar.Core/Localization/`. Each supported language has a complete `AppStrings` instance registered in `AppLanguage.Supported`; adding another language means adding that instance, registering its code in `AppLanguage.Supported`, and mapping it in `AppStrings.For`.
 
 If the file is missing or corrupt, defaults are used.
 
@@ -82,3 +86,4 @@ data/cc-cedict/                Bundled CC-CEDICT data with its own license/notic
 ## License
 
 Project code is MIT. Third-party dependency and dictionary data licenses are summarized in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); full texts live centrally under `licenses/`, and CC-CEDICT additionally keeps `LICENSE.txt`/`NOTICE` next to its data in `data/cc-cedict/`.
+

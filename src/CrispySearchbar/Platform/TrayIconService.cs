@@ -1,6 +1,7 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
+using CrispySearchbar.Core.Localization;
 
 namespace CrispySearchbar.Platform;
 
@@ -10,21 +11,27 @@ public sealed class TrayIconService : IDisposable
     private readonly TrayIcon _trayIcon;
     private bool _disposed;
 
-    public TrayIconService(Action toggleWindow, Action openConfigFile, Action exitApplication)
+    public TrayIconService(
+        AppStrings strings,
+        Action toggleWindow,
+        Action openConfigFile,
+        Action exitApplication)
     {
+        ArgumentNullException.ThrowIfNull(strings);
+
         var menu = new NativeMenu();
 
-        var toggleItem = new NativeMenuItem("显示 / 隐藏搜索框");
+        var toggleItem = new NativeMenuItem(strings.ShowHideSearchBar);
         toggleItem.Click += (_, _) => toggleWindow();
         menu.Items.Add(toggleItem);
 
-        var configItem = new NativeMenuItem("打开配置文件");
+        var configItem = new NativeMenuItem(strings.OpenConfigFile);
         configItem.Click += (_, _) => openConfigFile();
         menu.Items.Add(configItem);
 
         menu.Items.Add(new NativeMenuItemSeparator());
 
-        var exitItem = new NativeMenuItem("退出");
+        var exitItem = new NativeMenuItem(strings.Exit);
         exitItem.Click += (_, _) => exitApplication();
         menu.Items.Add(exitItem);
 
@@ -32,7 +39,7 @@ public sealed class TrayIconService : IDisposable
         {
             Icon = LoadIcon(),
             Menu = menu,
-            ToolTipText = "Crispy Searchbar（酥脆搜索）",
+            ToolTipText = strings.TrayToolTip,
             IsVisible = true,
         };
 
