@@ -1,10 +1,11 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using CrispySearchbar.Core.Configuration;
 using CrispySearchbar.Core.Modes;
+using CrispySearchbar.Dictionary;
 using CrispySearchbar.Platform;
 using CrispySearchbar.ViewModels;
 

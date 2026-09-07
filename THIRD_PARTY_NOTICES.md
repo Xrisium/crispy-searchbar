@@ -1,8 +1,8 @@
-﻿# Third-Party Notices
+# Third-Party Notices
 
 本项目的代码使用 MIT License（见 `LICENSE`）。下面的第三方依赖和组件各自拥有独立许可证；使用或再分发本项目（含编译产物）时，须遵守这些许可证的条款。
 
-记录生成时间：2026-09-07。许可证信息读取自 NuGet 包元数据；升级依赖后应重新核对并更新本文件。
+记录生成时间：2026-09-08。许可证信息读取自 NuGet 包元数据；升级依赖后应重新核对并更新本文件。
 
 ## 运行时依赖（应用发布时会涉及）
 
@@ -33,6 +33,13 @@
 | SkiaSharp.NativeAssets.WebAssembly | 3.119.4 | MIT |
 | SkiaSharp.NativeAssets.Win32 | 3.119.4 | MIT |
 | Tmds.DBus.Protocol | 0.94.1 | MIT |
+
+## 捆绑数据资产
+
+| 数据 | 版本/获取 | 许可证 | 说明 |
+|---|---|---|---|
+| CC-CEDICT (`data/cc-cedict/cedict_ts.u8`) | 2026-09-07 release，125009 条 | CC BY-SA 4.0 | 来源：MDBG（https://www.mdbg.net/chinese/dictionary?page=cedict）；许可全文与 NOTICE 见 `data/cc-cedict/`。 |
+
 
 ## 测试与开发依赖（不进发布产物）
 

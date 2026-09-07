@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -14,6 +14,12 @@
     <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\data\cc-cedict\cedict_ts.u8" Link="cedict_ts.u8" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\data\cc-cedict\LICENSE.txt" Link="cc-cedict-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\data\cc-cedict\NOTICE" Link="cc-cedict-NOTICE.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <ProjectReference Include="..\CrispySearchbar.Core\CrispySearchbar.Core.csproj" />

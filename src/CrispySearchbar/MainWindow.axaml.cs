@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
+using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using CrispySearchbar.ViewModels;
@@ -45,6 +46,7 @@ public partial class MainWindow : Window
         Activate();
         QueryBox.Focus();
         QueryBox.CaretIndex = QueryBox.Text?.Length ?? 0;
+        ViewModel.OnWindowShown();
     }
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)
@@ -60,6 +62,13 @@ public partial class MainWindow : Window
         Hide();
     }
 
+
+    private void OnDictionaryPopupPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        // 鼠标只是候补：点击浮层后立即把输入焦点还给搜索框。
+        Dispatcher.UIThread.Post(() => QueryBox.Focus(), DispatcherPriority.Input);
+    }
+
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Tab)
@@ -70,6 +79,11 @@ public partial class MainWindow : Window
         else if (e.Key == Key.Escape)
         {
             HideToTray();
+            e.Handled = true;
+        }
+        else if (e.Key is Key.Up or Key.Down && ViewModel.IsDictionaryMode)
+        {
+            ViewModel.MoveDictionarySelection(e.Key == Key.Down ? 1 : -1);
             e.Handled = true;
         }
         else if (e.Key == Key.Enter)

@@ -1,4 +1,4 @@
-﻿namespace CrispySearchbar.Core.Modes;
+namespace CrispySearchbar.Core.Modes;
 
 /// <summary>一种可切换的搜索模式。</summary>
 public sealed record SearchMode(
@@ -18,5 +18,5 @@ public sealed record SearchMode(
 
     public static SearchMode Dictionary { get; } = new(
         "dictionary", "词典", "输入英文单词或中文词语",
-        "词典模式即将支持", UrlTemplate: null);
+        "输入后实时查词，Enter 查看释义", UrlTemplate: null);
 }

@@ -1,4 +1,4 @@
-﻿namespace CrispySearchbar.Core.Configuration;
+namespace CrispySearchbar.Core.Configuration;
 
 /// <summary>应用设置。新增字段必须提供可直接运行的默认值。</summary>
 public sealed class AppSettings
@@ -14,4 +14,8 @@ public sealed class AppSettings
     /// <summary>询问 AI 地址模板，{0} 将被替换为 URL 编码后的查询词。</summary>
     public string AskAiUrlTemplate { get; set; } =
         "https://chat.deepseek.com/?q={0}";
+    /// <summary>
+    /// CC-CEDICT 词典文件路径；留空时依次使用用户数据目录、程序目录中的 cedict_ts.u8。
+    /// </summary>
+    public string? DictionaryFilePath { get; set; }
 }

@@ -1,4 +1,4 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CrispySearchbar.ViewModels"
         x:Class="CrispySearchbar.MainWindow"
@@ -14,81 +14,194 @@
         TransparencyLevelHint="Transparent"
         Title="Crispy Searchbar"
         FontFamily="Segoe UI, Microsoft YaHei UI">
-  <Border Margin="10,8,10,26"
-          Height="54"
-          CornerRadius="27"
-          Background="{DynamicResource SearchSurfaceBrush}"
-          BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
-          BorderThickness="1"
-          BoxShadow="0 8 22 0 #38000000">
-    <Grid ColumnDefinitions="*,Auto">
-      <TextBox x:Name="QueryBox"
-               Grid.Column="0"
-               Margin="0,0,8,0"
-               Text="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-               PlaceholderText="{Binding CurrentMode.Watermark}"
-               Background="Transparent"
-               FontSize="20"
-               Foreground="{DynamicResource TextPrimaryBrush}"
-               CaretBrush="{DynamicResource AccentBrush}"
-               SelectionBrush="{DynamicResource SelectionBrush}"
-               Padding="20,0,8,0"
-               VerticalContentAlignment="Center">
-        <TextBox.Template>
-          <ControlTemplate TargetType="TextBox">
-            <Border Background="Transparent" ClipToBounds="True">
-              <DockPanel Margin="{TemplateBinding Padding}">
-                <ScrollViewer x:Name="PART_ScrollViewer"
-                              HorizontalScrollBarVisibility="Hidden"
-                              VerticalScrollBarVisibility="Hidden">
-                  <Panel>
-                    <TextBlock x:Name="PART_Placeholder"
-                               Text="{TemplateBinding PlaceholderText}"
-                               Foreground="{DynamicResource TextPlaceholderBrush}"
-                               TextTrimming="CharacterEllipsis"
-                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
-                      <TextBlock.IsVisible>
-                        <MultiBinding Converter="{x:Static BoolConverters.And}">
-                          <Binding ElementName="PART_TextPresenter" Path="PreeditText" Converter="{x:Static StringConverters.IsNullOrEmpty}" />
-                          <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Text" Converter="{x:Static StringConverters.IsNullOrEmpty}" />
-                        </MultiBinding>
-                      </TextBlock.IsVisible>
-                    </TextBlock>
+  <Panel>
+    <Border x:Name="CapsuleBorder"
+            Margin="10,8,10,26"
+            Height="54"
+            CornerRadius="27"
+            Background="{DynamicResource SearchSurfaceBrush}"
+            BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
+            BorderThickness="1"
+            BoxShadow="0 8 22 0 #38000000">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBox x:Name="QueryBox"
+                 Grid.Column="0"
+                 Margin="0,0,8,0"
+                 Text="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 PlaceholderText="{Binding CurrentMode.Watermark}"
+                 Background="Transparent"
+                 FontSize="20"
+                 Foreground="{DynamicResource TextPrimaryBrush}"
+                 CaretBrush="{DynamicResource AccentBrush}"
+                 SelectionBrush="{DynamicResource SelectionBrush}"
+                 Padding="20,0,8,0"
+                 VerticalContentAlignment="Center">
+          <TextBox.Template>
+            <ControlTemplate TargetType="TextBox">
+              <Border Background="Transparent" ClipToBounds="True">
+                <DockPanel Margin="{TemplateBinding Padding}">
+                  <ScrollViewer x:Name="PART_ScrollViewer"
+                                HorizontalScrollBarVisibility="Hidden"
+                                VerticalScrollBarVisibility="Hidden">
+                    <Panel>
+                      <TextBlock x:Name="PART_Placeholder"
+                                 Text="{TemplateBinding PlaceholderText}"
+                                 Foreground="{DynamicResource TextPlaceholderBrush}"
+                                 TextTrimming="CharacterEllipsis"
+                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                        <TextBlock.IsVisible>
+                          <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding ElementName="PART_TextPresenter" Path="PreeditText" Converter="{x:Static StringConverters.IsNullOrEmpty}" />
+                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Text" Converter="{x:Static StringConverters.IsNullOrEmpty}" />
+                          </MultiBinding>
+                        </TextBlock.IsVisible>
+                      </TextBlock>
 
-                    <TextPresenter x:Name="PART_TextPresenter"
-                                   Text="{TemplateBinding Text, Mode=TwoWay}"
-                                   CaretBlinkInterval="{TemplateBinding CaretBlinkInterval}"
-                                   CaretIndex="{TemplateBinding CaretIndex}"
-                                   SelectionStart="{TemplateBinding SelectionStart}"
-                                   SelectionEnd="{TemplateBinding SelectionEnd}"
-                                   TextAlignment="{TemplateBinding TextAlignment}"
-                                   TextWrapping="{TemplateBinding TextWrapping}"
-                                   LineHeight="{TemplateBinding LineHeight}"
-                                   LetterSpacing="{TemplateBinding LetterSpacing}"
-                                   SelectionBrush="{TemplateBinding SelectionBrush}"
-                                   SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
-                                   CaretBrush="{TemplateBinding CaretBrush}"
-                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                  </Panel>
-                </ScrollViewer>
-              </DockPanel>
-            </Border>
-          </ControlTemplate>
-        </TextBox.Template>
-      </TextBox>
+                      <TextPresenter x:Name="PART_TextPresenter"
+                                     Text="{TemplateBinding Text, Mode=TwoWay}"
+                                     CaretBlinkInterval="{TemplateBinding CaretBlinkInterval}"
+                                     CaretIndex="{TemplateBinding CaretIndex}"
+                                     SelectionStart="{TemplateBinding SelectionStart}"
+                                     SelectionEnd="{TemplateBinding SelectionEnd}"
+                                     TextAlignment="{TemplateBinding TextAlignment}"
+                                     TextWrapping="{TemplateBinding TextWrapping}"
+                                     LineHeight="{TemplateBinding LineHeight}"
+                                     LetterSpacing="{TemplateBinding LetterSpacing}"
+                                     SelectionBrush="{TemplateBinding SelectionBrush}"
+                                     SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                     CaretBrush="{TemplateBinding CaretBrush}"
+                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Panel>
+                  </ScrollViewer>
+                </DockPanel>
+              </Border>
+            </ControlTemplate>
+          </TextBox.Template>
+        </TextBox>
 
-      <Border Grid.Column="1"
-              Margin="6,0,8,0"
-              Padding="12,5"
-              VerticalAlignment="Center"
-              CornerRadius="999"
-              Background="{DynamicResource HoverBrush}">
-        <TextBlock Text="{Binding CurrentMode.Title}"
-                   FontSize="12"
-                   Foreground="{DynamicResource TextSecondaryBrush}" />
+        <Border Grid.Column="1"
+                Margin="6,0,8,0"
+                Padding="12,5"
+                VerticalAlignment="Center"
+                CornerRadius="999"
+                Background="{DynamicResource HoverBrush}">
+          <TextBlock Text="{Binding CurrentMode.Title}"
+                     FontSize="12"
+                     Foreground="{DynamicResource TextSecondaryBrush}" />
+        </Border>
+      </Grid>
+    </Border>
+
+    <!-- 词典模式候选/详情浮层：用完即收，不是主窗口固定结构。 -->
+    <Popup x:Name="DictionaryPopup"
+           IsOpen="{Binding IsDictionaryMode}"
+           PlacementTarget="{Binding ElementName=CapsuleBorder}"
+           Placement="Bottom"
+           HorizontalOffset="0"
+           VerticalOffset="10"
+           IsLightDismissEnabled="False">
+      <Border Width="640"
+             PointerPressed="OnDictionaryPopupPointerPressed"
+              Background="{DynamicResource SearchSurfaceBrush}"
+              BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
+              BorderThickness="1"
+              CornerRadius="18"
+              BoxShadow="0 12 28 0 #38000000">
+        <Grid>
+          <!-- 候选列表 / 空状态提示 -->
+          <Grid IsVisible="{Binding IsDictionaryPanelOpen}">
+            <TextBlock Text="{Binding DictionaryHint}"
+                       IsVisible="{Binding ShowDictionaryHint}"
+                       Margin="20,16"
+                       FontSize="13"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Top" />
+
+            <ListBox ItemsSource="{Binding DictionaryCandidates}"
+                     IsVisible="{Binding HasDictionaryCandidates}"
+                     SelectedIndex="{Binding DictionarySelectedIndex, Mode=TwoWay}"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     Padding="4"
+                     MaxHeight="330"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+              <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                  <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                  <Setter Property="Padding" Value="12,5" />
+                  <Setter Property="Margin" Value="4,1" />
+                  <Setter Property="Background" Value="Transparent" />
+                  <Setter Property="CornerRadius" Value="8" />
+                </Style>
+                <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                  <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+                  <Setter Property="CornerRadius" Value="8" />
+                </Style>
+                <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                  <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+                  <Setter Property="CornerRadius" Value="8" />
+                </Style>
+              </ListBox.Styles>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:DictionaryCandidateViewModel">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="{Binding HeadwordLine}"
+                               FontSize="14"
+                               FontWeight="600"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding DetailLine}"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+
+          <!-- 详情卡片：不另开系统窗口，保持在当前窗口浮层内。 -->
+          <ScrollViewer MaxHeight="400"
+                        IsVisible="{Binding IsDictionaryDetailOpen}"
+                        HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="18,16" Spacing="10">
+              <StackPanel Spacing="2">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <TextBlock Text="{Binding DictionaryDetailEntry.Simplified}"
+                             FontSize="20"
+                             FontWeight="600"
+                             Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Text="{Binding DictionaryDetailEntry.Traditional}"
+                             IsVisible="{Binding DictionaryDetailHasTraditional}"
+                             FontSize="14"
+                             Foreground="{DynamicResource TextSecondaryBrush}"
+                             VerticalAlignment="Bottom" />
+                </StackPanel>
+                <TextBlock Text="{Binding DictionaryDetailEntry.Pinyin}"
+                           IsVisible="{Binding DictionaryDetailHasPinyin}"
+                           FontSize="13"
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
+              </StackPanel>
+
+              <Border Height="1"
+                      Background="{DynamicResource DividerBrush}" />
+
+              <TextBlock Text="{Binding DictionaryDetailDefinitionText}"
+                         FontSize="13"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         TextWrapping="Wrap"
+                         LineHeight="21" />
+
+              <TextBlock Text="{Binding DictionaryDetailEntry.Source}"
+                         FontSize="11"
+                         Foreground="{DynamicResource TextPlaceholderBrush}" />
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
       </Border>
-    </Grid>
-  </Border>
+    </Popup>
+  </Panel>
 </Window>

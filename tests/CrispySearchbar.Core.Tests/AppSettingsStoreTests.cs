@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using CrispySearchbar.Core.Configuration;
 using Xunit;
 
@@ -24,6 +24,7 @@ public class AppSettingsStoreTests
             Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
             Assert.True(settings.ClearQueryOnHide);
+            Assert.Null(settings.DictionaryFilePath);
             Assert.True(File.Exists(Path.Combine(dir, AppSettingsStore.FileName)));
         }
         finally
@@ -43,11 +44,12 @@ public class AppSettingsStoreTests
             using var document = JsonDocument.Parse(json);
 
             var names = document.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
-            Assert.Equal(4, names.Length);
+            Assert.Equal(5, names.Length);
             Assert.Contains("theme", names);
             Assert.Contains("searchEngine", names);
             Assert.Contains("clearQueryOnHide", names);
             Assert.Contains("askAiUrlTemplate", names);
+            Assert.Contains("dictionaryFilePath", names);
         }
         finally
         {
@@ -67,6 +69,7 @@ public class AppSettingsStoreTests
                 SearchEngine = SearchEngineKind.Google,
                 AskAiUrlTemplate = "https://chat.deepseek.com/?q={0}",
                 ClearQueryOnHide = false,
+                DictionaryFilePath = "C:\\dict\\cedict_ts.u8",
             };
 
             AppSettingsStore.Save(expected, dir);
@@ -76,6 +79,7 @@ public class AppSettingsStoreTests
             Assert.Equal(SearchEngineKind.Google, loaded.SearchEngine);
             Assert.Equal(expected.AskAiUrlTemplate, loaded.AskAiUrlTemplate);
             Assert.False(loaded.ClearQueryOnHide);
+            Assert.Equal("C:\\dict\\cedict_ts.u8", loaded.DictionaryFilePath);
         }
         finally
         {
@@ -98,6 +102,7 @@ public class AppSettingsStoreTests
             Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
             Assert.True(settings.ClearQueryOnHide);
+            Assert.Null(settings.DictionaryFilePath);
         }
         finally
         {
