@@ -268,10 +268,29 @@ public partial class MainWindow : Window
     {
         if (!ViewModel.IsModeWheelOpen)
         {
-            return;
+            // Tab 按住期间滚动：立即呼出轮盘，并把这次滚动用于移动高亮。
+            if (_tabDown && !_suppressTabRelease)
+            {
+                _tabHoldTimer.Stop();
+                ViewModel.OpenModeWheel();
+                _modeWheelOpened = true;
+            }
+            else
+            {
+                return;
+            }
         }
 
         ViewModel.MoveModeWheelSelection(e.Delta.Y > 0 ? -1 : 1);
         e.Handled = true;
+    }
+
+    private void OnCapsulePointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        // 点击胶囊任意位置（含右侧模式标签）都把输入焦点还给输入框。
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            QueryBox.Focus();
+        }
     }
 }

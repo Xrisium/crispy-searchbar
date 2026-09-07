@@ -55,7 +55,8 @@ public partial class App : Application
 
             _trayIconService = new TrayIconService(ToggleSearchBar, OpenConfigFile, ExitApplication);
 
-            mainWindow.Show();
+            // 首次启动也直接显示并聚焦输入框。
+            mainWindow.ShowFromTray();
         }
 
         base.OnFrameworkInitializationCompleted();
