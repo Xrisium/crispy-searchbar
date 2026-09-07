@@ -75,6 +75,7 @@ src/CrispySearchbar/           Avalonia UI application (window, tray, Windows ho
 src/CrispySearchbar.Core/      Platform-independent core (settings, modes, URL building, dictionary index)
 tests/CrispySearchbar.Core.Tests/  Unit tests for core logic
 licenses/                     Centralized full texts of third-party licenses
+assets/icon/                  App icon master PNG and multi-size ICO source assets
 data/cc-cedict/                Bundled CC-CEDICT data with its own license/notice
 ```
 

@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>CrispySearchbar</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\assets\icon\crispy-searchbar.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
   </PropertyGroup>
