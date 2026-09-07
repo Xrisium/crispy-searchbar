@@ -29,9 +29,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public SearchMode CurrentMode => _modes[_modeIndex];
 
-    /// <summary>输入为空时显示占位提示。</summary>
-    public bool ShowPlaceholder => string.IsNullOrEmpty(Query);
-
     public string Query
     {
         get => _query;
@@ -44,7 +41,6 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
             _query = value;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(ShowPlaceholder));
         }
     }
 
@@ -85,3 +81,4 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
+

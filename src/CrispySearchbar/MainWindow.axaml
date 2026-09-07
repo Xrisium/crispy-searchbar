@@ -22,52 +22,62 @@
           BorderThickness="1"
           BoxShadow="0 8 22 0 #38000000">
     <Grid ColumnDefinitions="*,Auto">
-      <Panel Grid.Column="0" Margin="0,0,8,0">
-        <TextBlock Text="{Binding CurrentMode.Watermark}"
-                   IsVisible="{Binding ShowPlaceholder}"
-                   IsHitTestVisible="False"
-                   Foreground="{DynamicResource TextPlaceholderBrush}"
-                   FontSize="20"
-                   TextTrimming="CharacterEllipsis"
-                   Margin="20,0,8,0"
-                   VerticalAlignment="Center" />
-
-        <TextBox x:Name="QueryBox"
-                 Text="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                 Background="Transparent"
-                 FontSize="20"
-                 Foreground="{DynamicResource TextPrimaryBrush}"
-                 CaretBrush="{DynamicResource AccentBrush}"
-                 SelectionBrush="{DynamicResource SelectionBrush}"
-                 Padding="20,0,8,0"
-                 VerticalContentAlignment="Center">
-          <TextBox.Template>
-            <ControlTemplate TargetType="TextBox">
-              <Border Background="Transparent" ClipToBounds="True">
+      <TextBox x:Name="QueryBox"
+               Grid.Column="0"
+               Margin="0,0,8,0"
+               Text="{Binding Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+               PlaceholderText="{Binding CurrentMode.Watermark}"
+               Background="Transparent"
+               FontSize="20"
+               Foreground="{DynamicResource TextPrimaryBrush}"
+               CaretBrush="{DynamicResource AccentBrush}"
+               SelectionBrush="{DynamicResource SelectionBrush}"
+               Padding="20,0,8,0"
+               VerticalContentAlignment="Center">
+        <TextBox.Template>
+          <ControlTemplate TargetType="TextBox">
+            <Border Background="Transparent" ClipToBounds="True">
+              <DockPanel Margin="{TemplateBinding Padding}">
                 <ScrollViewer x:Name="PART_ScrollViewer"
                               HorizontalScrollBarVisibility="Hidden"
                               VerticalScrollBarVisibility="Hidden">
-                  <TextPresenter x:Name="PART_TextPresenter"
-                                 Text="{TemplateBinding Text, Mode=TwoWay}"
-                                 CaretBlinkInterval="{TemplateBinding CaretBlinkInterval}"
-                                 CaretIndex="{TemplateBinding CaretIndex}"
-                                 SelectionStart="{TemplateBinding SelectionStart}"
-                                 SelectionEnd="{TemplateBinding SelectionEnd}"
-                                 TextAlignment="{TemplateBinding TextAlignment}"
-                                 TextWrapping="{TemplateBinding TextWrapping}"
-                                 LineHeight="{TemplateBinding LineHeight}"
-                                 LetterSpacing="{TemplateBinding LetterSpacing}"
-                                 SelectionBrush="{TemplateBinding SelectionBrush}"
-                                 SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
-                                 CaretBrush="{TemplateBinding CaretBrush}"
-                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                  <Panel>
+                    <TextBlock x:Name="PART_Placeholder"
+                               Text="{TemplateBinding PlaceholderText}"
+                               Foreground="{DynamicResource TextPlaceholderBrush}"
+                               TextTrimming="CharacterEllipsis"
+                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                      <TextBlock.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                          <Binding ElementName="PART_TextPresenter" Path="PreeditText" Converter="{x:Static StringConverters.IsNullOrEmpty}" />
+                          <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Text" Converter="{x:Static StringConverters.IsNullOrEmpty}" />
+                        </MultiBinding>
+                      </TextBlock.IsVisible>
+                    </TextBlock>
+
+                    <TextPresenter x:Name="PART_TextPresenter"
+                                   Text="{TemplateBinding Text, Mode=TwoWay}"
+                                   CaretBlinkInterval="{TemplateBinding CaretBlinkInterval}"
+                                   CaretIndex="{TemplateBinding CaretIndex}"
+                                   SelectionStart="{TemplateBinding SelectionStart}"
+                                   SelectionEnd="{TemplateBinding SelectionEnd}"
+                                   TextAlignment="{TemplateBinding TextAlignment}"
+                                   TextWrapping="{TemplateBinding TextWrapping}"
+                                   LineHeight="{TemplateBinding LineHeight}"
+                                   LetterSpacing="{TemplateBinding LetterSpacing}"
+                                   SelectionBrush="{TemplateBinding SelectionBrush}"
+                                   SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                   CaretBrush="{TemplateBinding CaretBrush}"
+                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                  </Panel>
                 </ScrollViewer>
-              </Border>
-            </ControlTemplate>
-          </TextBox.Template>
-        </TextBox>
-      </Panel>
+              </DockPanel>
+            </Border>
+          </ControlTemplate>
+        </TextBox.Template>
+      </TextBox>
 
       <Border Grid.Column="1"
               Margin="6,0,8,0"
