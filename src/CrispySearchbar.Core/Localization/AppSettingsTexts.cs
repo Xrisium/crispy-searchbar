@@ -30,6 +30,30 @@ public sealed class AppSettingsTexts
 
     public required string UrlTemplatePlaceholderError { get; init; }
 
+    public required string AboutIntro { get; init; }
+
+    public required string AboutVersionLabel { get; init; }
+
+    public required string AboutLicenseLine { get; init; }
+
+    public required string AboutGitHubLinkLabel { get; init; }
+
+    public required string AboutThirdPartyNoticesLinkLabel { get; init; }
+
+    public required string ResetConfigText { get; init; }
+
+    public required string ResetConfigDescription { get; init; }
+
+    public required string ResetConfirmTitle { get; init; }
+
+    public required string ResetConfirmMessage { get; init; }
+
+    public required string ResetConfirmAcceptText { get; init; }
+
+    public required string ResetConfirmCancelText { get; init; }
+
+    public required string ResetDoneStatus { get; init; }
+
     public required IReadOnlyDictionary<string, string> SectionTitles { get; init; }
 
     public required IReadOnlyDictionary<string, string> FieldLabels { get; init; }

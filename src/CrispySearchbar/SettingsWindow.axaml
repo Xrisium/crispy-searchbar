@@ -120,6 +120,15 @@
       <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
       <Setter Property="TextDecorations" Value="Underline" />
     </Style>
+    <Style Selector="TextBlock.aboutLink">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="TextBlock.aboutLink:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
     <Style Selector="Thumb.settingsScrollThumb">
       <Setter Property="Opacity" Value="0.55" />
       <Setter Property="Transitions">
@@ -332,8 +341,70 @@
         </Grid>
       </Border>
     </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:AboutParagraphViewModel}">
+      <Border BorderBrush="{DynamicResource DividerBrush}"
+              BorderThickness="0,0,0,1"
+              Padding="0,10">
+        <TextBlock Text="{Binding Text}"
+                   FontSize="13"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   TextWrapping="Wrap" />
+      </Border>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:AboutVersionViewModel}">
+      <Border BorderBrush="{DynamicResource DividerBrush}"
+              BorderThickness="0,0,0,1"
+              Padding="0,10">
+        <Grid ColumnDefinitions="Auto,*">
+          <TextBlock Grid.Column="0"
+                     Text="{Binding Label}"
+                     FontSize="13"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
+                     VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1"
+                     Text="{Binding Value}"
+                     Margin="12,0,0,0"
+                     FontSize="13"
+                     FontWeight="500"
+                     Foreground="{DynamicResource TextPrimaryBrush}"
+                     TextTrimming="CharacterEllipsis"
+                     VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:AboutLinkViewModel}">
+      <Border BorderBrush="{DynamicResource DividerBrush}"
+              BorderThickness="0,0,0,1"
+              Padding="0,10">
+        <TextBlock Text="{Binding Label}"
+                   Classes="aboutLink"
+                   ToolTip.Tip="{Binding Target}"
+                   Tapped="OnAboutLinkTapped" />
+      </Border>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:AboutActionViewModel}">
+      <Border BorderBrush="{DynamicResource DividerBrush}"
+              BorderThickness="0,0,0,1"
+              Padding="0,12">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{Binding Description}"
+                     FontSize="12"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
+                     TextWrapping="Wrap" />
+          <Button Classes="secondary"
+                  Content="{Binding Text}"
+                  HorizontalAlignment="Left"
+                  Click="OnResetConfigClicked" />
+        </StackPanel>
+      </Border>
+    </DataTemplate>
   </Window.DataTemplates>
 
+  <Grid>
   <Border Margin="10"
           Background="{DynamicResource SearchSurfaceBrush}"
           BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
@@ -487,7 +558,7 @@
                   <Border Height="1"
                           Margin="0,8,0,12"
                           Background="{DynamicResource DividerBrush}" />
-                  <ItemsControl ItemsSource="{Binding Fields}" />
+                  <ItemsControl ItemsSource="{Binding Items}" />
                 </StackPanel>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -496,4 +567,40 @@
       </Grid>
     </DockPanel>
   </Border>
+    <Border IsVisible="{Binding IsResetConfirmationVisible}"
+            Background="#66000000"
+            ZIndex="1">
+      <Border Width="340"
+              Padding="22"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Background="{DynamicResource SearchSurfaceBrush}"
+              BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
+              BorderThickness="1"
+              CornerRadius="14"
+              BoxShadow="0 12 28 0 #40000000">
+        <StackPanel Spacing="14">
+          <TextBlock Text="{Binding ResetConfirmationTitle}"
+                     FontSize="15"
+                     FontWeight="600"
+                     Foreground="{DynamicResource TextPrimaryBrush}"
+                     TextWrapping="Wrap" />
+          <TextBlock Text="{Binding ResetConfirmationMessage}"
+                     FontSize="12"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
+                     TextWrapping="Wrap" />
+          <StackPanel Orientation="Horizontal"
+                      Spacing="8"
+                      HorizontalAlignment="Right">
+            <Button Classes="secondary"
+                    Content="{Binding ResetConfirmationCancelText}"
+                    Click="OnResetCancelledClicked" />
+            <Button Classes="primary"
+                    Content="{Binding ResetConfirmationAcceptText}"
+                    Click="OnResetConfirmedClicked" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Border>
+  </Grid>
 </Window>

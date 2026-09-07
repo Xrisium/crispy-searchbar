@@ -198,4 +198,28 @@ public sealed partial class SettingsWindow : Window
 
     private void OnConfigPathTapped(object? sender, TappedEventArgs e)
         => BrowserLauncher.OpenFileWithDefaultApplication(ViewModel.ConfigFilePath);
+
+    private void OnAboutLinkTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Control { DataContext: AboutLinkViewModel link })
+        {
+            if (link.OpenAsFile)
+            {
+                BrowserLauncher.OpenFileWithDefaultApplication(link.Target);
+            }
+            else
+            {
+                BrowserLauncher.Open(link.Target);
+            }
+        }
+    }
+
+    private void OnResetConfigClicked(object? sender, RoutedEventArgs e)
+        => ViewModel.ShowResetConfirmation();
+
+    private void OnResetConfirmedClicked(object? sender, RoutedEventArgs e)
+        => ViewModel.TryResetConfiguration();
+
+    private void OnResetCancelledClicked(object? sender, RoutedEventArgs e)
+        => ViewModel.HideResetConfirmation();
 }

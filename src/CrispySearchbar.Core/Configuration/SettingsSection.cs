@@ -10,4 +10,5 @@ public enum SettingsSection
     Appearance,
     Search,
     Dictionary,
+    About,
 }

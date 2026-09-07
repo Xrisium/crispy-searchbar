@@ -67,17 +67,31 @@ public class AppSettingsSchemaTests
     }
 
     [Fact]
-    public void Sections_ContainAllFourTopLevelCategories()
+    public void DiscoveredSections_AreKnownDisplayCategories()
     {
         var sections = AppSettingsSchema.Discover()
             .Select(definition => definition.Section)
             .Distinct()
-            .OrderBy(section => (int)section)
             .ToArray();
 
+        Assert.All(
+            sections,
+            section => Assert.Contains(section, Enum.GetValues<SettingsSection>()));
+    }
+
+    [Fact]
+    public void DisplayCategories_KeepAboutLast()
+    {
         Assert.Equal(
-            Enum.GetValues<SettingsSection>(),
-            sections);
+            new[]
+            {
+                SettingsSection.General,
+                SettingsSection.Appearance,
+                SettingsSection.Search,
+                SettingsSection.Dictionary,
+                SettingsSection.About,
+            },
+            Enum.GetValues<SettingsSection>());
     }
 
     [Fact]

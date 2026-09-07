@@ -52,6 +52,8 @@ Tray menu → “设置 / Settings” opens a visual settings editor for the sam
 
 The settings window is generated from `AppSettings` property annotations (`[Setting]`). Adding a new configurable property plus its localized copy makes a new editing row appear automatically; no per-field window code is needed.
 
+The About section at the bottom is informational: it shows the app version, links to the GitHub repository and `THIRD_PARTY_NOTICES.md`, and offers a reset button that restores `settings.json` to defaults after confirmation.
+
 Example file:
 
 ```json

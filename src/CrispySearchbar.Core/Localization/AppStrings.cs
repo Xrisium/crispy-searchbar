@@ -78,12 +78,25 @@ public sealed class AppStrings
             SaveFailedTemplate = "保存失败：{0}",
             UrlTemplateRequiredError = "请输入网址模板。",
             UrlTemplatePlaceholderError = "网址模板必须包含 {0} 占位符。",
+            AboutIntro = "Crispy Searchbar（酥脆搜索）—— 轻量、快速、现代的 Windows 全局搜索框。",
+            AboutVersionLabel = "版本",
+            AboutLicenseLine = "本项目代码以 MIT 许可证开源。",
+            AboutGitHubLinkLabel = "GitHub 仓库",
+            AboutThirdPartyNoticesLinkLabel = "第三方许可声明",
+            ResetConfigText = "重置配置文件",
+            ResetConfigDescription = "将 settings.json 恢复为默认值并立即应用。",
+            ResetConfirmTitle = "重置配置文件？",
+            ResetConfirmMessage = "将把 settings.json 恢复为默认值并立即应用，当前未保存的修改会丢失。",
+            ResetConfirmAcceptText = "重置",
+            ResetConfirmCancelText = "取消",
+            ResetDoneStatus = "已重置为默认配置。",
             SectionTitles = new Dictionary<string, string>
             {
                 [nameof(SettingsSection.General)] = "通用",
                 [nameof(SettingsSection.Appearance)] = "外观",
                 [nameof(SettingsSection.Search)] = "搜索",
                 [nameof(SettingsSection.Dictionary)] = "词典",
+                [nameof(SettingsSection.About)] = "关于",
             },
             FieldLabels = new Dictionary<string, string>
             {
@@ -170,12 +183,25 @@ public sealed class AppStrings
             SaveFailedTemplate = "Failed to save: {0}",
             UrlTemplateRequiredError = "Enter a URL template.",
             UrlTemplatePlaceholderError = "The URL template must contain the {0} placeholder.",
+            AboutIntro = "Crispy Searchbar — a tiny, modern global search bar for Windows.",
+            AboutVersionLabel = "Version",
+            AboutLicenseLine = "Project code is open source under the MIT License.",
+            AboutGitHubLinkLabel = "GitHub repository",
+            AboutThirdPartyNoticesLinkLabel = "Third-party notices",
+            ResetConfigText = "Reset configuration file",
+            ResetConfigDescription = "Restores settings.json to defaults and applies it immediately.",
+            ResetConfirmTitle = "Reset configuration file?",
+            ResetConfirmMessage = "settings.json will be restored to defaults and applied immediately; unsaved changes will be lost.",
+            ResetConfirmAcceptText = "Reset",
+            ResetConfirmCancelText = "Cancel",
+            ResetDoneStatus = "Reset to default configuration.",
             SectionTitles = new Dictionary<string, string>
             {
                 [nameof(SettingsSection.General)] = "General",
                 [nameof(SettingsSection.Appearance)] = "Appearance",
                 [nameof(SettingsSection.Search)] = "Search",
                 [nameof(SettingsSection.Dictionary)] = "Dictionary",
+                [nameof(SettingsSection.About)] = "About",
             },
             FieldLabels = new Dictionary<string, string>
             {
