@@ -7,19 +7,52 @@ namespace CrispySearchbar;
 
 public partial class MainWindow : Window
 {
+    private bool _allowClose;
+
     public MainWindow()
     {
         InitializeComponent();
 
         // 键盘事件用隧道方式拦截，保证 Tab 不会先移动焦点。
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+        Closing += OnClosing;
     }
 
     private MainWindowViewModel ViewModel => (MainWindowViewModel)DataContext!;
 
-    private void OnOpened(object? sender, EventArgs e)
+    public void AllowClose() => _allowClose = true;
+
+    /// <summary>隐藏到托盘；应用保持运行，等待全局快捷键或托盘菜单唤回。</summary>
+    public void HideToTray() => Hide();
+
+    /// <summary>从托盘/全局快捷键唤出：显示、恢复、激活并聚焦输入框。</summary>
+    public void ShowFromTray()
     {
+        if (!IsVisible)
+        {
+            Show();
+        }
+
+        if (WindowState == WindowState.Minimized)
+        {
+            WindowState = WindowState.Normal;
+        }
+
+        Activate();
         QueryBox.Focus();
+        QueryBox.CaretIndex = QueryBox.Text?.Length ?? 0;
+    }
+
+    private void OnClosing(object? sender, WindowClosingEventArgs e)
+    {
+        if (_allowClose)
+        {
+            return;
+        }
+
+        // 托盘常驻应用：关闭请求（Alt+F4 等）一律转为隐藏。
+        e.Cancel = true;
+        Hide();
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
@@ -31,8 +64,7 @@ public partial class MainWindow : Window
         }
         else if (e.Key == Key.Escape)
         {
-            // 开发版：Esc 直接退出。接入全局快捷键与托盘常驻后改为隐藏窗口。
-            Close();
+            HideToTray();
             e.Handled = true;
         }
         else if (e.Key == Key.Enter)
@@ -42,4 +74,3 @@ public partial class MainWindow : Window
         }
     }
 }
-

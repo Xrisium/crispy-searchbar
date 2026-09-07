@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -11,6 +11,10 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
   </PropertyGroup>
 
+    <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\CrispySearchbar.Core\CrispySearchbar.Core.csproj" />
   </ItemGroup>
@@ -22,3 +26,4 @@
   </ItemGroup>
 
 </Project>
+

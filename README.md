@@ -4,11 +4,13 @@ A tiny, modern global search bar for Windows. Built with C# and Avalonia UI, des
 
 ## Status
 
-Current milestone: runnable scaffold. The app launches a search-window shell with three switchable modes (web search, ask AI, dictionary), a local JSON config file, and the project foundation split into platform-independent core and Avalonia app layers.
+Current milestone: resident search shell.
 
-- Web search and “ask AI” both open the default browser using a configurable URL template (query is URL-encoded into `{0}`).
-- Dictionary mode is a placeholder for now.
-- `Esc` quits in this development build; global hotkey, tray, and hide-instead-of-quit behavior come next.
+- The visible UI is a single rounded capsule search bar; candidate panels are only added later for modes that need them (e.g. dictionary).
+- `Alt+Space` shows/hides the search bar; `Esc` hides it; the app keeps running in the tray with a “show/hide” menu and an “exit” menu.
+- Tab cycles through modes: web search, ask AI, dictionary (dictionary is still a placeholder).
+- Web search and “ask AI” open the default browser using a configurable URL template (the query is URL-encoded into `{0}`).
+- The default web search engine is Baidu; Google and Bing can be selected in the config file.
 
 ## Requirements
 
@@ -30,12 +32,28 @@ dotnet test
 
 ## Configuration
 
-On first run the app creates `settings.json` under `%APPDATA%\CrispySearchbar` with defaults (theme, search engine URL template, AI chat URL template). Delete the file to reset defaults.
+On first run the app creates `settings.json` in the same directory as the executable (in development this is the `bin` output directory; in a published build it sits next to the exe), so users can edit it directly. A GUI settings page can reuse the same file/model later.
+
+Example file:
+
+```json
+{
+  "theme": "system",
+  "searchEngine": "baidu",
+  "askAiUrlTemplate": "https://chat.deepseek.com/?q={0}"
+}
+```
+
+- `theme`: `system`, `light` or `dark`.
+- `searchEngine`: `baidu` (default), `google` or `bing`.
+- `askAiUrlTemplate`: must contain `{0}`, replaced by the URL-encoded query.
+
+If the file is missing or corrupt, defaults are used.
 
 ## Repository layout
 
 ```text
-src/CrispySearchbar/           Avalonia UI application (Windows integration later)
+src/CrispySearchbar/           Avalonia UI application (window, tray, Windows hotkey)
 src/CrispySearchbar.Core/      Platform-independent core (settings, modes, URL building)
 tests/CrispySearchbar.Core.Tests/  Unit tests for core logic
 ```
