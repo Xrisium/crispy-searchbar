@@ -20,12 +20,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private string LoadingDictionaryHint => _strings.DictionaryLoadingHint;
 
-    private readonly AppStrings _strings;
+    private AppStrings _strings;
 
-    private readonly IReadOnlyList<SearchMode> _modes;
+    private IReadOnlyList<SearchMode> _modes;
     private readonly Action<string> _openUrl;
-    private readonly Func<Task<DictionaryLoadResult>>? _loadDictionary;
-    private readonly bool _clearQueryOnHide;
+    private Func<Task<DictionaryLoadResult>>? _loadDictionary;
+    private bool _clearQueryOnHide;
 
     private int _modeIndex;
     private bool _isModeWheelOpen;
@@ -57,6 +57,71 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    /// <summary>设置保存后由 App 调用，运行期切换语言/模式/隐藏行为，不重建窗口。</summary>
+    public void ApplyConfiguration(
+        AppStrings strings,
+        IReadOnlyList<SearchMode> modes,
+        bool clearQueryOnHide)
+    {
+        ArgumentNullException.ThrowIfNull(strings);
+        ArgumentNullException.ThrowIfNull(modes);
+
+        _strings = strings;
+        _modes = modes;
+        _clearQueryOnHide = clearQueryOnHide;
+        if (_modes.Count > 0)
+        {
+            _modeIndex = Math.Clamp(_modeIndex, 0, _modes.Count - 1);
+        }
+
+        OnPropertyChanged(nameof(CurrentMode));
+        OnPropertyChanged(nameof(Modes));
+
+        if (IsDictionaryMode)
+        {
+            if (string.IsNullOrWhiteSpace(Query))
+            {
+                ClearDictionaryState();
+                DictionaryHint = EmptyDictionaryHint;
+                NotifyDictionaryState();
+            }
+            else
+            {
+                _ = SearchDictionaryAsync();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 词典路径配置变化后由 App 调用，替换数据源加载任务；
+    /// 正在查询/展示的旧数据会被取消，词典模式下新查询再等待新任务。
+    /// </summary>
+    public void ReloadDictionarySource(Func<Task<DictionaryLoadResult>> loadDictionary)
+    {
+        ArgumentNullException.ThrowIfNull(loadDictionary);
+
+        _loadDictionary = loadDictionary;
+        _dictionaryLoadTask = null;
+        if (!IsDictionaryMode)
+        {
+            return;
+        }
+
+        _dictionaryQueryCts?.Cancel();
+        _dictionarySearchVersion++;
+        ClearDictionarySearchResults();
+
+        if (string.IsNullOrWhiteSpace(Query))
+        {
+            DictionaryHint = EmptyDictionaryHint;
+            NotifyDictionaryState();
+        }
+        else
+        {
+            _ = SearchDictionaryAsync();
+        }
+    }
 
     public SearchMode CurrentMode => _modes[_modeIndex];
 

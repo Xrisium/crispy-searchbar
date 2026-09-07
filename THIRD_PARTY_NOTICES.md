@@ -22,7 +22,7 @@
 
 | 资源 | 来源 | 许可证 |
 |---|---|---|
-| `src/CrispySearchbar/Assets/Icons/lucide-globe.svg`、`src/CrispySearchbar/Assets/Icons/lucide-book-open-text.svg` | Lucide（lucide-icons/lucide）`main` commit `a537cb6eb323b885f4c60baf3cec1a995982d167` 的 `icons/globe.svg`、`icons/book-open-text.svg` | [ISC](licenses/ISC.txt)，Copyright (c) 2026 Lucide Icons and Contributors |
+| `src/CrispySearchbar/Assets/Icons/lucide-globe.svg`、`lucide-book-open-text.svg`、`lucide-sliders-horizontal.svg`、`lucide-palette.svg`、`lucide-search.svg` | Lucide（lucide-icons/lucide）`main` commit `a537cb6eb323b885f4c60baf3cec1a995982d167` 的 `icons/globe.svg`、`icons/book-open-text.svg`、`icons/sliders-horizontal.svg`、`icons/palette.svg`、`icons/search.svg` | [ISC](licenses/ISC.txt)，Copyright (c) 2026 Lucide Icons and Contributors |
 | `src/CrispySearchbar/Assets/Icons/deepseek-whale.svg` | DeepSeek（deepseek-ai/deepseek-harness）`master` commit `c389f96bf3a9b6807cb71ed6bdad5849be0df6d8` 的 `apps/web/public/favicon.svg` | [MIT](licenses/MIT.txt)，Copyright (c) 2026 DeepSeek |
 ## 运行时依赖（应用发布时会涉及）
 

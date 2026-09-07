@@ -75,4 +75,53 @@ public class AppStringsTests
         Assert.Equal("百度", AppStrings.SimplifiedChinese.GetSearchEngineDisplayName(SearchEngineKind.Baidu));
         Assert.Equal("Baidu", AppStrings.English.GetSearchEngineDisplayName(SearchEngineKind.Baidu));
     }
+
+    [Fact]
+    public void SettingsTexts_CoverEverySchemaFieldAndOptionInBothLanguages()
+    {
+        var chinese = AppStrings.SimplifiedChinese.SettingsTexts;
+        var english = AppStrings.English.SettingsTexts;
+
+        Assert.Equal(
+            chinese.FieldLabels.Keys.OrderBy(key => key, StringComparer.Ordinal),
+            english.FieldLabels.Keys.OrderBy(key => key, StringComparer.Ordinal));
+        Assert.Equal(
+            chinese.FieldDescriptions.Keys.OrderBy(key => key, StringComparer.Ordinal),
+            english.FieldDescriptions.Keys.OrderBy(key => key, StringComparer.Ordinal));
+        Assert.Equal(
+            chinese.OptionLabels.Keys.OrderBy(key => key, StringComparer.Ordinal),
+            english.OptionLabels.Keys.OrderBy(key => key, StringComparer.Ordinal));
+        Assert.Equal(
+            chinese.SectionTitles.Keys.OrderBy(key => key, StringComparer.Ordinal),
+            english.SectionTitles.Keys.OrderBy(key => key, StringComparer.Ordinal));
+
+        foreach (var definition in AppSettingsSchema.Discover())
+        {
+            Assert.True(
+                chinese.FieldLabels.ContainsKey(definition.PropertyName),
+                $"缺少字段标签：{definition.PropertyName}");
+            Assert.True(
+                english.FieldLabels.ContainsKey(definition.PropertyName),
+                $"缺少字段标签：{definition.PropertyName}");
+            Assert.True(
+                chinese.FieldDescriptions.ContainsKey(definition.PropertyName),
+                $"缺少字段说明：{definition.PropertyName}");
+            Assert.True(
+                english.FieldDescriptions.ContainsKey(definition.PropertyName),
+                $"缺少字段说明：{definition.PropertyName}");
+
+            foreach (var option in definition.OptionValues)
+            {
+                var key = definition.PropertyName + "." + option;
+                Assert.True(chinese.OptionLabels.ContainsKey(key), $"缺少选项文案：{key}");
+                Assert.True(english.OptionLabels.ContainsKey(key), $"缺少选项文案：{key}");
+            }
+        }
+
+        foreach (var section in Enum.GetValues<SettingsSection>())
+        {
+            Assert.True(chinese.SectionTitles.ContainsKey(section.ToString()), $"缺少分类标题：{section}");
+            Assert.True(english.SectionTitles.ContainsKey(section.ToString()), $"缺少分类标题：{section}");
+        }
+    }
 }

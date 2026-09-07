@@ -20,9 +20,13 @@ public sealed class AppStrings
 
     public required string ShowHideSearchBar { get; init; }
 
+    public required string OpenSettings { get; init; }
+
     public required string OpenConfigFile { get; init; }
 
     public required string Exit { get; init; }
+
+    public required AppSettingsTexts SettingsTexts { get; init; }
 
     public required string DictionaryEmptyHint { get; init; }
 
@@ -61,8 +65,60 @@ public sealed class AppStrings
             "输入后实时查词，Enter 查看释义"),
         TrayToolTip = "Crispy Searchbar（酥脆搜索）",
         ShowHideSearchBar = "显示 / 隐藏搜索框",
+        OpenSettings = "设置",
         OpenConfigFile = "打开配置文件",
         Exit = "退出",
+        SettingsTexts = new AppSettingsTexts
+        {
+            WindowTitle = "设置",
+            Save = "保存",
+            Browse = "浏览…",
+            Clear = "清空",
+            SavedStatus = "已保存到 settings.json",
+            ValidationFailedStatus = "请先修正带错误提示的设置项。",
+            ConfigFilePathTemplate = "配置文件：{0}",
+            SaveFailedTemplate = "保存失败：{0}",
+            UrlTemplateRequiredError = "请输入网址模板。",
+            UrlTemplatePlaceholderError = "网址模板必须包含 {0} 占位符。",
+            SectionTitles = new Dictionary<string, string>
+            {
+                [nameof(SettingsSection.General)] = "通用",
+                [nameof(SettingsSection.Appearance)] = "外观",
+                [nameof(SettingsSection.Search)] = "搜索",
+                [nameof(SettingsSection.Dictionary)] = "词典",
+            },
+            FieldLabels = new Dictionary<string, string>
+            {
+                [nameof(AppSettings.Language)] = "界面语言",
+                [nameof(AppSettings.Theme)] = "主题",
+                [nameof(AppSettings.SearchEngine)] = "默认搜索引擎",
+                [nameof(AppSettings.ClearQueryOnHide)] = "隐藏搜索框时清空输入",
+                [nameof(AppSettings.AskAiUrlTemplate)] = "问问大肥鱼网址模板",
+                [nameof(AppSettings.DictionaryFilePath)] = "CC-CEDICT 词典文件",
+                [nameof(AppSettings.EcdictFilePath)] = "ECDICT 词典文件",
+            },
+            FieldDescriptions = new Dictionary<string, string>
+            {
+                [nameof(AppSettings.Language)] = "保存后立即切换界面语言。",
+                [nameof(AppSettings.Theme)] = "设置搜索框与设置窗口的外观。",
+                [nameof(AppSettings.SearchEngine)] = "网页搜索模式使用的搜索引擎。",
+                [nameof(AppSettings.ClearQueryOnHide)] = "搜索框隐藏后清空已输入内容。",
+                [nameof(AppSettings.AskAiUrlTemplate)] = "需要包含 {0}，查询词会替换该占位符。",
+                [nameof(AppSettings.DictionaryFilePath)] = "留空时使用用户数据目录或程序内置文件。",
+                [nameof(AppSettings.EcdictFilePath)] = "留空时使用用户数据目录或程序内置文件。",
+            },
+            OptionLabels = new Dictionary<string, string>
+            {
+                ["Language.zh-Hans"] = "简体中文",
+                ["Language.en"] = "English",
+                ["Theme.System"] = "跟随系统",
+                ["Theme.Light"] = "浅色",
+                ["Theme.Dark"] = "深色",
+                ["SearchEngine.Baidu"] = "百度",
+                ["SearchEngine.Google"] = "Google",
+                ["SearchEngine.Bing"] = "必应",
+            },
+        },
         DictionaryEmptyHint = "输入英文单词或中文词语，↑/↓ 选择，Enter 查看释义",
         DictionaryLoadingHint = "正在加载词典数据…",
         DictionaryDataSourceNotConfigured = "词典数据源未配置。",
@@ -94,8 +150,60 @@ public sealed class AppStrings
             "Search as you type; press Enter to view definitions"),
         TrayToolTip = "Crispy Searchbar",
         ShowHideSearchBar = "Show / Hide Search Bar",
+        OpenSettings = "Settings",
         OpenConfigFile = "Open Configuration File",
         Exit = "Exit",
+        SettingsTexts = new AppSettingsTexts
+        {
+            WindowTitle = "Settings",
+            Save = "Save",
+            Browse = "Browse…",
+            Clear = "Clear",
+            SavedStatus = "Saved to settings.json",
+            ValidationFailedStatus = "Fix the settings marked with an error first.",
+            ConfigFilePathTemplate = "Configuration file: {0}",
+            SaveFailedTemplate = "Failed to save: {0}",
+            UrlTemplateRequiredError = "Enter a URL template.",
+            UrlTemplatePlaceholderError = "The URL template must contain the {0} placeholder.",
+            SectionTitles = new Dictionary<string, string>
+            {
+                [nameof(SettingsSection.General)] = "General",
+                [nameof(SettingsSection.Appearance)] = "Appearance",
+                [nameof(SettingsSection.Search)] = "Search",
+                [nameof(SettingsSection.Dictionary)] = "Dictionary",
+            },
+            FieldLabels = new Dictionary<string, string>
+            {
+                [nameof(AppSettings.Language)] = "Interface language",
+                [nameof(AppSettings.Theme)] = "Theme",
+                [nameof(AppSettings.SearchEngine)] = "Default search engine",
+                [nameof(AppSettings.ClearQueryOnHide)] = "Clear query when hidden",
+                [nameof(AppSettings.AskAiUrlTemplate)] = "Ask DeepSeek URL template",
+                [nameof(AppSettings.DictionaryFilePath)] = "CC-CEDICT dictionary file",
+                [nameof(AppSettings.EcdictFilePath)] = "ECDICT dictionary file",
+            },
+            FieldDescriptions = new Dictionary<string, string>
+            {
+                [nameof(AppSettings.Language)] = "The UI language updates immediately after saving.",
+                [nameof(AppSettings.Theme)] = "Appearance of the search bar and the settings window.",
+                [nameof(AppSettings.SearchEngine)] = "Search engine used by Web Search mode.",
+                [nameof(AppSettings.ClearQueryOnHide)] = "Clear the typed query whenever the search bar hides.",
+                [nameof(AppSettings.AskAiUrlTemplate)] = "Must contain {0}; the query replaces this placeholder.",
+                [nameof(AppSettings.DictionaryFilePath)] = "Leave empty to use the user data directory or the bundled file.",
+                [nameof(AppSettings.EcdictFilePath)] = "Leave empty to use the user data directory or the bundled file.",
+            },
+            OptionLabels = new Dictionary<string, string>
+            {
+                ["Language.zh-Hans"] = "简体中文",
+                ["Language.en"] = "English",
+                ["Theme.System"] = "System",
+                ["Theme.Light"] = "Light",
+                ["Theme.Dark"] = "Dark",
+                ["SearchEngine.Baidu"] = "Baidu",
+                ["SearchEngine.Google"] = "Google",
+                ["SearchEngine.Bing"] = "Bing",
+            },
+        },
         DictionaryEmptyHint =
             "Type an English word or Chinese term; use ↑/↓ to select and press Enter to view the definition",
         DictionaryLoadingHint = "Loading dictionary data…",

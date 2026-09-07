@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace CrispySearchbar.Core.Configuration;
 
 /// <summary>读取和保存 JSON 配置文件；损坏或不可读时回退到默认值。
-/// 配置文件放在程序（发布目录）同目录，方便用户直接编辑，也为后续图形化设置界面保留同一数据模型。</summary>
+/// 配置文件放在程序（发布目录）同目录，方便用户直接编辑；图形化设置界面读写的是同一份文件。</summary>
 public static class AppSettingsStore
 {
     public const string FileName = "settings.json";

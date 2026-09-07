@@ -10,6 +10,7 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://CrispySearchbar/Assets/Styles/ModeIcons.axaml" />
+        <ResourceInclude Source="avares://CrispySearchbar/Assets/Styles/SettingsIcons.axaml" />
       </ResourceDictionary.MergedDictionaries>
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
@@ -19,9 +20,11 @@
           <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B6B72" />
           <SolidColorBrush x:Key="TextPlaceholderBrush" Color="#9A9AA0" />
           <SolidColorBrush x:Key="AccentBrush" Color="#3B6EF6" />
+          <SolidColorBrush x:Key="AccentForegroundBrush" Color="#FFFFFF" />
           <SolidColorBrush x:Key="DividerBrush" Color="#14000000" />
           <SolidColorBrush x:Key="SelectionBrush" Color="#263B6EF6" />
           <SolidColorBrush x:Key="HoverBrush" Color="#0F000000" />
+          <SolidColorBrush x:Key="DangerBrush" Color="#C9322F" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="SearchSurfaceBrush" Color="#222226" />
@@ -30,9 +33,11 @@
           <SolidColorBrush x:Key="TextSecondaryBrush" Color="#A6A6AC" />
           <SolidColorBrush x:Key="TextPlaceholderBrush" Color="#77777D" />
           <SolidColorBrush x:Key="AccentBrush" Color="#6C8CFF" />
+          <SolidColorBrush x:Key="AccentForegroundBrush" Color="#FFFFFF" />
           <SolidColorBrush x:Key="DividerBrush" Color="#1FFFFFFF" />
           <SolidColorBrush x:Key="SelectionBrush" Color="#336C8CFF" />
           <SolidColorBrush x:Key="HoverBrush" Color="#12FFFFFF" />
+          <SolidColorBrush x:Key="DangerBrush" Color="#F28B82" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>
