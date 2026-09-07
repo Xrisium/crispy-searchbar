@@ -3,7 +3,7 @@ using System.Text;
 namespace CrispySearchbar.Core.Dictionary;
 
 /// <summary>
-/// 不可变的词典内存索引：简体/繁体头部前缀 + 英文释义分词索引。
+/// 不可变的词典内存索引：简体/繁体头部前缀 + 英文词条分词索引。
 /// 构建完成后可安全地被后台任务读取。
 /// </summary>
 public sealed class DictionaryIndex
@@ -115,10 +115,20 @@ public sealed class DictionaryIndex
     }
 
     /// <summary>
-    /// 搜索候选。含 CJK 的查询按中文头部匹配；其余查询按释义英文词匹配，
-    /// 排序为 释义开头完整词 &gt; 完整词 &gt; 前缀 &gt; 子串，同一档位保持原始词条顺序。
+    /// 返回仅含词条的结果，供只关心数据条目的调用方使用。
     /// </summary>
     public IReadOnlyList<DictionaryEntry> Search(string? rawQuery, int maxResults = 12)
+        => SearchHits(rawQuery, maxResults)
+            .Select(static hit => hit.Entry)
+            .ToArray();
+
+    /// <summary>
+    /// 搜索候选。含 CJK 的查询按中文头部匹配；英文查询按英文词条匹配，
+    /// 命中项携带英文词形（EnglishForm），供 UI 以英-汉方向展示。
+    /// 英文排序：释义完全等于英文词 &gt; to + 英文词 &gt; 释义以英文词开头
+    /// &gt; 释义中包含英文词 &gt; 前缀 &gt; 子串；同一档位保持原始词条顺序。
+    /// </summary>
+    public IReadOnlyList<DictionarySearchHit> SearchHits(string? rawQuery, int maxResults = 12)
     {
         if (string.IsNullOrWhiteSpace(rawQuery) || maxResults <= 0)
         {
@@ -132,11 +142,11 @@ public sealed class DictionaryIndex
         }
 
         return ContainsCjk(query)
-            ? SearchChinese(query, maxResults)
-            : SearchLatin(query, maxResults);
+            ? SearchChineseHits(query, maxResults)
+            : SearchLatinHits(query, maxResults);
     }
 
-    private IReadOnlyList<DictionaryEntry> SearchChinese(string query, int maxResults)
+    private IReadOnlyList<DictionarySearchHit> SearchChineseHits(string query, int maxResults)
     {
         var exact = new List<int>();
         var prefix = new List<int>();
@@ -197,10 +207,10 @@ public sealed class DictionaryIndex
             }
         }
 
-        return Resolve(results, maxResults);
+        return ResolveHits(results, maxResults);
     }
 
-    private IReadOnlyList<DictionaryEntry> SearchLatin(string rawQuery, int maxResults)
+    private IReadOnlyList<DictionarySearchHit> SearchLatinHits(string rawQuery, int maxResults)
     {
         var query = NormalizeLatinQuery(rawQuery);
         if (query.Length == 0)
@@ -211,6 +221,7 @@ public sealed class DictionaryIndex
         var seen = new HashSet<int>();
         var results = new List<ScoredEntry>(MaxRawCandidatesPerQuery);
 
+        // 精确命中：只取释义中完整出现查询词的条目，再按“是否就是该英文词条”细分。
         if (_tokenEntries.TryGetValue(query, out var exactEntries))
         {
             foreach (var entryIndex in exactEntries)
@@ -225,13 +236,12 @@ public sealed class DictionaryIndex
                     continue;
                 }
 
-                // 释义以查询词开头（如 apple / apple (computer)）比“某处包含 apple”
-                // 的习语条目更贴近用户意图，排在最前。
-                var score = HasDefinitionStartingWithQuery(_entries[entryIndex], query) ? 0 : 1;
-                results.Add(new ScoredEntry(entryIndex, score));
+                var score = GetEnglishMatchScore(_entries[entryIndex], query);
+                results.Add(new ScoredEntry(entryIndex, score, query));
             }
         }
 
+        // 前缀命中：显示完整英文词形（apple → apple/applepie 等）。
         if (results.Count < MaxRawCandidatesPerQuery)
         {
             var lower = LowerBound(_tokens, query);
@@ -254,12 +264,13 @@ public sealed class DictionaryIndex
 
                     if (seen.Add(entryIndex))
                     {
-                        results.Add(new ScoredEntry(entryIndex, 2));
+                        results.Add(new ScoredEntry(entryIndex, 4, token));
                     }
                 }
             }
         }
 
+        // 子串/短语兜底：如 “run a business” 这类整段释义。
         if (results.Count < maxResults)
         {
             for (var entryIndex = 0; entryIndex < _entries.Length && results.Count < maxResults; entryIndex++)
@@ -271,52 +282,15 @@ public sealed class DictionaryIndex
 
                 if (_definitionTexts[entryIndex].Contains(query, StringComparison.Ordinal))
                 {
-                    results.Add(new ScoredEntry(entryIndex, 3));
+                    results.Add(new ScoredEntry(entryIndex, 5, query));
                     seen.Add(entryIndex);
                 }
             }
         }
 
-        return Resolve(results, maxResults);
+        return ResolveHits(results, maxResults);
     }
 
-    private static bool HasDefinitionStartingWithQuery(DictionaryEntry entry, string query)
-    {
-        foreach (var definition in entry.Definitions)
-        {
-            var normalized = NormalizeLatinQuery(definition);
-            if (normalized.Equals(query, StringComparison.Ordinal))
-            {
-                return true;
-            }
-
-            if (normalized.StartsWith(query, StringComparison.Ordinal)
-                && normalized.Length > query.Length
-                && char.IsWhiteSpace(normalized[query.Length]))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-    private IReadOnlyList<DictionaryEntry> Resolve(List<ScoredEntry> scored, int maxResults)
-    {
-        scored.Sort(static (left, right) =>
-        {
-            var byScore = left.Score.CompareTo(right.Score);
-            return byScore != 0 ? byScore : left.Entry.CompareTo(right.Entry);
-        });
-
-        var count = Math.Min(scored.Count, maxResults);
-        var entries = new List<DictionaryEntry>(count);
-        for (var i = 0; i < count; i++)
-        {
-            entries.Add(_entries[scored[i].Entry]);
-        }
-
-        return entries;
-    }
 
     private static void AddScored(
         List<ScoredEntry> target,
@@ -328,7 +302,95 @@ public sealed class DictionaryIndex
             target.Add(new ScoredEntry(entryIndex, score));
         }
     }
+    private static int GetEnglishMatchScore(DictionaryEntry entry, string query)
+    {
+        var bestScore = 3;
+        var exactVerb = "to " + query;
+        foreach (var definition in entry.Definitions)
+        {
+            // CC-CEDICT 的一个 /释义/ 内可能用分号并列多个义项，
+            // 按义项分别判断才能区分 “to run” 与 “to run the whole show”。
+            foreach (var gloss in definition.Split(';'))
+            {
+                var normalized = NormalizeLatinQuery(gloss);
+                if (normalized.Length == 0)
+                {
+                    continue;
+                }
 
+                // 释义本身就是英文词条，如 “apple”“water”。
+                if (normalized.Equals(query, StringComparison.Ordinal))
+                {
+                    return 0;
+                }
+
+                // 释义正好是 to + 英文词（动词原形词条），如 “to run”。
+                if (normalized.Equals(exactVerb, StringComparison.Ordinal))
+                {
+                    bestScore = Math.Min(bestScore, 1);
+                }
+                // 释义以英文词开头的短语，如 “search engine”“Hello Kitty”。
+                else if (StartsWithPhrase(normalized, query))
+                {
+                    bestScore = Math.Min(bestScore, 2);
+                }
+
+                if (ContainsWholeWord(normalized, query))
+                {
+                    bestScore = Math.Min(bestScore, 3);
+                }
+            }
+        }
+
+        return bestScore;
+    }
+    private static bool StartsWithPhrase(string normalized, string phrase)
+    {
+        if (normalized.Equals(phrase, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        return normalized.StartsWith(phrase, StringComparison.Ordinal)
+            && normalized.Length > phrase.Length
+            && char.IsWhiteSpace(normalized[phrase.Length]);
+    }
+
+    private static bool ContainsWholeWord(string normalized, string word)
+    {
+        if (normalized.Equals(word, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        var withLeadingSpace = " " + word;
+        var withTrailingSpace = word + " ";
+        return normalized.StartsWith(withTrailingSpace, StringComparison.Ordinal)
+            || normalized.EndsWith(withLeadingSpace, StringComparison.Ordinal)
+            || normalized.Contains(withLeadingSpace + " ", StringComparison.Ordinal)
+            || normalized.Contains(" " + word + " ", StringComparison.Ordinal);
+    }
+
+    private IReadOnlyList<DictionarySearchHit> ResolveHits(List<ScoredEntry> scored, int maxResults)
+    {
+        scored.Sort(static (left, right) =>
+        {
+            var byScore = left.Score.CompareTo(right.Score);
+            return byScore != 0 ? byScore : left.Entry.CompareTo(right.Entry);
+        });
+
+        var count = Math.Min(scored.Count, maxResults);
+        var hits = new List<DictionarySearchHit>(count);
+        for (var i = 0; i < count; i++)
+        {
+            var scoredEntry = scored[i];
+            hits.Add(new DictionarySearchHit(
+                _entries[scoredEntry.Entry],
+                scoredEntry.EnglishForm));
+        }
+
+        return hits;
+    }
     private static bool ContainsCjk(string text)
     {
         foreach (var character in text)
@@ -436,5 +498,5 @@ public sealed class DictionaryIndex
 
     private readonly record struct HeadwordRef(string Text, int Entry);
 
-    private readonly record struct ScoredEntry(int Entry, int Score);
+    private readonly record struct ScoredEntry(int Entry, int Score, string? EnglishForm = null);
 }

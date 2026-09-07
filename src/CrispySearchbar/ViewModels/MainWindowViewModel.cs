@@ -28,9 +28,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private Task<DictionaryLoadResult>? _dictionaryLoadTask;
     private CancellationTokenSource? _dictionaryQueryCts;
     private int _dictionarySearchVersion;
-    private IReadOnlyList<DictionaryEntry> _dictionaryMatches = Array.Empty<DictionaryEntry>();
+    private IReadOnlyList<DictionarySearchHit> _dictionaryMatches = Array.Empty<DictionarySearchHit>();
     private int _dictionarySelectedIndex = -1;
-    private DictionaryEntry? _dictionaryDetailEntry;
+    private DictionarySearchHit? _dictionaryDetailHit;
     private string _dictionaryHint = EmptyDictionaryHint;
 
     public MainWindowViewModel(
@@ -53,7 +53,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public bool IsDictionaryPanelOpen => IsDictionaryMode && !IsDictionaryDetailOpen;
 
-    public bool IsDictionaryDetailOpen => DictionaryDetailEntry is not null;
+    public bool IsDictionaryDetailOpen => DictionaryDetailHit is not null;
 
     public string DictionaryHint
     {
@@ -91,27 +91,72 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
-    public DictionaryEntry? DictionaryDetailEntry
+    public DictionarySearchHit? DictionaryDetailHit
     {
-        get => _dictionaryDetailEntry;
+        get => _dictionaryDetailHit;
         private set
         {
-            if (ReferenceEquals(_dictionaryDetailEntry, value))
+            if (ReferenceEquals(_dictionaryDetailHit, value))
             {
                 return;
             }
 
-            _dictionaryDetailEntry = value;
+            _dictionaryDetailHit = value;
             OnPropertyChanged();
         }
     }
 
-    public bool DictionaryDetailHasTraditional =>
-        DictionaryDetailEntry is { } detail
-        && !string.Equals(detail.Traditional, detail.Simplified, StringComparison.Ordinal);
+    public DictionaryEntry? DictionaryDetailEntry => DictionaryDetailHit?.Entry;
 
-    public bool DictionaryDetailHasPinyin =>
-        DictionaryDetailEntry is { Pinyin: var pinyin } && !string.IsNullOrWhiteSpace(pinyin);
+    /// <summary>详情主标题：英文命中显示英文词条，中文命中显示简体词头。</summary>
+    public string DictionaryDetailTitle
+    {
+        get
+        {
+            if (DictionaryDetailHit is not { } hit)
+            {
+                return string.Empty;
+            }
+
+            if (hit.IsEnglishMatch && !string.IsNullOrWhiteSpace(hit.EnglishForm))
+            {
+                return hit.EnglishForm!;
+            }
+
+            return hit.Entry.Simplified;
+        }
+    }
+
+    public bool DictionaryDetailHasSubtitle => !string.IsNullOrWhiteSpace(DictionaryDetailSubtitle);
+
+    public string DictionaryDetailSubtitle
+    {
+        get
+        {
+            if (DictionaryDetailHit is not { } hit)
+            {
+                return string.Empty;
+            }
+
+            var parts = new List<string>(3);
+            var entry = hit.Entry;
+            if (hit.IsEnglishMatch)
+            {
+                parts.Add(ChineseHeadwordLine(entry));
+            }
+            else if (!string.Equals(entry.Traditional, entry.Simplified, StringComparison.Ordinal))
+            {
+                parts.Add(entry.Traditional);
+            }
+
+            if (!string.IsNullOrWhiteSpace(entry.Pinyin))
+            {
+                parts.Add(entry.Pinyin);
+            }
+
+            return string.Join(" · ", parts);
+        }
+    }
 
     public IReadOnlyList<string> DictionaryDetailDefinitions =>
         DictionaryDetailEntry?.Definitions ?? [];
@@ -182,7 +227,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         return true;
     }
 
-    /// <summary>供鼠标点击候选行直接打开详情。</summary>
+    /// <summary>鼠标单击候选行时直接打开对应词条详情。</summary>
     public bool OpenDictionaryCandidate(DictionaryCandidateViewModel candidate)
     {
         var index = candidate is null ? -1 : DictionaryCandidates.IndexOf(candidate);
@@ -310,7 +355,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             }
 
             var matches = await Task.Run(
-                () => result.Index!.Search(query, DictionaryMaxResults),
+                () => result.Index!.SearchHits(query, DictionaryMaxResults),
                 cancellation.Token);
             if (version != _dictionarySearchVersion || cancellation.IsCancellationRequested)
             {
@@ -351,7 +396,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         return _dictionaryLoadTask;
     }
 
-    private void ApplyDictionaryMatches(string query, IReadOnlyList<DictionaryEntry> matches)
+    private void ApplyDictionaryMatches(string query, IReadOnlyList<DictionarySearchHit> matches)
     {
         DictionaryCandidates.Clear();
         _dictionaryMatches = matches;
@@ -367,12 +412,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         NotifyDictionaryState();
     }
 
-    private void ShowDictionaryDetail(DictionaryEntry entry)
+    private void ShowDictionaryDetail(DictionarySearchHit hit)
     {
         _dictionaryQueryCts?.Cancel();
         _dictionarySearchVersion++;
         ClearDictionarySearchResults();
-        DictionaryDetailEntry = entry;
+        DictionaryDetailHit = hit;
         DictionaryHint = string.Empty;
         NotifyDictionaryState();
     }
@@ -389,9 +434,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private void ClearDictionarySearchResults()
     {
         DictionaryCandidates.Clear();
-        _dictionaryMatches = Array.Empty<DictionaryEntry>();
+        _dictionaryMatches = Array.Empty<DictionarySearchHit>();
         _dictionarySelectedIndex = -1;
-        _dictionaryDetailEntry = null;
+        _dictionaryDetailHit = null;
     }
 
     private void NotifyDictionaryState()
@@ -403,12 +448,19 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ShowDictionaryHint));
         OnPropertyChanged(nameof(DictionaryHint));
         OnPropertyChanged(nameof(DictionarySelectedIndex));
+        OnPropertyChanged(nameof(DictionaryDetailHit));
         OnPropertyChanged(nameof(DictionaryDetailEntry));
-        OnPropertyChanged(nameof(DictionaryDetailHasTraditional));
-        OnPropertyChanged(nameof(DictionaryDetailHasPinyin));
+        OnPropertyChanged(nameof(DictionaryDetailTitle));
+        OnPropertyChanged(nameof(DictionaryDetailSubtitle));
+        OnPropertyChanged(nameof(DictionaryDetailHasSubtitle));
         OnPropertyChanged(nameof(DictionaryDetailDefinitions));
         OnPropertyChanged(nameof(DictionaryDetailDefinitionText));
     }
+
+    private static string ChineseHeadwordLine(DictionaryEntry entry)
+        => string.Equals(entry.Traditional, entry.Simplified, StringComparison.Ordinal)
+            ? entry.Simplified
+            : $"{entry.Simplified} / {entry.Traditional}";
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

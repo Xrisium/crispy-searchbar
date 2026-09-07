@@ -20,8 +20,12 @@ public class BundledCcCedictTests
         Assert.Equal("苹果", index.Search("apple")[0].Simplified);
         Assert.Contains(index.Search("你好"), entry => entry.Simplified == "你好");
         Assert.Contains(index.Search("學校"), entry => entry.Simplified == "学校");
-        var searchResults = index.Search("search");
+        var searchResults = index.SearchHits("search");
         Assert.NotEmpty(searchResults);
-        Assert.StartsWith("搜", searchResults[0].Simplified);
+        Assert.All(searchResults.Take(3), hit => Assert.Equal("search", hit.EnglishForm));
+
+        var waterResults = index.SearchHits("water");
+        Assert.Equal("water", waterResults[0].EnglishForm);
+        Assert.Equal("水", waterResults[0].Entry.Simplified);
     }
 }

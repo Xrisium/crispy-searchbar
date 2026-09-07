@@ -147,7 +147,7 @@
               </ListBox.Styles>
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:DictionaryCandidateViewModel">
-                  <StackPanel Spacing="2">
+                  <StackPanel Spacing="2" PointerPressed="OnDictionaryCandidatePointerPressed">
                     <TextBlock Text="{Binding HeadwordLine}"
                                FontSize="14"
                                FontWeight="600"
@@ -169,19 +169,12 @@
                         HorizontalScrollBarVisibility="Disabled">
             <StackPanel Margin="18,16" Spacing="10">
               <StackPanel Spacing="2">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                  <TextBlock Text="{Binding DictionaryDetailEntry.Simplified}"
-                             FontSize="20"
-                             FontWeight="600"
-                             Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <TextBlock Text="{Binding DictionaryDetailEntry.Traditional}"
-                             IsVisible="{Binding DictionaryDetailHasTraditional}"
-                             FontSize="14"
-                             Foreground="{DynamicResource TextSecondaryBrush}"
-                             VerticalAlignment="Bottom" />
-                </StackPanel>
-                <TextBlock Text="{Binding DictionaryDetailEntry.Pinyin}"
-                           IsVisible="{Binding DictionaryDetailHasPinyin}"
+                <TextBlock Text="{Binding DictionaryDetailTitle}"
+                           FontSize="20"
+                           FontWeight="600"
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding DictionaryDetailSubtitle}"
+                           IsVisible="{Binding DictionaryDetailHasSubtitle}"
                            FontSize="13"
                            Foreground="{DynamicResource TextSecondaryBrush}" />
               </StackPanel>
