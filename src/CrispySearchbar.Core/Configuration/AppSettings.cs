@@ -11,7 +11,7 @@ public sealed class AppSettings
     /// <summary>搜索框隐藏后是否清空已输入内容，默认 true。</summary>
     public bool ClearQueryOnHide { get; set; } = true;
 
-    /// <summary>询问 AI 地址模板，{0} 将被替换为 URL 编码后的查询词。</summary>
+    /// <summary>问问大肥鱼（DeepSeek 网页端）地址模板，{0} 将被替换为 URL 编码后的查询词。</summary>
     public string AskAiUrlTemplate { get; set; } =
         "https://chat.deepseek.com/?q={0}";
     /// <summary>

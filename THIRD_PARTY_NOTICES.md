@@ -14,9 +14,16 @@
 | BSD-3-Clause | [licenses/BSD-3-Clause.txt](licenses/BSD-3-Clause.txt) |
 | Apache-2.0 | [licenses/Apache-2.0.txt](licenses/Apache-2.0.txt) |
 | CC BY-SA 4.0 | [licenses/CC-BY-SA-4.0.txt](licenses/CC-BY-SA-4.0.txt) |
+| ISC | [licenses/ISC.txt](licenses/ISC.txt) |
 
 数据资产（词典、字体等）除在数据目录旁保留自己的 `LICENSE`/`NOTICE` 外，也应在下方“捆绑数据资产”表中登记，便于随资产单独分发。
 
+## 内置 UI 图标资源（随应用分发）
+
+| 资源 | 来源 | 许可证 |
+|---|---|---|
+| `src/CrispySearchbar/Assets/Icons/lucide-globe.svg`、`src/CrispySearchbar/Assets/Icons/lucide-book-open-text.svg` | Lucide（lucide-icons/lucide）`main` commit `a537cb6eb323b885f4c60baf3cec1a995982d167` 的 `icons/globe.svg`、`icons/book-open-text.svg` | [ISC](licenses/ISC.txt)，Copyright (c) 2026 Lucide Icons and Contributors |
+| `src/CrispySearchbar/Assets/Icons/deepseek-whale.svg` | DeepSeek（deepseek-ai/deepseek-harness）`master` commit `c389f96bf3a9b6807cb71ed6bdad5849be0df6d8` 的 `apps/web/public/favicon.svg` | [MIT](licenses/MIT.txt)，Copyright (c) 2026 DeepSeek |
 ## 运行时依赖（应用发布时会涉及）
 
 | 包 | 版本 | 许可证 |

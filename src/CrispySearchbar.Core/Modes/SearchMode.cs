@@ -13,8 +13,8 @@ public sealed record SearchMode(
             "按 Enter 使用默认搜索引擎打开", urlTemplate);
 
     public static SearchMode AskAi(string urlTemplate)
-        => new("ask-ai", "询问 AI", "输入问题，按 Enter 询问",
-            "按 Enter 在浏览器中打开 DeepSeek", urlTemplate);
+        => new("ask-ai", "问问大肥鱼", "输入问题，按 Enter 跳转到 DeepSeek 网页端",
+            "按 Enter 跳转到 DeepSeek 网页端", urlTemplate);
 
     public static SearchMode Dictionary { get; } = new(
         "dictionary", "词典", "输入英文单词或中文词语",

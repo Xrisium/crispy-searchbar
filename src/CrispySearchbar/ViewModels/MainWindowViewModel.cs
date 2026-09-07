@@ -23,6 +23,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly bool _clearQueryOnHide;
 
     private int _modeIndex;
+    private bool _isModeWheelOpen;
+    private int _modeWheelSelectedIndex;
     private string _query = string.Empty;
 
     private Task<DictionaryLoadResult>? _dictionaryLoadTask;
@@ -49,9 +51,44 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public SearchMode CurrentMode => _modes[_modeIndex];
 
+    public IReadOnlyList<SearchMode> Modes => _modes;
+
+    public bool IsModeWheelOpen
+    {
+        get => _isModeWheelOpen;
+        private set
+        {
+            if (_isModeWheelOpen == value)
+            {
+                return;
+            }
+
+            _isModeWheelOpen = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsDictionaryPopupOpen));
+        }
+    }
+
+    public int ModeWheelSelectedIndex
+    {
+        get => _modeWheelSelectedIndex;
+        set
+        {
+            if (_modeWheelSelectedIndex == value)
+            {
+                return;
+            }
+
+            _modeWheelSelectedIndex = value;
+            OnPropertyChanged();
+        }
+    }
+
     public bool IsDictionaryMode => CurrentMode.Key == DictionaryModeKey;
 
     public bool IsDictionaryPanelOpen => IsDictionaryMode && !IsDictionaryDetailOpen;
+
+    public bool IsDictionaryPopupOpen => IsDictionaryMode && !IsModeWheelOpen;
 
     public bool IsDictionaryDetailOpen => DictionaryDetailHit is not null;
 
@@ -149,10 +186,74 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>Tab 键按模式顺序循环切换。</summary>
-    public void CycleMode()
+    /// <summary>快速按 Tab：切换到下一个模式。</summary>
+    public void CycleMode() => SetMode((_modeIndex + 1) % _modes.Count);
+
+    /// <summary>长按 Tab 打开模式轮盘，高亮当前模式。</summary>
+    public void OpenModeWheel()
     {
-        _modeIndex = (_modeIndex + 1) % _modes.Count;
+        if (IsModeWheelOpen || _modes.Count == 0)
+        {
+            return;
+        }
+
+        IsModeWheelOpen = true;
+        ModeWheelSelectedIndex = _modeIndex;
+    }
+
+    /// <summary>在轮盘内移动高亮，支持首尾循环。</summary>
+    public void MoveModeWheelSelection(int delta)
+    {
+        var count = _modes.Count;
+        if (!IsModeWheelOpen || count == 0)
+        {
+            return;
+        }
+
+        var current = ModeWheelSelectedIndex >= 0 ? ModeWheelSelectedIndex : _modeIndex;
+        ModeWheelSelectedIndex = ((current + delta) % count + count) % count;
+    }
+
+    /// <summary>松开 Tab / Enter / 点击：切换到指定（或高亮）模式并关闭轮盘。</summary>
+    public void CommitModeWheel(SearchMode? mode = null)
+    {
+        if (!IsModeWheelOpen)
+        {
+            return;
+        }
+
+        IsModeWheelOpen = false;
+        var index = mode is null ? ModeWheelSelectedIndex : FindModeIndex(mode);
+        if (index >= 0 && index < _modes.Count)
+        {
+            SetMode(index);
+        }
+    }
+
+    /// <summary>Esc：关闭轮盘，保持当前模式。</summary>
+    public void CancelModeWheel() => IsModeWheelOpen = false;
+
+    private int FindModeIndex(SearchMode mode)
+    {
+        for (var i = 0; i < _modes.Count; i++)
+        {
+            if (_modes[i] == mode)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private void SetMode(int index)
+    {
+        if (index < 0 || index >= _modes.Count || index == _modeIndex)
+        {
+            return;
+        }
+
+        _modeIndex = index;
         OnPropertyChanged(nameof(CurrentMode));
         OnModeChanged();
     }
@@ -205,7 +306,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Enter 键执行当前动作。网页/询问 AI 模式在浏览器打开结果；
+    /// Enter 键执行当前动作。网页/问问大肥鱼模式在浏览器打开结果；
     /// 词典模式打开详情。返回是否应隐藏搜索框。
     /// </summary>
     public bool ExecuteCurrent()
@@ -443,6 +544,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private void NotifyDictionaryState()
     {
         OnPropertyChanged(nameof(IsDictionaryMode));
+        OnPropertyChanged(nameof(IsDictionaryPopupOpen));
         OnPropertyChanged(nameof(IsDictionaryPanelOpen));
         OnPropertyChanged(nameof(IsDictionaryDetailOpen));
         OnPropertyChanged(nameof(HasDictionaryCandidates));

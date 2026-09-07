@@ -8,8 +8,8 @@ Current milestone: search shell with a functional dictionary mode.
 
 - The visible UI is a single rounded capsule search bar. Dictionary candidates and details appear in an on-demand popup below it.
 - `Alt+Space` shows/hides the search bar; `Esc` hides it; the app keeps running in the tray with “show/hide”, “open config file” and “exit” menu items.
-- Tab cycles through modes: web search, ask AI, dictionary.
-- Web search and “ask AI” open the default browser using a configurable URL template (the query is URL-encoded into `{0}`).
+- Quick Tab cycles through modes: 网页搜索 → 问问大肥鱼 → 词典; holding Tab opens the vertical mode picker and releasing Tab switches (mouse wheel or ↑/↓ moves the highlight).
+- Web search and “问问大肥鱼” open the default browser using a configurable URL template (the query is URL-encoded into `{0}`).
 - Dictionary mode performs offline 英汉 / 汉英 lookup against CC-CEDICT:
   - real-time candidate suggestions as you type;
   - English queries are case-insensitive and ignore trailing punctuation;

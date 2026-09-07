@@ -2,20 +2,34 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using CrispySearchbar.Core.Modes;
 using CrispySearchbar.ViewModels;
 
 namespace CrispySearchbar;
 
 public partial class MainWindow : Window
 {
+    private const int ModeWheelHoldDelayMs = 400;
+
+    private readonly DispatcherTimer _tabHoldTimer;
     private bool _allowClose;
+    private bool _tabDown;
+    private bool _modeWheelOpened;
+    private bool _suppressTabRelease;
 
     public MainWindow()
     {
         InitializeComponent();
 
+        _tabHoldTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(ModeWheelHoldDelayMs),
+        };
+        _tabHoldTimer.Tick += OnTabHoldTimerTick;
+
         // 键盘事件用隧道方式拦截，保证 Tab 不会先移动焦点。
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+        AddHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel);
         Closing += OnClosing;
     }
 
@@ -26,6 +40,8 @@ public partial class MainWindow : Window
     /// <summary>隐藏到托盘；应用保持运行，等待全局快捷键或托盘菜单唤回。</summary>
     public void HideToTray()
     {
+        CancelTabHold();
+        ViewModel.CancelModeWheel();
         ViewModel.OnWindowHidden();
         DictionaryPopup.IsOpen = false;
         Hide();
@@ -48,7 +64,7 @@ public partial class MainWindow : Window
         QueryBox.Focus();
         QueryBox.CaretIndex = QueryBox.Text?.Length ?? 0;
         ViewModel.OnWindowShown();
-        DictionaryPopup.IsOpen = ViewModel.IsDictionaryMode;
+        DictionaryPopup.IsOpen = ViewModel.IsDictionaryPopupOpen;
     }
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)
@@ -60,11 +76,12 @@ public partial class MainWindow : Window
 
         // 托盘常驻应用：关闭请求（Alt+F4 等）一律转为隐藏。
         e.Cancel = true;
+        CancelTabHold();
+        ViewModel.CancelModeWheel();
         ViewModel.OnWindowHidden();
         DictionaryPopup.IsOpen = false;
         Hide();
     }
-
 
     private void OnDictionaryCandidatePointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -82,15 +99,35 @@ public partial class MainWindow : Window
         Dispatcher.UIThread.Post(() => QueryBox.Focus(), DispatcherPriority.Input);
     }
 
+    private void OnTabHoldTimerTick(object? sender, EventArgs e)
+    {
+        _tabHoldTimer.Stop();
+        if (!_tabDown || _suppressTabRelease)
+        {
+            return;
+        }
+
+        ViewModel.OpenModeWheel();
+        _modeWheelOpened = true;
+    }
+
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Tab)
         {
-            ViewModel.CycleMode();
-            e.Handled = true;
+            OnTabKeyDown(e);
+            return;
         }
-        else if (e.Key == Key.Escape)
+
+        if (ViewModel.IsModeWheelOpen)
         {
+            OnModeWheelKeyDown(e);
+            return;
+        }
+
+        if (e.Key == Key.Escape)
+        {
+            CancelTabHold();
             HideToTray();
             e.Handled = true;
         }
@@ -110,5 +147,113 @@ public partial class MainWindow : Window
             e.Handled = true;
         }
     }
-}
 
+    private void OnKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Tab || !_tabDown)
+        {
+            return;
+        }
+
+        _tabHoldTimer.Stop();
+        e.Handled = true;
+
+        var opened = _modeWheelOpened;
+        var suppress = _suppressTabRelease;
+        _tabDown = false;
+        _modeWheelOpened = false;
+        _suppressTabRelease = false;
+
+        if (suppress)
+        {
+            return;
+        }
+
+        if (opened)
+        {
+            ViewModel.CommitModeWheel();
+        }
+        else
+        {
+            ViewModel.CycleMode();
+        }
+    }
+
+    private void OnTabKeyDown(KeyEventArgs e)
+    {
+        e.Handled = true;
+        if (_tabDown)
+        {
+            // 按住期间的系统自动重复：轮盘打开后忽略，未到阈值时保持计时。
+            return;
+        }
+
+        _tabDown = true;
+        _modeWheelOpened = false;
+        _suppressTabRelease = false;
+        _tabHoldTimer.Stop();
+        _tabHoldTimer.Start();
+    }
+
+    private void OnModeWheelKeyDown(KeyEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case Key.Up:
+                ViewModel.MoveModeWheelSelection(-1);
+                break;
+            case Key.Down:
+                ViewModel.MoveModeWheelSelection(1);
+                break;
+            case Key.Enter:
+                ViewModel.CommitModeWheel();
+                _modeWheelOpened = false;
+                _suppressTabRelease = _tabDown;
+                break;
+            case Key.Escape:
+                ViewModel.CancelModeWheel();
+                _modeWheelOpened = false;
+                _suppressTabRelease = _tabDown;
+                break;
+            default:
+                return;
+        }
+
+        e.Handled = true;
+    }
+
+    private void CancelTabHold()
+    {
+        _tabHoldTimer.Stop();
+        _tabDown = false;
+        _modeWheelOpened = false;
+        _suppressTabRelease = false;
+    }
+
+    private void OnModeWheelItemPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is Control { DataContext: SearchMode mode }
+            && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            ViewModel.CommitModeWheel(mode);
+            _modeWheelOpened = false;
+            _suppressTabRelease = _tabDown;
+            e.Handled = true;
+        }
+    }
+
+    private void OnCapsulePointerWheelChanged(object? sender, PointerWheelEventArgs e) => OnModeWheelScrolled(e);
+
+    private void OnModeWheelPointerWheelChanged(object? sender, PointerWheelEventArgs e) => OnModeWheelScrolled(e);
+
+    private void OnModeWheelScrolled(PointerWheelEventArgs e)
+    {
+        if (!ViewModel.IsModeWheelOpen)
+        {
+            return;
+        }
+
+        ViewModel.MoveModeWheelSelection(e.Delta.Y > 0 ? -1 : 1);
+        e.Handled = true;
+    }
+}

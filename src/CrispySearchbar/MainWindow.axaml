@@ -1,6 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CrispySearchbar.ViewModels"
+        xmlns:modes="using:CrispySearchbar.Core.Modes"
+        xmlns:converters="using:CrispySearchbar.Converters"
         x:Class="CrispySearchbar.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Width="660"
@@ -14,6 +16,9 @@
         TransparencyLevelHint="Transparent"
         Title="Crispy Searchbar"
         FontFamily="Segoe UI, Microsoft YaHei UI">
+  <Window.Resources>
+    <converters:ModeIconTemplateConverter x:Key="ModeIconTemplateConverter" />
+  </Window.Resources>
   <Panel>
     <Border x:Name="CapsuleBorder"
             Margin="10,8,10,26"
@@ -22,7 +27,8 @@
             Background="{DynamicResource SearchSurfaceBrush}"
             BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
             BorderThickness="1"
-            BoxShadow="0 8 22 0 #38000000">
+            BoxShadow="0 8 22 0 #38000000"
+            PointerWheelChanged="OnCapsulePointerWheelChanged">
       <Grid ColumnDefinitions="*,Auto">
         <TextBox x:Name="QueryBox"
                  Grid.Column="0"
@@ -87,16 +93,26 @@
                 VerticalAlignment="Center"
                 CornerRadius="999"
                 Background="{DynamicResource HoverBrush}">
-          <TextBlock Text="{Binding CurrentMode.Title}"
-                     FontSize="12"
-                     Foreground="{DynamicResource TextSecondaryBrush}" />
+          <StackPanel Orientation="Horizontal"
+                      Spacing="6"
+                      VerticalAlignment="Center">
+            <ContentControl Width="13"
+                            Height="13"
+                            VerticalAlignment="Center"
+                            Content="{Binding CurrentMode.Key}"
+                            ContentTemplate="{Binding CurrentMode.Key, Converter={StaticResource ModeIconTemplateConverter}}" />
+            <TextBlock Text="{Binding CurrentMode.Title}"
+                       FontSize="12"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextSecondaryBrush}" />
+          </StackPanel>
         </Border>
       </Grid>
     </Border>
 
     <!-- 词典模式候选/详情浮层：用完即收，不是主窗口固定结构。 -->
     <Popup x:Name="DictionaryPopup"
-           IsOpen="{Binding IsDictionaryMode}"
+           IsOpen="{Binding IsDictionaryPopupOpen}"
            PlacementTarget="{Binding ElementName=CapsuleBorder}"
            Placement="Bottom"
            HorizontalOffset="0"
@@ -194,6 +210,69 @@
             </StackPanel>
           </ScrollViewer>
         </Grid>
+      </Border>
+    </Popup>
+
+    <!-- 长按 Tab 的模式轮盘：垂直快捷列表，松开 Tab 切换。 -->
+    <Popup x:Name="ModeWheelPopup"
+           IsOpen="{Binding IsModeWheelOpen}"
+           PlacementTarget="{Binding ElementName=CapsuleBorder}"
+           Placement="Bottom"
+           HorizontalOffset="220"
+           VerticalOffset="10"
+           IsLightDismissEnabled="False">
+      <Border Width="200"
+              Padding="4"
+              Background="{DynamicResource SearchSurfaceBrush}"
+              BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
+              BorderThickness="1"
+              CornerRadius="12"
+              BoxShadow="0 12 28 0 #38000000"
+              PointerWheelChanged="OnModeWheelPointerWheelChanged">
+        <ListBox x:Name="ModeWheelList"
+                 ItemsSource="{Binding Modes}"
+                 SelectedIndex="{Binding ModeWheelSelectedIndex, Mode=TwoWay}"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 Padding="0"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                 Focusable="False">
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem">
+              <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+              <Setter Property="Padding" Value="8,6" />
+              <Setter Property="Margin" Value="0,1" />
+              <Setter Property="Background" Value="Transparent" />
+              <Setter Property="CornerRadius" Value="8" />
+            </Style>
+            <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+              <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+              <Setter Property="CornerRadius" Value="8" />
+            </Style>
+            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+              <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+              <Setter Property="CornerRadius" Value="8" />
+            </Style>
+          </ListBox.Styles>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="modes:SearchMode">
+              <StackPanel Orientation="Horizontal"
+                          Spacing="8"
+                          PointerPressed="OnModeWheelItemPointerPressed">
+                <ContentControl Width="13"
+                                Height="13"
+                                VerticalAlignment="Center"
+                                Content="{Binding Key}"
+                                ContentTemplate="{Binding Key, Converter={StaticResource ModeIconTemplateConverter}}" />
+                <TextBlock Text="{Binding Title}"
+                           FontSize="13"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
       </Border>
     </Popup>
   </Panel>
