@@ -20,7 +20,9 @@ public sealed class AppSettingsTexts
 
     public required string ValidationFailedStatus { get; init; }
 
-    public required string ConfigFilePathTemplate { get; init; }
+    public required string ConfigFileLabel { get; init; }
+
+    public required string OpenConfigFile { get; init; }
 
     public required string SaveFailedTemplate { get; init; }
 
@@ -35,6 +37,8 @@ public sealed class AppSettingsTexts
     public required IReadOnlyDictionary<string, string> FieldDescriptions { get; init; }
 
     public required IReadOnlyDictionary<string, string> OptionLabels { get; init; }
+
+    public required IReadOnlyDictionary<string, string> FileTypeFilterNames { get; init; }
 
     public string GetSectionTitle(SettingsSection section)
         => SectionTitles.TryGetValue(section.ToString(), out var title)
@@ -59,8 +63,10 @@ public sealed class AppSettingsTexts
             : optionValue?.ToString() ?? string.Empty;
     }
 
-    public string FormatConfigFilePath(string path)
-        => string.Format(ConfigFilePathTemplate, path);
+    public string GetFileTypeFilterName(string key)
+        => FileTypeFilterNames.TryGetValue(key, out var label)
+            ? label
+            : key;
 
     public string FormatSaveFailed(string? detail)
         => string.Format(SaveFailedTemplate, detail);

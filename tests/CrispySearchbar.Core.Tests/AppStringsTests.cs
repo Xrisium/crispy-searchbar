@@ -15,7 +15,6 @@ public class AppStringsTests
 
         Assert.Equal(language, strings.Language);
         Assert.False(string.IsNullOrWhiteSpace(strings.ShowHideSearchBar));
-        Assert.False(string.IsNullOrWhiteSpace(strings.OpenConfigFile));
         Assert.False(string.IsNullOrWhiteSpace(strings.Exit));
         Assert.False(string.IsNullOrWhiteSpace(strings.TrayToolTip));
 
@@ -92,6 +91,9 @@ public class AppStringsTests
             chinese.OptionLabels.Keys.OrderBy(key => key, StringComparer.Ordinal),
             english.OptionLabels.Keys.OrderBy(key => key, StringComparer.Ordinal));
         Assert.Equal(
+            chinese.FileTypeFilterNames.Keys.OrderBy(key => key, StringComparer.Ordinal),
+            english.FileTypeFilterNames.Keys.OrderBy(key => key, StringComparer.Ordinal));
+        Assert.Equal(
             chinese.SectionTitles.Keys.OrderBy(key => key, StringComparer.Ordinal),
             english.SectionTitles.Keys.OrderBy(key => key, StringComparer.Ordinal));
 
@@ -115,6 +117,20 @@ public class AppStringsTests
                 var key = definition.PropertyName + "." + option;
                 Assert.True(chinese.OptionLabels.ContainsKey(key), $"缺少选项文案：{key}");
                 Assert.True(english.OptionLabels.ContainsKey(key), $"缺少选项文案：{key}");
+            }
+
+            if (definition.EditorKind == SettingEditorKind.FilePath
+                && !string.IsNullOrWhiteSpace(definition.FileTypeFilterKey))
+            {
+                Assert.True(
+                    chinese.FileTypeFilterNames.ContainsKey(definition.FileTypeFilterKey),
+                    $"缺少文件类型文案：{definition.FileTypeFilterKey}");
+                Assert.True(
+                    english.FileTypeFilterNames.ContainsKey(definition.FileTypeFilterKey),
+                    $"缺少文件类型文案：{definition.FileTypeFilterKey}");
+                Assert.True(
+                    definition.FileTypePatterns.Count > 0,
+                    $"文件类型文案存在但缺少通配符：{definition.PropertyName}");
             }
         }
 

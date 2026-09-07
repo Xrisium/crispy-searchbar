@@ -5,13 +5,12 @@ using CrispySearchbar.Core.Localization;
 
 namespace CrispySearchbar.Platform;
 
-/// <summary>系统托盘图标：单击/菜单显示隐藏，菜单提供打开配置文件与退出。</summary>
+/// <summary>系统托盘图标：单击/菜单显示隐藏，菜单提供设置与退出。</summary>
 public sealed class TrayIconService : IDisposable
 {
     private readonly TrayIcon _trayIcon;
     private readonly NativeMenuItem _toggleItem;
     private readonly NativeMenuItem _settingsItem;
-    private readonly NativeMenuItem _configItem;
     private readonly NativeMenuItem _exitItem;
     private bool _disposed;
 
@@ -19,7 +18,6 @@ public sealed class TrayIconService : IDisposable
         AppStrings strings,
         Action toggleWindow,
         Action openSettings,
-        Action openConfigFile,
         Action exitApplication)
     {
         ArgumentNullException.ThrowIfNull(strings);
@@ -34,10 +32,6 @@ public sealed class TrayIconService : IDisposable
         settingsItem.Click += (_, _) => openSettings();
         menu.Items.Add(settingsItem);
 
-        var configItem = new NativeMenuItem(strings.OpenConfigFile);
-        configItem.Click += (_, _) => openConfigFile();
-        menu.Items.Add(configItem);
-
         menu.Items.Add(new NativeMenuItemSeparator());
 
         var exitItem = new NativeMenuItem(strings.Exit);
@@ -46,7 +40,6 @@ public sealed class TrayIconService : IDisposable
 
         _toggleItem = toggleItem;
         _settingsItem = settingsItem;
-        _configItem = configItem;
         _exitItem = exitItem;
 
         _trayIcon = new TrayIcon
@@ -70,7 +63,6 @@ public sealed class TrayIconService : IDisposable
 
         _toggleItem.Header = strings.ShowHideSearchBar;
         _settingsItem.Header = strings.OpenSettings;
-        _configItem.Header = strings.OpenConfigFile;
         _exitItem.Header = strings.Exit;
     }
 

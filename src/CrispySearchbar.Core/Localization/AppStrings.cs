@@ -22,8 +22,6 @@ public sealed class AppStrings
 
     public required string OpenSettings { get; init; }
 
-    public required string OpenConfigFile { get; init; }
-
     public required string Exit { get; init; }
 
     public required AppSettingsTexts SettingsTexts { get; init; }
@@ -66,7 +64,6 @@ public sealed class AppStrings
         TrayToolTip = "Crispy Searchbar（酥脆搜索）",
         ShowHideSearchBar = "显示 / 隐藏搜索框",
         OpenSettings = "设置",
-        OpenConfigFile = "打开配置文件",
         Exit = "退出",
         SettingsTexts = new AppSettingsTexts
         {
@@ -76,7 +73,8 @@ public sealed class AppStrings
             Clear = "清空",
             SavedStatus = "已保存到 settings.json",
             ValidationFailedStatus = "请先修正带错误提示的设置项。",
-            ConfigFilePathTemplate = "配置文件：{0}",
+            ConfigFileLabel = "配置文件：",
+            OpenConfigFile = "打开配置文件",
             SaveFailedTemplate = "保存失败：{0}",
             UrlTemplateRequiredError = "请输入网址模板。",
             UrlTemplatePlaceholderError = "网址模板必须包含 {0} 占位符。",
@@ -94,8 +92,8 @@ public sealed class AppStrings
                 [nameof(AppSettings.SearchEngine)] = "默认搜索引擎",
                 [nameof(AppSettings.ClearQueryOnHide)] = "隐藏搜索框时清空输入",
                 [nameof(AppSettings.AskAiUrlTemplate)] = "问问大肥鱼网址模板",
-                [nameof(AppSettings.DictionaryFilePath)] = "CC-CEDICT 词典文件",
-                [nameof(AppSettings.EcdictFilePath)] = "ECDICT 词典文件",
+                [nameof(AppSettings.DictionaryFilePath)] = "汉英词典文件",
+                [nameof(AppSettings.EcdictFilePath)] = "英汉词典文件",
             },
             FieldDescriptions = new Dictionary<string, string>
             {
@@ -104,8 +102,10 @@ public sealed class AppStrings
                 [nameof(AppSettings.SearchEngine)] = "网页搜索模式使用的搜索引擎。",
                 [nameof(AppSettings.ClearQueryOnHide)] = "搜索框隐藏后清空已输入内容。",
                 [nameof(AppSettings.AskAiUrlTemplate)] = "需要包含 {0}，查询词会替换该占位符。",
-                [nameof(AppSettings.DictionaryFilePath)] = "留空时使用用户数据目录或程序内置文件。",
-                [nameof(AppSettings.EcdictFilePath)] = "留空时使用用户数据目录或程序内置文件。",
+                [nameof(AppSettings.DictionaryFilePath)] =
+                    "支持 CC-CEDICT 的 UTF-8 文本文件（.u8，如 cedict_ts.u8）。留空时使用用户数据目录或程序内置文件。",
+                [nameof(AppSettings.EcdictFilePath)] =
+                    "支持 ECDICT 的 CSV 文件（.csv，如 ecdict.csv）。留空时使用用户数据目录或程序内置文件。",
             },
             OptionLabels = new Dictionary<string, string>
             {
@@ -117,6 +117,11 @@ public sealed class AppStrings
                 ["SearchEngine.Baidu"] = "百度",
                 ["SearchEngine.Google"] = "Google",
                 ["SearchEngine.Bing"] = "必应",
+            },
+            FileTypeFilterNames = new Dictionary<string, string>
+            {
+                [SettingFileFilterKeys.CcCedict] = "CC-CEDICT 文本文件",
+                [SettingFileFilterKeys.Ecdict] = "ECDICT CSV 文件",
             },
         },
         DictionaryEmptyHint = "输入英文单词或中文词语，↑/↓ 选择，Enter 查看释义",
@@ -151,7 +156,6 @@ public sealed class AppStrings
         TrayToolTip = "Crispy Searchbar",
         ShowHideSearchBar = "Show / Hide Search Bar",
         OpenSettings = "Settings",
-        OpenConfigFile = "Open Configuration File",
         Exit = "Exit",
         SettingsTexts = new AppSettingsTexts
         {
@@ -161,7 +165,8 @@ public sealed class AppStrings
             Clear = "Clear",
             SavedStatus = "Saved to settings.json",
             ValidationFailedStatus = "Fix the settings marked with an error first.",
-            ConfigFilePathTemplate = "Configuration file: {0}",
+            ConfigFileLabel = "Configuration file:",
+            OpenConfigFile = "Open configuration file",
             SaveFailedTemplate = "Failed to save: {0}",
             UrlTemplateRequiredError = "Enter a URL template.",
             UrlTemplatePlaceholderError = "The URL template must contain the {0} placeholder.",
@@ -179,8 +184,8 @@ public sealed class AppStrings
                 [nameof(AppSettings.SearchEngine)] = "Default search engine",
                 [nameof(AppSettings.ClearQueryOnHide)] = "Clear query when hidden",
                 [nameof(AppSettings.AskAiUrlTemplate)] = "Ask DeepSeek URL template",
-                [nameof(AppSettings.DictionaryFilePath)] = "CC-CEDICT dictionary file",
-                [nameof(AppSettings.EcdictFilePath)] = "ECDICT dictionary file",
+                [nameof(AppSettings.DictionaryFilePath)] = "Chinese-English dictionary file",
+                [nameof(AppSettings.EcdictFilePath)] = "English-Chinese dictionary file",
             },
             FieldDescriptions = new Dictionary<string, string>
             {
@@ -189,8 +194,10 @@ public sealed class AppStrings
                 [nameof(AppSettings.SearchEngine)] = "Search engine used by Web Search mode.",
                 [nameof(AppSettings.ClearQueryOnHide)] = "Clear the typed query whenever the search bar hides.",
                 [nameof(AppSettings.AskAiUrlTemplate)] = "Must contain {0}; the query replaces this placeholder.",
-                [nameof(AppSettings.DictionaryFilePath)] = "Leave empty to use the user data directory or the bundled file.",
-                [nameof(AppSettings.EcdictFilePath)] = "Leave empty to use the user data directory or the bundled file.",
+                [nameof(AppSettings.DictionaryFilePath)] =
+                    "Accepts a CC-CEDICT UTF-8 text file, typically cedict_ts.u8 (*.u8). Leave empty to use the user data directory or the bundled file.",
+                [nameof(AppSettings.EcdictFilePath)] =
+                    "Accepts an ECDICT CSV file, typically ecdict.csv (*.csv). Leave empty to use the user data directory or the bundled file.",
             },
             OptionLabels = new Dictionary<string, string>
             {
@@ -202,6 +209,11 @@ public sealed class AppStrings
                 ["SearchEngine.Baidu"] = "Baidu",
                 ["SearchEngine.Google"] = "Google",
                 ["SearchEngine.Bing"] = "Bing",
+            },
+            FileTypeFilterNames = new Dictionary<string, string>
+            {
+                [SettingFileFilterKeys.CcCedict] = "CC-CEDICT text file",
+                [SettingFileFilterKeys.Ecdict] = "ECDICT CSV file",
             },
         },
         DictionaryEmptyHint =

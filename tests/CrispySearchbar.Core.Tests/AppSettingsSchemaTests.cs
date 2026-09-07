@@ -79,4 +79,19 @@ public class AppSettingsSchemaTests
             Enum.GetValues<SettingsSection>(),
             sections);
     }
+
+    [Fact]
+    public void DictionaryPathFields_ExposeSupportedFileTypeFilters()
+    {
+        var definitions = AppSettingsSchema.Discover();
+        var chineseToEnglish = definitions.Single(
+            definition => definition.PropertyName == nameof(AppSettings.DictionaryFilePath));
+        var englishToChinese = definitions.Single(
+            definition => definition.PropertyName == nameof(AppSettings.EcdictFilePath));
+
+        Assert.Equal(SettingFileFilterKeys.CcCedict, chineseToEnglish.FileTypeFilterKey);
+        Assert.Contains("*.u8", chineseToEnglish.FileTypePatterns);
+        Assert.Equal(SettingFileFilterKeys.Ecdict, englishToChinese.FileTypeFilterKey);
+        Assert.Contains("*.csv", englishToChinese.FileTypePatterns);
+    }
 }

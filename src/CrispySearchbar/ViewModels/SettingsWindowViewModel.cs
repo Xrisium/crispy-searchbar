@@ -65,7 +65,11 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
 
     public string SaveText => _texts.Save;
 
-    public string ConfigFilePathText => _texts.FormatConfigFilePath(_configFilePath);
+    public string ConfigFileLabel => _texts.ConfigFileLabel;
+
+    public string ConfigFilePath => _configFilePath;
+
+    public string ConfigFileOpenText => _texts.OpenConfigFile;
 
     public string? StatusText
     {
@@ -94,7 +98,9 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
 
         OnPropertyChanged(nameof(WindowTitle));
         OnPropertyChanged(nameof(SaveText));
-        OnPropertyChanged(nameof(ConfigFilePathText));
+        OnPropertyChanged(nameof(ConfigFileLabel));
+        OnPropertyChanged(nameof(ConfigFilePath));
+        OnPropertyChanged(nameof(ConfigFileOpenText));
     }
 
     /// <summary>校验并保存到配置文件；成功时通知 App 即时应用。</summary>

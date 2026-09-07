@@ -11,7 +11,9 @@ public sealed class SettingDefinition
         SettingEditorKind editorKind,
         int order,
         SettingValidation validation,
-        IReadOnlyList<object?>? optionValues)
+        IReadOnlyList<object?>? optionValues,
+        string? fileTypeFilterKey = null,
+        IReadOnlyList<string>? fileTypePatterns = null)
     {
         Property = property;
         Section = section;
@@ -19,6 +21,8 @@ public sealed class SettingDefinition
         Order = order;
         Validation = validation;
         OptionValues = optionValues ?? Array.Empty<object?>();
+        FileTypeFilterKey = fileTypeFilterKey;
+        FileTypePatterns = fileTypePatterns ?? Array.Empty<string>();
     }
 
     public PropertyInfo Property { get; }
@@ -37,6 +41,12 @@ public sealed class SettingDefinition
 
     /// <summary>Choice 字段的候选值；枚举字段为枚举值，字符串字段来自 SettingValues。</summary>
     public IReadOnlyList<object?> OptionValues { get; }
+
+    /// <summary>FilePath 字段在文件选择器中使用的类型名文案键；可为 null。</summary>
+    public string? FileTypeFilterKey { get; }
+
+    /// <summary>FilePath 字段在文件选择器中支持的文件通配符；可为空数组（不限类型）。</summary>
+    public IReadOnlyList<string> FileTypePatterns { get; }
 
     public object? GetValue(AppSettings settings)
         => Property.GetValue(settings);
@@ -68,6 +78,7 @@ public static class AppSettingsSchema
                     $"AppSettings.{property.Name} 缺少 [Setting] 注解，无法在设置界面显示。");
 
             ValidatePropertyType(property, setting);
+            ValidateFileTypeMetadata(property, setting);
             var optionValues = ResolveOptionValues(property, setting);
             entries.Add((
                 new SettingDefinition(
@@ -76,7 +87,9 @@ public static class AppSettingsSchema
                     setting.EditorKind,
                     setting.Order,
                     setting.Validation,
-                    optionValues),
+                    optionValues,
+                    setting.FileTypeFilterKey,
+                    setting.FileTypePatterns),
                 setting.Order));
         }
 
@@ -128,6 +141,28 @@ public static class AppSettingsSchema
         {
             throw new InvalidOperationException(
                 $"AppSettings.{property.Name} 的 [Setting(EditorKind={setting.EditorKind})] 与属性类型 {type.Name} 不匹配。");
+        }
+    }
+
+    private static void ValidateFileTypeMetadata(PropertyInfo property, SettingAttribute setting)
+    {
+        var hasKey = !string.IsNullOrWhiteSpace(setting.FileTypeFilterKey);
+        var hasPatterns = setting.FileTypePatterns.Length > 0;
+        if (setting.EditorKind != SettingEditorKind.FilePath)
+        {
+            if (hasKey || hasPatterns)
+            {
+                throw new InvalidOperationException(
+                    $"AppSettings.{property.Name} 的文件类型元数据只允许用于 FilePath 设置项。");
+            }
+
+            return;
+        }
+
+        if (hasKey != hasPatterns)
+        {
+            throw new InvalidOperationException(
+                $"AppSettings.{property.Name} 的 FileTypeFilterKey 与 FileTypePatterns 必须同时提供或同时省略。");
         }
     }
 }

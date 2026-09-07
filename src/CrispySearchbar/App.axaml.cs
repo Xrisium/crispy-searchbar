@@ -63,7 +63,6 @@ public partial class App : Application
                 _strings,
                 ToggleSearchBar,
                 OpenSettingsWindow,
-                OpenConfigFile,
                 ExitApplication);
 
             // 首次启动也直接显示并聚焦输入框。
@@ -130,11 +129,6 @@ public partial class App : Application
         var fromDisk = AppSettingsStore.LoadOrDefault();
         ApplyConfiguration(fromDisk);
         _settingsWindow?.ReloadFromConfiguration(fromDisk, _strings);
-    }
-
-    private void OpenConfigFile()
-    {
-        BrowserLauncher.OpenFileWithDefaultApplication(AppSettingsStore.GetSettingsFilePath());
     }
 
     private static bool SameNormalizedPath(string? left, string? right)

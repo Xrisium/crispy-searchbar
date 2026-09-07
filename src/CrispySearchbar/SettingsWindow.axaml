@@ -51,10 +51,16 @@
       <Setter Property="Padding" Value="18,6" />
       <Setter Property="FontSize" Value="13" />
       <Setter Property="FontWeight" Value="600" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Button.primary /template/ ContentPresenter">
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
     <Style Selector="Button.primary:pointerover">
       <Setter Property="Opacity" Value="0.9" />
@@ -63,11 +69,17 @@
       <Setter Property="MinHeight" Value="32" />
       <Setter Property="Padding" Value="12,5" />
       <Setter Property="FontSize" Value="13" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Button.secondary /template/ ContentPresenter">
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
     <Style Selector="Button.secondary:pointerover">
       <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
@@ -77,14 +89,101 @@
       <Setter Property="Height" Value="32" />
       <Setter Property="Padding" Value="0" />
       <Setter Property="FontSize" Value="16" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="CornerRadius" Value="8" />
     </Style>
+    <Style Selector="Button.closeButton /template/ ContentPresenter">
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
     <Style Selector="Button.closeButton:pointerover">
       <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="TextBlock.configPathLink">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+    <Style Selector="TextBlock.configPathLink:pointerover">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+    <Style Selector="Thumb.settingsScrollThumb">
+      <Setter Property="Opacity" Value="0.55" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Thumb.settingsScrollThumb:pointerover">
+      <Setter Property="Opacity" Value="0.9" />
+    </Style>
+    <Style Selector="Thumb.settingsScrollThumb:pressed">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="ScrollBar:vertical">
+      <Setter Property="Width" Value="10" />
+      <Setter Property="MinWidth" Value="10" />
+      <Setter Property="MaxWidth" Value="10" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Template">
+        <ControlTemplate TargetType="ScrollBar">
+          <Grid>
+            <Border x:Name="ScrollTrackBackground"
+                    Margin="2,4"
+                    Background="{DynamicResource DividerBrush}"
+                    CornerRadius="3"
+                    Opacity="0">
+              <Border.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+                </Transitions>
+              </Border.Transitions>
+            </Border>
+            <Track x:Name="PART_Track"
+                   Minimum="{TemplateBinding Minimum}"
+                   Maximum="{TemplateBinding Maximum}"
+                   Value="{TemplateBinding Value, Mode=TwoWay}"
+                   DeferThumbDrag="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
+                   ViewportSize="{TemplateBinding ViewportSize}"
+                   IsDirectionReversed="True"
+                   Orientation="Vertical">
+              <Track.DecreaseButton>
+                <RepeatButton Name="PART_PageUpButton"
+                              Focusable="False"
+                              Background="Transparent"
+                              Opacity="0" />
+              </Track.DecreaseButton>
+              <Track.IncreaseButton>
+                <RepeatButton Name="PART_PageDownButton"
+                              Focusable="False"
+                              Background="Transparent"
+                              Opacity="0" />
+              </Track.IncreaseButton>
+              <Thumb MinHeight="28"
+                     Width="6"
+                     HorizontalAlignment="Center"
+                     Classes="settingsScrollThumb">
+                <Thumb.Template>
+                  <ControlTemplate TargetType="Thumb">
+                    <Border Background="{DynamicResource TextSecondaryBrush}"
+                            CornerRadius="3"
+                            Opacity="{TemplateBinding Opacity}" />
+                  </ControlTemplate>
+                </Thumb.Template>
+              </Thumb>
+            </Track>
+          </Grid>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="ScrollBar:vertical:pointerover /template/ Border#ScrollTrackBackground">
+      <Setter Property="Opacity" Value="1" />
     </Style>
   </Window.Styles>
 
@@ -239,18 +338,35 @@
               PointerPressed="OnTitleBarPointerPressed"
               Background="Transparent">
         <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Grid.Column="0"
-                     Text="{Binding WindowTitle}"
-                     Margin="18,0"
-                     FontSize="15"
-                     FontWeight="600"
-                     VerticalAlignment="Center"
-                     Foreground="{DynamicResource TextPrimaryBrush}" />
+          <StackPanel Grid.Column="0"
+                      Orientation="Horizontal"
+                      Spacing="8"
+                      Margin="18,0"
+                      VerticalAlignment="Center">
+            <ContentControl Width="13"
+                            Height="13"
+                            VerticalAlignment="Center"
+                            Content="{Binding WindowTitle}"
+                            ContentTemplate="{StaticResource SettingsIconTemplate-settings}" />
+            <TextBlock Text="{Binding WindowTitle}"
+                       FontSize="18"
+                       FontWeight="700"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
+          </StackPanel>
           <Button Grid.Column="1"
                   Margin="8"
                   Classes="closeButton"
-                  Content="×"
-                  Click="OnCloseClicked" />
+                  Click="OnCloseClicked">
+            <Viewbox Width="14" Height="14">
+              <Grid Width="24" Height="24">
+                <Path Data="M18 6 6 18M6 6l12 12"
+                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                      StrokeThickness="2"
+                      StrokeLineCap="Round" />
+              </Grid>
+            </Viewbox>
+          </Button>
         </Grid>
       </Border>
 
@@ -266,10 +382,19 @@
           <StackPanel VerticalAlignment="Center"
                       Spacing="2"
                       Margin="0,0,16,0">
-            <TextBlock Text="{Binding ConfigFilePathText}"
-                       FontSize="11"
-                       Foreground="{DynamicResource TextPlaceholderBrush}"
-                       TextTrimming="CharacterEllipsis" />
+            <Grid ColumnDefinitions="Auto,*">
+              <TextBlock Grid.Column="0"
+                         Text="{Binding ConfigFileLabel}"
+                         FontSize="11"
+                         Foreground="{DynamicResource TextPlaceholderBrush}" />
+              <TextBlock Grid.Column="1"
+                         Text="{Binding ConfigFilePath}"
+                         Classes="configPathLink"
+                         Margin="4,0,0,0"
+                         FontSize="11"
+                         ToolTip.Tip="{Binding ConfigFileOpenText}"
+                         Tapped="OnConfigPathTapped" />
+            </Grid>
             <TextBlock Text="{Binding StatusText}"
                        FontSize="12"
                        Foreground="{DynamicResource TextSecondaryBrush}"
@@ -328,11 +453,13 @@
 
         <ScrollViewer x:Name="PageScrollViewer"
                       Grid.Column="1"
-                      Margin="0,4,0,0"
+                      Margin="8,8,0,0"
+                      AllowAutoHide="False"
                       HorizontalScrollBarVisibility="Disabled">
           <ItemsControl x:Name="SectionHost"
                         ItemsSource="{Binding Sections}"
-                        Margin="4,0,18,16">
+                        Margin="16,0,24,20"
+                        Background="Transparent">
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="{x:Type vm:SettingsSectionViewModel}">
                 <StackPanel Margin="2,10,0,18"

@@ -227,6 +227,15 @@ public sealed class FilePathSettingFieldViewModel : SettingFieldViewModel
 
     public string ClearText => Texts.Clear;
 
+    public bool HasFileTypeFilter => Definition.FileTypePatterns.Count > 0;
+
+    public string? FileTypeFilterName
+        => string.IsNullOrWhiteSpace(Definition.FileTypeFilterKey)
+            ? null
+            : Texts.GetFileTypeFilterName(Definition.FileTypeFilterKey);
+
+    public IReadOnlyList<string> FileTypePatterns => Definition.FileTypePatterns;
+
     public void ClearPath() => FilePath = null;
 
     public override void LoadFrom(AppSettings settings)

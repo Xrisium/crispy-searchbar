@@ -35,12 +35,22 @@ public sealed class AppSettings
     /// <summary>
     /// CC-CEDICT（汉英）词典文件路径；留空时依次使用用户数据目录、程序目录中的 cedict_ts.u8。
     /// </summary>
-    [Setting(SettingsSection.Dictionary, SettingEditorKind.FilePath, Order = 0)]
+    [Setting(
+        SettingsSection.Dictionary,
+        SettingEditorKind.FilePath,
+        Order = 0,
+        FileTypeFilterKey = SettingFileFilterKeys.CcCedict,
+        FileTypePatterns = new[] { "*.u8", "*" })]
     public string? DictionaryFilePath { get; set; }
 
     /// <summary>
     /// ECDICT（英汉）词典文件路径；留空时依次使用用户数据目录、程序目录中的 ecdict.csv。
     /// </summary>
-    [Setting(SettingsSection.Dictionary, SettingEditorKind.FilePath, Order = 1)]
+    [Setting(
+        SettingsSection.Dictionary,
+        SettingEditorKind.FilePath,
+        Order = 1,
+        FileTypeFilterKey = SettingFileFilterKeys.Ecdict,
+        FileTypePatterns = new[] { "*.csv", "*" })]
     public string? EcdictFilePath { get; set; }
 }

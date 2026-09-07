@@ -21,6 +21,15 @@ public sealed class SettingAttribute : Attribute
     public int Order { get; set; }
 
     public SettingValidation Validation { get; set; }
+
+    /// <summary>
+    /// FilePath 字段在文件选择器中使用的类型名文案键；
+    /// 与 FileTypePatterns 成对出现，文案在 AppSettingsTexts.FileTypeFilterNames 中按语言提供。
+    /// </summary>
+    public string? FileTypeFilterKey { get; set; }
+
+    /// <summary>FilePath 字段在文件选择器中支持的文件类型通配符（如 *.csv）。</summary>
+    public string[] FileTypePatterns { get; set; } = [];
 }
 
 /// <summary>
