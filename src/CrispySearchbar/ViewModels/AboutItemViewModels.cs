@@ -11,18 +11,15 @@ public sealed class AboutParagraphViewModel
     public string Text { get; }
 }
 
-/// <summary>“关于”分类中的版本行：左侧标签，右侧版本值。</summary>
+/// <summary>“关于”分类中的版本行，整行显示本地化的版本句。</summary>
 public sealed class AboutVersionViewModel
 {
-    public AboutVersionViewModel(string label, string value)
+    public AboutVersionViewModel(string text)
     {
-        Label = label;
-        Value = value;
+        Text = text;
     }
 
-    public string Label { get; }
-
-    public string Value { get; }
+    public string Text { get; }
 }
 
 /// <summary>“关于”分类中的可点击链接行。</summary>

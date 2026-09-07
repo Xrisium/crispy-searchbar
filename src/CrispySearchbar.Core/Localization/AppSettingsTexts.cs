@@ -32,7 +32,7 @@ public sealed class AppSettingsTexts
 
     public required string AboutIntro { get; init; }
 
-    public required string AboutVersionLabel { get; init; }
+    public required string AboutVersionFormat { get; init; }
 
     public required string AboutLicenseLine { get; init; }
 
@@ -94,4 +94,7 @@ public sealed class AppSettingsTexts
 
     public string FormatSaveFailed(string? detail)
         => string.Format(SaveFailedTemplate, detail);
+
+    public string FormatAboutVersion(string version)
+        => string.Format(AboutVersionFormat, version);
 }

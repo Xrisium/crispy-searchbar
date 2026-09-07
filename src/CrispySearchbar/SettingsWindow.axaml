@@ -353,20 +353,10 @@
 
     <DataTemplate DataType="{x:Type vm:AboutVersionViewModel}">
       <Border Padding="0,7">
-        <Grid ColumnDefinitions="Auto,*">
-          <TextBlock Grid.Column="0"
-                     Text="{Binding Label}"
-                     FontSize="13"
-                     Foreground="{DynamicResource TextSecondaryBrush}"
-                     VerticalAlignment="Center" />
-          <TextBlock Grid.Column="1"
-                     Text="{Binding Value}"
-                     Margin="12,0,0,0"
-                     FontSize="13"
-                     Foreground="{DynamicResource TextSecondaryBrush}"
-                     TextTrimming="CharacterEllipsis"
-                     VerticalAlignment="Center" />
-        </Grid>
+        <TextBlock Text="{Binding Text}"
+                   FontSize="13"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   TextTrimming="CharacterEllipsis" />
       </Border>
     </DataTemplate>
 

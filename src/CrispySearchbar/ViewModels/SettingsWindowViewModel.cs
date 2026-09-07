@@ -263,7 +263,7 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         => new List<object>
         {
             new AboutParagraphViewModel(_texts.AboutIntro),
-            new AboutVersionViewModel(_texts.AboutVersionLabel, GetAppVersion()),
+            new AboutVersionViewModel(_texts.FormatAboutVersion(GetAppVersion())),
             new AboutParagraphViewModel(_texts.AboutLicenseLine),
             new AboutLinkViewModel(
                 _texts.AboutGitHubLinkLabel,
