@@ -18,6 +18,9 @@
     <None Include="..\..\data\cc-cedict\cedict_ts.u8" Link="cedict_ts.u8" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\cc-cedict\LICENSE.txt" Link="cc-cedict-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\cc-cedict\NOTICE" Link="cc-cedict-NOTICE.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\licenses\**" Link="licenses\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\THIRD_PARTY_NOTICES.md" Link="THIRD_PARTY_NOTICES.md" CopyToOutputDirectory="PreserveNewest" />
+
   </ItemGroup>
 
 

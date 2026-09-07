@@ -74,9 +74,10 @@ If the file is missing or corrupt, defaults are used.
 src/CrispySearchbar/           Avalonia UI application (window, tray, Windows hotkey)
 src/CrispySearchbar.Core/      Platform-independent core (settings, modes, URL building, dictionary index)
 tests/CrispySearchbar.Core.Tests/  Unit tests for core logic
-data/cc-cedict/                Bundled CC-CEDICT data with its license/notice
+licenses/                     Centralized full texts of third-party licenses
+data/cc-cedict/                Bundled CC-CEDICT data with its own license/notice
 ```
 
 ## License
 
-Project code is MIT. Third-party dependencies and dictionary data have their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and `data/cc-cedict/NOTICE`.
+Project code is MIT. Third-party dependency and dictionary data licenses are summarized in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); full texts live centrally under `licenses/`, and CC-CEDICT additionally keeps `LICENSE.txt`/`NOTICE` next to its data in `data/cc-cedict/`.
