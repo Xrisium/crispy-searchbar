@@ -62,8 +62,9 @@
       <Setter Property="HorizontalContentAlignment" Value="Center" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
-    <Style Selector="Button.primary:pointerover">
-      <Setter Property="Opacity" Value="0.9" />
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+      <Setter Property="BoxShadow" Value="{DynamicResource PrimaryButtonHoverGlow}" />
     </Style>
     <Style Selector="Button.secondary">
       <Setter Property="MinHeight" Value="32" />
@@ -105,11 +106,12 @@
       <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
     <Style Selector="TextBlock.configPathLink">
-      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPlaceholderBrush}" />
       <Setter Property="Cursor" Value="Hand" />
       <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
     <Style Selector="TextBlock.configPathLink:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
       <Setter Property="TextDecorations" Value="Underline" />
     </Style>
     <Style Selector="Thumb.settingsScrollThumb">

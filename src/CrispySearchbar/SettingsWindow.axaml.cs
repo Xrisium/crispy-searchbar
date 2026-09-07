@@ -1,10 +1,10 @@
-using System.Diagnostics;
 using Avalonia;
+using Avalonia.Animation;
+using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using Avalonia.Threading;
 using CrispySearchbar.Core.Configuration;
 using CrispySearchbar.Core.Localization;
 using CrispySearchbar.ViewModels;
@@ -16,23 +16,21 @@ namespace CrispySearchbar;
 /// </summary>
 public sealed partial class SettingsWindow : Window
 {
+    private const double ScrollWheelStep = 90;
+
     private readonly Dictionary<SettingsSectionViewModel, Control> _sectionControls = [];
-    private readonly DispatcherTimer _scrollAnimationTimer;
-    private readonly Stopwatch _scrollAnimationStopwatch = new();
-    private double _scrollAnimationStart;
-    private double _scrollAnimationTarget;
-    private TimeSpan _scrollAnimationDuration;
-    private bool _scrollAnimationActive;
+    private readonly VectorTransition _scrollTransition;
 
     public SettingsWindow()
     {
         InitializeComponent();
 
-        _scrollAnimationTimer = new DispatcherTimer(DispatcherPriority.Normal)
+        _scrollTransition = new VectorTransition
         {
-            Interval = TimeSpan.FromMilliseconds(16),
+            Property = ScrollViewer.OffsetProperty,
+            Easing = new CubicEaseOut(),
         };
-        _scrollAnimationTimer.Tick += OnScrollAnimationTick;
+        PageScrollViewer.Transitions = new Transitions { _scrollTransition };
         SectionHost.PointerWheelChanged += OnPagePointerWheelChanged;
 
         var settings = AppSettingsStore.LoadOrDefault();
@@ -116,45 +114,13 @@ public sealed partial class SettingsWindow : Window
         var current = PageScrollViewer.Offset.Y;
         if (Math.Abs(current - target) < 0.5)
         {
-            StopScrollAnimation();
             PageScrollViewer.Offset = PageScrollViewer.Offset.WithY(target);
             return;
         }
 
-        _scrollAnimationStart = current;
-        _scrollAnimationTarget = target;
         var distance = Math.Abs(target - current);
-        _scrollAnimationDuration = TimeSpan.FromMilliseconds(Math.Clamp(120 + distance * 0.35, 120, 360));
-        _scrollAnimationStopwatch.Restart();
-        _scrollAnimationActive = true;
-        _scrollAnimationTimer.Start();
-    }
-
-    private void StopScrollAnimation()
-    {
-        _scrollAnimationActive = false;
-        _scrollAnimationTimer.Stop();
-    }
-
-    private void OnScrollAnimationTick(object? sender, EventArgs e)
-    {
-        if (!_scrollAnimationActive)
-        {
-            return;
-        }
-
-        var elapsed = _scrollAnimationStopwatch.Elapsed;
-        if (elapsed >= _scrollAnimationDuration)
-        {
-            StopScrollAnimation();
-            PageScrollViewer.Offset = PageScrollViewer.Offset.WithY(_scrollAnimationTarget);
-            return;
-        }
-
-        var progress = elapsed.TotalMilliseconds / _scrollAnimationDuration.TotalMilliseconds;
-        var eased = 1 - Math.Pow(1 - progress, 3);
-        var next = _scrollAnimationStart + (_scrollAnimationTarget - _scrollAnimationStart) * eased;
-        PageScrollViewer.Offset = PageScrollViewer.Offset.WithY(Math.Clamp(next, 0, MaxVerticalOffset));
+        _scrollTransition.Duration = TimeSpan.FromMilliseconds(Math.Clamp(140 + distance * 0.5, 140, 420));
+        PageScrollViewer.Offset = PageScrollViewer.Offset.WithY(target);
     }
 
     private void OnPagePointerWheelChanged(object? sender, PointerWheelEventArgs e)
@@ -177,7 +143,7 @@ public sealed partial class SettingsWindow : Window
         }
 
         var target = Math.Clamp(
-            PageScrollViewer.Offset.Y - e.Delta.Y * 50,
+            PageScrollViewer.Offset.Y - e.Delta.Y * ScrollWheelStep,
             0,
             MaxVerticalOffset);
         e.Handled = true;
