@@ -23,7 +23,11 @@ public partial class MainWindow : Window
     public void AllowClose() => _allowClose = true;
 
     /// <summary>隐藏到托盘；应用保持运行，等待全局快捷键或托盘菜单唤回。</summary>
-    public void HideToTray() => Hide();
+    public void HideToTray()
+    {
+        ViewModel.OnWindowHidden();
+        Hide();
+    }
 
     /// <summary>从托盘/全局快捷键唤出：显示、恢复、激活并聚焦输入框。</summary>
     public void ShowFromTray()
@@ -52,6 +56,7 @@ public partial class MainWindow : Window
 
         // 托盘常驻应用：关闭请求（Alt+F4 等）一律转为隐藏。
         e.Cancel = true;
+        ViewModel.OnWindowHidden();
         Hide();
     }
 

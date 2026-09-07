@@ -7,7 +7,7 @@ A tiny, modern global search bar for Windows. Built with C# and Avalonia UI, des
 Current milestone: resident search shell.
 
 - The visible UI is a single rounded capsule search bar; candidate panels are only added later for modes that need them (e.g. dictionary).
-- `Alt+Space` shows/hides the search bar; `Esc` hides it; the app keeps running in the tray with a “show/hide” menu and an “exit” menu.
+- `Alt+Space` shows/hides the search bar; `Esc` hides it; the app keeps running in the tray with “show/hide”, “open config file” and “exit” menu items.
 - Tab cycles through modes: web search, ask AI, dictionary (dictionary is still a placeholder).
 - Web search and “ask AI” open the default browser using a configurable URL template (the query is URL-encoded into `{0}`).
 - The default web search engine is Baidu; Google and Bing can be selected in the config file.
@@ -40,12 +40,14 @@ Example file:
 {
   "theme": "system",
   "searchEngine": "baidu",
+  "clearQueryOnHide": true,
   "askAiUrlTemplate": "https://chat.deepseek.com/?q={0}"
 }
 ```
 
 - `theme`: `system`, `light` or `dark`.
 - `searchEngine`: `baidu` (default), `google` or `bing`.
+- `clearQueryOnHide`: `true` (default) clears the typed query whenever the search bar is hidden; `false` keeps it.
 - `askAiUrlTemplate`: must contain `{0}`, replaced by the URL-encoded query.
 
 If the file is missing or corrupt, defaults are used.
@@ -61,3 +63,4 @@ tests/CrispySearchbar.Core.Tests/  Unit tests for core logic
 ## License
 
 Project code is MIT. Third-party dependencies and their licenses are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+

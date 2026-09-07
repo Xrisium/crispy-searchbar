@@ -22,6 +22,7 @@ public class AppSettingsStoreTests
             Assert.Equal(ThemePreference.System, settings.Theme);
             Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
+            Assert.True(settings.ClearQueryOnHide);
             Assert.True(File.Exists(Path.Combine(dir, AppSettingsStore.FileName)));
         }
         finally
@@ -41,6 +42,7 @@ public class AppSettingsStoreTests
                 Theme = ThemePreference.Dark,
                 SearchEngine = SearchEngineKind.Google,
                 AskAiUrlTemplate = "https://chat.deepseek.com/?q={0}",
+                ClearQueryOnHide = false,
             };
 
             AppSettingsStore.Save(expected, dir);
@@ -49,6 +51,7 @@ public class AppSettingsStoreTests
             Assert.Equal(ThemePreference.Dark, loaded.Theme);
             Assert.Equal(SearchEngineKind.Google, loaded.SearchEngine);
             Assert.Equal(expected.AskAiUrlTemplate, loaded.AskAiUrlTemplate);
+            Assert.False(loaded.ClearQueryOnHide);
         }
         finally
         {
@@ -70,6 +73,7 @@ public class AppSettingsStoreTests
             Assert.Equal(ThemePreference.System, settings.Theme);
             Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
+            Assert.True(settings.ClearQueryOnHide);
         }
         finally
         {
@@ -80,3 +84,5 @@ public class AppSettingsStoreTests
     private static string CreateTempDirectory()
         => Path.Combine(Path.GetTempPath(), "crispy-searchbar-tests-" + Guid.NewGuid().ToString("N"));
 }
+
+

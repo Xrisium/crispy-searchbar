@@ -11,18 +11,26 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 {
     private readonly IReadOnlyList<SearchMode> _modes;
     private readonly Action<string> _openUrl;
+    private readonly bool _clearQueryOnHide;
     private int _modeIndex;
     private string _query = string.Empty;
 
-    public MainWindowViewModel(IReadOnlyList<SearchMode> modes, Action<string> openUrl)
+    public MainWindowViewModel(
+        IReadOnlyList<SearchMode> modes,
+        Action<string> openUrl,
+        bool clearQueryOnHide = true)
     {
         _modes = modes;
         _openUrl = openUrl;
+        _clearQueryOnHide = clearQueryOnHide;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public SearchMode CurrentMode => _modes[_modeIndex];
+
+    /// <summary>输入为空时显示占位提示。</summary>
+    public bool ShowPlaceholder => string.IsNullOrEmpty(Query);
 
     public string Query
     {
@@ -36,6 +44,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
             _query = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(ShowPlaceholder));
         }
     }
 
@@ -44,6 +53,15 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     {
         _modeIndex = (_modeIndex + 1) % _modes.Count;
         OnPropertyChanged(nameof(CurrentMode));
+    }
+
+    /// <summary>窗口隐藏时按配置决定是否清空已输入内容。</summary>
+    public void OnWindowHidden()
+    {
+        if (_clearQueryOnHide)
+        {
+            Query = string.Empty;
+        }
     }
 
     /// <summary>Enter 键：对带 URL 模板的模式在默认浏览器打开结果。</summary>

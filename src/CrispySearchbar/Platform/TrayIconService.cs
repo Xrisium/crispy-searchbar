@@ -4,19 +4,23 @@ using Avalonia.Platform;
 
 namespace CrispySearchbar.Platform;
 
-/// <summary>系统托盘图标：单击/菜单显示隐藏，菜单提供退出。</summary>
+/// <summary>系统托盘图标：单击/菜单显示隐藏，菜单提供打开配置文件与退出。</summary>
 public sealed class TrayIconService : IDisposable
 {
     private readonly TrayIcon _trayIcon;
     private bool _disposed;
 
-    public TrayIconService(Action toggleWindow, Action exitApplication)
+    public TrayIconService(Action toggleWindow, Action openConfigFile, Action exitApplication)
     {
         var menu = new NativeMenu();
 
         var toggleItem = new NativeMenuItem("显示 / 隐藏搜索框");
         toggleItem.Click += (_, _) => toggleWindow();
         menu.Items.Add(toggleItem);
+
+        var configItem = new NativeMenuItem("打开配置文件");
+        configItem.Click += (_, _) => openConfigFile();
+        menu.Items.Add(configItem);
 
         menu.Items.Add(new NativeMenuItemSeparator());
 

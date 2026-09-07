@@ -31,7 +31,10 @@ public partial class App : Application
             };
 
             var modes = SearchModeCatalog.CreateDefault(settings);
-            var viewModel = new MainWindowViewModel(modes, BrowserLauncher.Open);
+            var viewModel = new MainWindowViewModel(
+                modes,
+                BrowserLauncher.Open,
+                clearQueryOnHide: settings.ClearQueryOnHide);
             var mainWindow = new MainWindow { DataContext = viewModel };
             _mainWindow = mainWindow;
 
@@ -43,12 +46,17 @@ public partial class App : Application
             _hotkeyService.Pressed += ToggleSearchBar;
             _hotkeyService.Start();
 
-            _trayIconService = new TrayIconService(ToggleSearchBar, ExitApplication);
+            _trayIconService = new TrayIconService(ToggleSearchBar, OpenConfigFile, ExitApplication);
 
             mainWindow.Show();
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void OpenConfigFile()
+    {
+        BrowserLauncher.OpenFileWithDefaultApplication(AppSettingsStore.GetSettingsFilePath());
     }
 
     private void ToggleSearchBar()
@@ -87,3 +95,5 @@ public partial class App : Application
         }
     }
 }
+
+

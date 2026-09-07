@@ -8,6 +8,9 @@ public sealed class AppSettings
     /// <summary>网页搜索使用的默认搜索引擎，可选 baidu/google/bing，默认 baidu。</summary>
     public SearchEngineKind SearchEngine { get; set; } = SearchEngineKind.Baidu;
 
+    /// <summary>搜索框隐藏后是否清空已输入内容，默认 true。</summary>
+    public bool ClearQueryOnHide { get; set; } = true;
+
     /// <summary>询问 AI 地址模板，{0} 将被替换为 URL 编码后的查询词。</summary>
     public string AskAiUrlTemplate { get; set; } =
         "https://chat.deepseek.com/?q={0}";
