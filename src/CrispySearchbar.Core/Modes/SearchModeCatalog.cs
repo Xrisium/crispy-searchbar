@@ -11,7 +11,7 @@ public static class SearchModeCatalog
 
         return new SearchMode[]
         {
-            SearchMode.WebSearch(settings.SearchEngineUrlTemplate),
+            SearchMode.WebSearch(SearchEngineCatalog.GetUrlTemplate(settings.SearchEngine)),
             SearchMode.AskAi(settings.AskAiUrlTemplate),
             SearchMode.Dictionary,
         };

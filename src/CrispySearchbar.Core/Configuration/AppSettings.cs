@@ -5,11 +5,10 @@ public sealed class AppSettings
 {
     public ThemePreference Theme { get; set; } = ThemePreference.System;
 
-    /// <summary>网页搜索地址模板，{0} 将被替换为 URL 编码后的查询词。</summary>
-    public string SearchEngineUrlTemplate { get; set; } =
-        "https://www.bing.com/search?q={0}";
+    /// <summary>网页搜索使用的默认搜索引擎，可选 baidu/google/bing，默认 baidu。</summary>
+    public SearchEngineKind SearchEngine { get; set; } = SearchEngineKind.Baidu;
 
-    /// <summary>询问 AI 地址模板，与网页搜索共用同一套模板逻辑。</summary>
+    /// <summary>询问 AI 地址模板，{0} 将被替换为 URL 编码后的查询词。</summary>
     public string AskAiUrlTemplate { get; set; } =
         "https://chat.deepseek.com/?q={0}";
 }

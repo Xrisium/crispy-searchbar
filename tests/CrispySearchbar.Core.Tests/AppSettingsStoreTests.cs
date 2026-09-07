@@ -6,6 +6,12 @@ namespace CrispySearchbar.Core.Tests;
 public class AppSettingsStoreTests
 {
     [Fact]
+    public void DefaultDirectory_IsApplicationBaseDirectory()
+    {
+        Assert.Equal(AppContext.BaseDirectory, AppSettingsStore.GetDefaultDirectoryPath());
+    }
+
+    [Fact]
     public void LoadOrDefault_CreatesDefaultFileOnFirstRun()
     {
         var dir = CreateTempDirectory();
@@ -14,7 +20,7 @@ public class AppSettingsStoreTests
             var settings = AppSettingsStore.LoadOrDefault(dir);
 
             Assert.Equal(ThemePreference.System, settings.Theme);
-            Assert.Contains("{0}", settings.SearchEngineUrlTemplate);
+            Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
             Assert.True(File.Exists(Path.Combine(dir, AppSettingsStore.FileName)));
         }
@@ -33,7 +39,7 @@ public class AppSettingsStoreTests
             var expected = new AppSettings
             {
                 Theme = ThemePreference.Dark,
-                SearchEngineUrlTemplate = "https://duckduckgo.com/?q={0}",
+                SearchEngine = SearchEngineKind.Google,
                 AskAiUrlTemplate = "https://chat.deepseek.com/?q={0}",
             };
 
@@ -41,7 +47,7 @@ public class AppSettingsStoreTests
             var loaded = AppSettingsStore.LoadOrDefault(dir);
 
             Assert.Equal(ThemePreference.Dark, loaded.Theme);
-            Assert.Equal(expected.SearchEngineUrlTemplate, loaded.SearchEngineUrlTemplate);
+            Assert.Equal(SearchEngineKind.Google, loaded.SearchEngine);
             Assert.Equal(expected.AskAiUrlTemplate, loaded.AskAiUrlTemplate);
         }
         finally
@@ -62,7 +68,8 @@ public class AppSettingsStoreTests
             var settings = AppSettingsStore.LoadOrDefault(dir);
 
             Assert.Equal(ThemePreference.System, settings.Theme);
-            Assert.Contains("{0}", settings.SearchEngineUrlTemplate);
+            Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
+            Assert.Contains("{0}", settings.AskAiUrlTemplate);
         }
         finally
         {
