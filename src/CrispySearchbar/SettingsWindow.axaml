@@ -343,9 +343,7 @@
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type vm:AboutParagraphViewModel}">
-      <Border BorderBrush="{DynamicResource DividerBrush}"
-              BorderThickness="0,0,0,1"
-              Padding="0,10">
+      <Border Padding="0,7">
         <TextBlock Text="{Binding Text}"
                    FontSize="13"
                    Foreground="{DynamicResource TextSecondaryBrush}"
@@ -354,9 +352,7 @@
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type vm:AboutVersionViewModel}">
-      <Border BorderBrush="{DynamicResource DividerBrush}"
-              BorderThickness="0,0,0,1"
-              Padding="0,10">
+      <Border Padding="0,7">
         <Grid ColumnDefinitions="Auto,*">
           <TextBlock Grid.Column="0"
                      Text="{Binding Label}"
@@ -367,8 +363,7 @@
                      Text="{Binding Value}"
                      Margin="12,0,0,0"
                      FontSize="13"
-                     FontWeight="500"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
                      TextTrimming="CharacterEllipsis"
                      VerticalAlignment="Center" />
         </Grid>
@@ -376,9 +371,7 @@
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type vm:AboutLinkViewModel}">
-      <Border BorderBrush="{DynamicResource DividerBrush}"
-              BorderThickness="0,0,0,1"
-              Padding="0,10">
+      <Border Padding="0,7">
         <TextBlock Text="{Binding Label}"
                    Classes="aboutLink"
                    ToolTip.Tip="{Binding Target}"
@@ -387,18 +380,19 @@
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type vm:AboutActionViewModel}">
-      <Border BorderBrush="{DynamicResource DividerBrush}"
-              BorderThickness="0,0,0,1"
-              Padding="0,12">
-        <StackPanel Spacing="8">
-          <TextBlock Text="{Binding Description}"
-                     FontSize="12"
-                     Foreground="{DynamicResource TextSecondaryBrush}"
-                     TextWrapping="Wrap" />
+      <Border Margin="0,6,0,0"
+              BorderBrush="{DynamicResource DividerBrush}"
+              BorderThickness="0,1,0,0"
+              Padding="0,12,0,0">
+        <StackPanel Spacing="6">
           <Button Classes="secondary"
                   Content="{Binding Text}"
                   HorizontalAlignment="Left"
                   Click="OnResetConfigClicked" />
+          <TextBlock Text="{Binding Description}"
+                     FontSize="12"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
+                     TextWrapping="Wrap" />
         </StackPanel>
       </Border>
     </DataTemplate>
