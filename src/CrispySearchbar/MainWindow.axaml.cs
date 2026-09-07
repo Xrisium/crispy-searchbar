@@ -27,6 +27,7 @@ public partial class MainWindow : Window
     public void HideToTray()
     {
         ViewModel.OnWindowHidden();
+        DictionaryPopup.IsOpen = false;
         Hide();
     }
 
@@ -47,6 +48,7 @@ public partial class MainWindow : Window
         QueryBox.Focus();
         QueryBox.CaretIndex = QueryBox.Text?.Length ?? 0;
         ViewModel.OnWindowShown();
+        DictionaryPopup.IsOpen = ViewModel.IsDictionaryMode;
     }
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)
@@ -59,6 +61,7 @@ public partial class MainWindow : Window
         // 托盘常驻应用：关闭请求（Alt+F4 等）一律转为隐藏。
         e.Cancel = true;
         ViewModel.OnWindowHidden();
+        DictionaryPopup.IsOpen = false;
         Hide();
     }
 

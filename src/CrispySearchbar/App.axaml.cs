@@ -32,10 +32,12 @@ public partial class App : Application
             };
 
             var modes = SearchModeCatalog.CreateDefault(settings);
+            var dictionaryDataSource = new AppDictionaryDataSource(settings.DictionaryFilePath);
             var viewModel = new MainWindowViewModel(
                 modes,
                 BrowserLauncher.Open,
-                clearQueryOnHide: settings.ClearQueryOnHide);
+                clearQueryOnHide: settings.ClearQueryOnHide,
+                loadDictionary: dictionaryDataSource.LoadAsync);
             var mainWindow = new MainWindow { DataContext = viewModel };
             _mainWindow = mainWindow;
 
