@@ -9,13 +9,15 @@ namespace CrispySearchbar;
 
 public partial class MainWindow : Window
 {
-    private const int ModeWheelHoldDelayMs = 400;
+    private const int ModeWheelHoldDelayMs = 200;
+    private const int DeactivationGraceMs = 250;
 
     private readonly DispatcherTimer _tabHoldTimer;
     private bool _allowClose;
     private bool _tabDown;
     private bool _modeWheelOpened;
     private bool _suppressTabRelease;
+    private DateTime _lastActivatedUtc = DateTime.MinValue;
 
     public MainWindow()
     {
@@ -31,6 +33,8 @@ public partial class MainWindow : Window
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         AddHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel);
         Closing += OnClosing;
+        Activated += OnActivated;
+        Deactivated += OnDeactivated;
     }
 
     private MainWindowViewModel ViewModel => (MainWindowViewModel)DataContext!;
@@ -65,6 +69,20 @@ public partial class MainWindow : Window
         QueryBox.CaretIndex = QueryBox.Text?.Length ?? 0;
         ViewModel.OnWindowShown();
         DictionaryPopup.IsOpen = ViewModel.IsDictionaryPopupOpen;
+    }
+
+    private void OnActivated(object? sender, EventArgs e) => _lastActivatedUtc = DateTime.UtcNow;
+
+    /// <summary>鼠标点击其它窗口/桌面使搜索框失焦时，按“点击外部即隐藏”收起。</summary>
+    private void OnDeactivated(object? sender, EventArgs e)
+    {
+        // 短暂宽限期避免窗口刚 Show 时被其它前台窗口抢焦点导致立即隐藏。
+        if (IsVisible
+            && _lastActivatedUtc != DateTime.MinValue
+            && DateTime.UtcNow - _lastActivatedUtc > TimeSpan.FromMilliseconds(DeactivationGraceMs))
+        {
+            HideToTray();
+        }
     }
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)

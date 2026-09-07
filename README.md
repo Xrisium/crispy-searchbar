@@ -7,7 +7,7 @@ A tiny, modern global search bar for Windows. Built with C# and Avalonia UI, des
 Current milestone: search shell with a functional dictionary mode.
 
 - The visible UI is a single rounded capsule search bar. Dictionary candidates and details appear in an on-demand popup below it.
-- `Alt+Space` shows/hides the search bar; `Esc` hides it; the app keeps running in the tray with “show/hide”, “open config file” and “exit” menu items.
+- `Alt+Space` shows/hides the search bar; `Esc` or clicking another window hides it; the app keeps running in the tray with “show/hide”, “open config file” and “exit” menu items.
 - Quick Tab cycles through modes: 网页搜索 → 问问大肥鱼 → 词典; holding Tab opens the vertical mode picker and releasing Tab switches (mouse wheel or ↑/↓ moves the highlight).
 - Web search and “问问大肥鱼” open the default browser using a configurable URL template (the query is URL-encoded into `{0}`).
 - Dictionary mode performs offline 英汉 / 汉英 lookup against CC-CEDICT:
