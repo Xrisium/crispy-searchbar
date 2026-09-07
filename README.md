@@ -10,6 +10,7 @@ Current milestone: resident search shell.
 - `Alt+Space` shows/hides the search bar; `Esc` hides it; the app keeps running in the tray with “show/hide”, “open config file” and “exit” menu items.
 - Tab cycles through modes: web search, ask AI, dictionary (dictionary is still a placeholder).
 - Web search and “ask AI” open the default browser using a configurable URL template (the query is URL-encoded into `{0}`).
+- After Enter executes a search, the search bar hides automatically; reopen it with `Alt+Space` or the tray menu.
 - The default web search engine is Baidu; Google and Bing can be selected in the config file.
 
 ## Requirements
@@ -63,4 +64,5 @@ tests/CrispySearchbar.Core.Tests/  Unit tests for core logic
 ## License
 
 Project code is MIT. Third-party dependencies and their licenses are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
 

@@ -60,25 +60,30 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>Enter 键：对带 URL 模板的模式在默认浏览器打开结果。</summary>
-    public void ExecuteCurrent()
+    /// <summary>
+    /// Enter 键：对带 URL 模板的模式在默认浏览器打开结果。
+    /// 返回是否真正执行了动作，供调用方决定是否隐藏搜索框。
+    /// </summary>
+    public bool ExecuteCurrent()
     {
         var mode = CurrentMode;
         if (mode.UrlTemplate is null)
         {
-            return;
+            return false;
         }
 
         var query = Query.Trim();
         if (query.Length == 0)
         {
-            return;
+            return false;
         }
 
         _openUrl(OpenUrlBuilder.Build(mode.UrlTemplate, query));
+        return true;
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
+
 

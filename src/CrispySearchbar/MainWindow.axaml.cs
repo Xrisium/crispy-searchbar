@@ -74,8 +74,14 @@ public partial class MainWindow : Window
         }
         else if (e.Key == Key.Enter)
         {
-            ViewModel.ExecuteCurrent();
+            if (ViewModel.ExecuteCurrent())
+            {
+                // 搜索执行成功后自动隐藏，等待 Alt+Space/托盘再次唤出。
+                HideToTray();
+            }
+
             e.Handled = true;
         }
     }
 }
+

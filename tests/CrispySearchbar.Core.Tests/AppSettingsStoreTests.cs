@@ -1,4 +1,5 @@
-﻿using CrispySearchbar.Core.Configuration;
+﻿using System.Text.Json;
+using CrispySearchbar.Core.Configuration;
 using Xunit;
 
 namespace CrispySearchbar.Core.Tests;
@@ -24,6 +25,29 @@ public class AppSettingsStoreTests
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
             Assert.True(settings.ClearQueryOnHide);
             Assert.True(File.Exists(Path.Combine(dir, AppSettingsStore.FileName)));
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void GeneratedFile_ListsEveryConfigurableItem()
+    {
+        var dir = CreateTempDirectory();
+        try
+        {
+            AppSettingsStore.LoadOrDefault(dir);
+            var json = File.ReadAllText(Path.Combine(dir, AppSettingsStore.FileName));
+            using var document = JsonDocument.Parse(json);
+
+            var names = document.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
+            Assert.Equal(4, names.Length);
+            Assert.Contains("theme", names);
+            Assert.Contains("searchEngine", names);
+            Assert.Contains("clearQueryOnHide", names);
+            Assert.Contains("askAiUrlTemplate", names);
         }
         finally
         {
@@ -84,5 +108,6 @@ public class AppSettingsStoreTests
     private static string CreateTempDirectory()
         => Path.Combine(Path.GetTempPath(), "crispy-searchbar-tests-" + Guid.NewGuid().ToString("N"));
 }
+
 
 
