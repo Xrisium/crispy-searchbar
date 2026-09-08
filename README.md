@@ -1,119 +1,46 @@
-Read this in [简体中文](README.zh-CN.md)
+Read this in other languages: **简体中文**, [English](README.en-US.md)
 
-# Crispy Searchbar
+# 酥脆搜索（Crispy Searchbar）
 
-A tiny, modern global search bar for Windows. Built with C# and Avalonia UI, designed to be keyboard-first, fast, and low-overhead in the background.
+一款轻量、现代、快速的 Windows 全局搜索框。使用 C# 与 Avalonia UI 构建，以响应迅速、后台低占用、搜索模式分离为设计目标。
 
-## Status
+此项目**没有**制作任何整合搜索或全量搜索模式的打算，而是致力于为有确定搜索或查询意图、不愿意被无关搜索结果干扰的用户打造。
 
-Current milestone: search shell with a functional dictionary mode.
+## 功能特色
 
-- The visible UI is a single rounded capsule search bar. Dictionary candidates and details appear in an on-demand popup below it.
-- `Alt+Space` shows/hides the search bar; `Esc` or clicking another window hides it; the app keeps running in the tray with “Show / Hide Search Bar”, “Settings” and “Exit” menu items.
-- Quick Tab cycles through modes in the order configured under Settings → Modes (default: Web Search → Wikipedia → Ask DeepSeek → Dictionary); holding Tab opens the vertical mode picker and releasing Tab switches (mouse wheel or ↑/↓ moves the highlight).
-- The five key bindings above are defaults and can be rebound in Settings → Shortcuts, where each row can also be cleared with Esc. Visible key hints follow the current bindings; conflicts with other applications are shown as non-blocking warnings.
-- Web Search, Wikipedia and Ask DeepSeek open the default browser using a URL template (the query is URL-encoded into `{0}`). The Wikipedia site follows the `wikipediaLanguage` metadata of the active translation file (for example zh.wikipedia.org for `zh-Hans` and en.wikipedia.org for `en`).
-- Dictionary mode performs offline lookup against CC-CEDICT (Chinese → English) and ECDICT (English → Chinese):
-  - real-time candidate suggestions as you type;
-  - English queries are case-insensitive and ignore trailing punctuation;
-  - Chinese queries accept both simplified and traditional forms;
-  - ↑/↓ moves the selection, Enter opens the definition detail (also rebindable via Settings → Shortcuts), mouse click opens the entry;
-  - typing is non-blocking and stale query results are discarded.
-- Enter opens dictionary details without hiding the search bar. After Enter executes a browser search instead, the search bar hides automatically; reopen it with `Alt+Space` or the tray menu.
+- **快速呼出**：常驻于系统托盘，按下快捷键（默认为 Alt + 空格键）即可呼出搜索框。
+- **模式切换**：短按模式切换键（默认为 Tab）快速切换到下一搜索模式（保留输入内容）；长按模式切换键呼出模式选择轮盘，并可以用 ↑、↓ 键或鼠标滚轮进行切换。
+- **模式自定义**：用户可随时在配置设置面板中启用或禁用任意搜索模式，并可对各个模式在切换轮盘中的位置进行拖拽排序。
 
-## Requirements
+## 支持搜索模式
+
+- **网页搜索**：使用预先配置的搜索引擎在默认浏览器中搜索输入的内容，支持[百度](https://www.baidu.com)、[谷歌](https://www.google.com/)和[必应](https://www.bing.com/)。
+- **维基百科**：在 [维基百科](https://zh.wikipedia.org/) 中查询输入的内容，所使用的维基百科语种将随界面语言自动切换。
+- **询问 Deepseek**：使用默认浏览器，在 [DeepSeek 网页版](https://chat.deepseek.com/) 中询问输入的问题。需要用户拥有 DeepSeek 账户并提前在浏览器中登录。
+- **词典**：支持英汉和汉英词汇查询，随输入实时显示候选词。使用 [CC-CEDICT](https://www.mdbg.net/chinese/dictionary?page=cedict)（汉 → 英）与 [ECDICT](https://github.com/skywind3000/ECDICT)（英 → 汉）进行离线查询。离线词典将会随 Crispy Searchbar 本体一同安装，无需另外下载。用户可以自行下载符合格式要求的词典文件并自行配置。当前版本暂不支持更多语种。
+
+## 环境要求
 
 - Windows 10 x64
 - .NET SDK 10
 
-## Run
-
-```powershell
-dotnet run --project src/CrispySearchbar
-```
-
-## Build & test
-
-```powershell
-dotnet build
-dotnet test
-```
-
-## Dictionary data
-
-The dictionary mode needs two bundled datasets: CC-CEDICT’s `cedict_ts.u8` for Chinese → English, and ECDICT’s `ecdict.csv` for English → Chinese.
-
-- The repository bundles both under `data/cc-cedict/` and `data/ecdict/`; they are copied next to the executable at build time.
-- To use your own data, put `cedict_ts.u8` and/or `ecdict.csv` in `%LOCALAPPDATA%\CrispySearchbar\`, or point `dictionaryFilePath` / `ecdictFilePath` at any file path in `settings.json`. User-located files take precedence and are never overwritten by the bundled copies.
-- Latest data can be downloaded from https://www.mdbg.net/chinese/dictionary?page=cedict (CC BY-SA 4.0; see `data/cc-cedict/NOTICE` and `data/cc-cedict/LICENSE.txt`) and https://github.com/skywind3000/ECDICT (MIT; see `data/ecdict/NOTICE` and `data/ecdict/LICENSE.txt`).
-
-## Configuration
-
-On first run the app creates `settings.json` in the same directory as the executable (in development this is the `bin` output directory; in a published build it sits next to the exe), so users can edit it directly.
-
-Tray menu → “Settings” opens a visual settings editor for the same `settings.json`. The editor never keeps a second settings store: it reads the file on open, writes the file on “Save”, and the running app immediately re-applies the saved values (theme, language, search settings, enabled modes and order, dictionary paths). The path shown in the window footer opens `settings.json` in its default JSON application when you click “Open configuration file”. Manually editing the file is still fully supported; the file remains the source of truth.
-
-The settings window is generated from `AppSettings` property annotations (`[Setting]`). Adding a new configurable property plus its localized copy makes a new editing row appear automatically; the Modes section is one such data-driven row and lets you enable/disable each mode and reorder it by drag-and-drop or the up/down buttons.
-
-The About section at the bottom is informational: it shows the app version, links to the GitHub repository and `THIRD_PARTY_NOTICES.md`, and offers a reset button that restores `settings.json` to defaults after confirmation.
-
-Example file:
-
-```json
-{
-  "language": "system",
-  "theme": "system",
-  "searchEngine": "baidu",
-  "clearQueryOnHide": true,
-  "askAiUrlTemplate": "https://chat.deepseek.com/?q={0}",
-  "toggleVisibilityShortcut": "Alt+Space",
-  "cycleModeShortcut": "Tab",
-  "hideOnEscape": true,
-  "executeShortcut": "Enter",
-  "selectPreviousShortcut": "Up",
-  "selectNextShortcut": "Down",
-  "modePreferences": [
-    { "key": "web-search", "enabled": true },
-    { "key": "wikipedia", "enabled": true },
-    { "key": "ask-ai", "enabled": true },
-    { "key": "dictionary", "enabled": true }
-  ],
-  "dictionaryFilePath": null,
-  "ecdictFilePath": null
-}
-```
-
-- `language`: `system` (default; follows the Windows UI language) or any BCP 47 code with a bundled translation under `locales/` (currently `zh-Hans` and `en`). Unknown codes and system languages without a match fall back to English.
-- `theme`: `system`, `light` or `dark`.
-- `searchEngine`: `baidu` (default), `google` or `bing`.
-- `clearQueryOnHide`: `true` (default) clears the typed query whenever the search bar is hidden; `false` keeps it.
-- `askAiUrlTemplate`: must contain `{0}`, replaced by the URL-encoded query.
-- `toggleVisibilityShortcut`: global show/hide hotkey, written as `Alt+Space` style text; default `Alt+Space`.
-- `cycleModeShortcut`: single key that switches modes when tapped and opens the mode wheel when held; default `Tab`.
-- `hideOnEscape`: `true` (default) hides the search bar when Esc is pressed while it is visible; Esc always dismisses the mode wheel first when it is open.
-- `executeShortcut`: executes the current item; default `Enter`.
-- `selectPreviousShortcut` / `selectNextShortcut`: move the selection in dictionary candidates and the mode wheel; defaults `Up` and `Down`.
-- `modePreferences`: ordered list of built-in modes; `enabled: false` removes a mode from mode switching and the mode picker while keeping its list position. At least one mode must stay enabled; an all-disabled list is normalized back to the defaults on load.
-- `dictionaryFilePath`: optional absolute path to a CC-CEDICT (Chinese → English) UTF-8 text file, typically `cedict_ts.u8` (`.u8`); `null` uses the user data directory, then the bundled file.
-- `ecdictFilePath`: optional absolute path to an ECDICT (English → Chinese) CSV file, typically `ecdict.csv` (`.csv`); `null` uses the user data directory, then the bundled file.
-
-UI translations live in `locales/*.json` (see `locales/README.md`). `en.json` is the complete fallback: translation files may be partial, and missing or empty keys fall back to English. To add a language, copy `en.json` to `{code}.json`, translate the strings, set `nativeName` and `wikipediaLanguage`, then rebuild; the app discovers the file automatically and no code changes are required.
-
-If the file is missing or corrupt, defaults are used. Invalid mode lists (unknown keys, duplicates, missing modes, or all modes disabled) and unparseable shortcut values are normalized on load and the corrected file is written back.
-
-## Repository layout
+## 仓库结构
 
 ```text
-src/CrispySearchbar/           Avalonia UI application (window, tray, Windows hotkey)
-src/CrispySearchbar.Core/      Platform-independent core (settings, modes, URL building, dictionary index)
-tests/CrispySearchbar.Core.Tests/  Unit tests for core logic
-licenses/                     Centralized full texts of third-party licenses
-assets/icon/                  App icon master PNG and multi-size ICO source assets
-locales/                      Per-language UI translations (see locales/README.md)
-data/cc-cedict/                Bundled CC-CEDICT data with its own license/notice
-data/ecdict/                   Bundled ECDICT data with its own license/notice
+src/CrispySearchbar/           Avalonia UI 应用（窗口、托盘、Windows 热键）
+src/CrispySearchbar.Core/      与平台无关的核心（设置、模式、URL 构建、词典索引）
+tests/CrispySearchbar.Core.Tests/  核心逻辑单元测试
+licenses/                     集中存放的第三方许可证全文
+assets/icon/                  应用图标源 PNG 与多尺寸 ICO 素材
+locales/                      各语言界面翻译（见 locales/README.md）
+data/cc-cedict/               内置 CC-CEDICT 数据及其许可证/声明
+data/ecdict/                  内置 ECDICT 数据及其许可证/声明
 ```
 
-## License
+## 许可证
 
-Project code is MIT. Third-party dependency and dictionary data licenses are summarized in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); full texts live centrally under `licenses/`, and CC-CEDICT and ECDICT additionally keep `LICENSE.txt`/`NOTICE` next to their data.
+项目代码采用 [MIT 许可证](LICENSE)。
+
+第三方依赖与词典数据的许可证汇总见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)；
+
+全文集中存放于 `licenses/`，CC-CEDICT 与 ECDICT 还在各自数据目录中保留了 `LICENSE.txt`/`NOTICE`。
