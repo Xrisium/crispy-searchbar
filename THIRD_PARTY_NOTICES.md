@@ -2,7 +2,7 @@
 
 本项目的代码使用 MIT License（见根目录 `LICENSE`）。下面的第三方依赖、组件与数据资产各自拥有独立许可证；使用或再分发本项目（含编译产物）时，须遵守这些许可证的条款。
 
-记录生成时间：2026-09-08。许可证信息读取自 NuGet 包元数据与数据发布页；升级依赖或更新数据后应重新核对并更新本文件。
+记录生成时间：2026-09-09。许可证信息读取自 NuGet 包元数据与数据发布页；升级依赖或更新数据后应重新核对并更新本文件。
 
 ## 许可证原文集中管理
 
@@ -22,7 +22,7 @@
 
 | 资源 | 来源 | 许可证 |
 |---|---|---|
-| `src/CrispySearchbar/Assets/Icons/lucide-globe.svg`、`lucide-book-open-text.svg`、`lucide-sliders-horizontal.svg`、`lucide-palette.svg`、`lucide-search.svg`、`lucide-settings.svg`、`lucide-info.svg` | Lucide（lucide-icons/lucide）`main` commit `a537cb6eb323b885f4c60baf3cec1a995982d167` 的 `icons/globe.svg`、`icons/book-open-text.svg`、`icons/sliders-horizontal.svg`、`icons/palette.svg`、`icons/search.svg`、`icons/settings.svg`、`icons/info.svg` | [ISC](licenses/ISC.txt)，Copyright (c) 2026 Lucide Icons and Contributors |
+| `src/CrispySearchbar/Assets/Icons/lucide-globe.svg`、`lucide-book-open-text.svg`、`lucide-sliders-horizontal.svg`、`lucide-palette.svg`、`lucide-search.svg`、`lucide-settings.svg`、`lucide-info.svg`、`lucide-keyboard.svg` | Lucide（lucide-icons/lucide）`main` commit `a537cb6eb323b885f4c60baf3cec1a995982d167` 的 `icons/globe.svg`、`icons/book-open-text.svg`、`icons/sliders-horizontal.svg`、`icons/palette.svg`、`icons/search.svg`、`icons/settings.svg`、`icons/info.svg`、`icons/keyboard.svg` | [ISC](licenses/ISC.txt)，Copyright (c) 2026 Lucide Icons and Contributors |
 | `src/CrispySearchbar/Assets/Icons/deepseek-whale.svg` | DeepSeek（deepseek-ai/deepseek-harness）`master` commit `c389f96bf3a9b6807cb71ed6bdad5849be0df6d8` 的 `apps/web/public/favicon.svg` | [MIT](licenses/MIT.txt)，Copyright (c) 2026 DeepSeek |
 | `src/CrispySearchbar/Assets/Icons/wikipedia-w.svg` | Wikimedia Commons：[File:Wikipedia's W.svg](https://commons.wikimedia.org/wiki/File:Wikipedia%27s_W.svg)（官方 Wikipedia favicon，W 字形源自 Hoefler Text，Jonathan Hoefler 设计，2007-06-26） | 公有领域（[PD-text](https://en.wikipedia.org/wiki/Wikipedia:Public_domain)：单一字母字形不具著作权门槛）；使用须遵循 [Wikimedia 视觉识别指引](https://wikimediafoundation.org/brand-stewardship/brand-use/)。W 是 Wikimedia Foundation 的 Wikipedia 标识组成部分，本项目用于标示维基百科搜索模式，非 Wikimedia 官方背书 |
 ## 运行时依赖（应用发布时会涉及）

@@ -10,6 +10,7 @@ public enum SettingsSection
     Appearance,
     Search,
     Modes,
+    Shortcuts,
     Dictionary,
     About,
 }

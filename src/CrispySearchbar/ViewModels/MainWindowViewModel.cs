@@ -16,7 +16,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private const string DictionaryModeKey = "dictionary";
 
-    private string EmptyDictionaryHint => _strings.DictionaryEmptyHint;
+    private string EmptyDictionaryHint => _dictionaryEmptyHint;
 
     private string LoadingDictionaryHint => _strings.DictionaryLoadingHint;
 
@@ -26,6 +26,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private readonly Action<string> _openUrl;
     private Func<Task<DictionaryLoadResult>>? _loadDictionary;
     private bool _clearQueryOnHide;
+    private string _dictionaryEmptyHint;
 
     private int _modeIndex;
     private bool _isModeWheelOpen;
@@ -45,6 +46,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         IReadOnlyList<SearchMode> modes,
         Action<string> openUrl,
         bool clearQueryOnHide = true,
+        string? dictionaryEmptyHint = null,
         Func<Task<DictionaryLoadResult>>? loadDictionary = null)
     {
         ArgumentNullException.ThrowIfNull(strings);
@@ -52,8 +54,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         _modes = modes;
         _openUrl = openUrl;
         _clearQueryOnHide = clearQueryOnHide;
+        _dictionaryEmptyHint = dictionaryEmptyHint ?? strings.DictionaryEmptyHint;
         _loadDictionary = loadDictionary;
-        _dictionaryHint = _strings.DictionaryEmptyHint;
+        _dictionaryHint = _dictionaryEmptyHint;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -62,7 +65,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public void ApplyConfiguration(
         AppStrings strings,
         IReadOnlyList<SearchMode> modes,
-        bool clearQueryOnHide)
+        bool clearQueryOnHide,
+        string? dictionaryEmptyHint = null)
     {
         ArgumentNullException.ThrowIfNull(strings);
         ArgumentNullException.ThrowIfNull(modes);
@@ -71,6 +75,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         _strings = strings;
         _modes = modes;
         _clearQueryOnHide = clearQueryOnHide;
+        _dictionaryEmptyHint = dictionaryEmptyHint ?? strings.DictionaryEmptyHint;
         if (_modes.Count > 0)
         {
             var preservedIndex = previousModeKey is null

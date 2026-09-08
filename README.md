@@ -11,12 +11,13 @@ Current milestone: search shell with a functional dictionary mode.
 - The visible UI is a single rounded capsule search bar. Dictionary candidates and details appear in an on-demand popup below it.
 - `Alt+Space` shows/hides the search bar; `Esc` or clicking another window hides it; the app keeps running in the tray with “Show / Hide Search Bar”, “Settings” and “Exit” menu items.
 - Quick Tab cycles through modes in the order configured under Settings → Modes (default: Web Search → Wikipedia → Ask DeepSeek → Dictionary); holding Tab opens the vertical mode picker and releasing Tab switches (mouse wheel or ↑/↓ moves the highlight).
+- The six shortcuts above are defaults and can be rebound in Settings → Shortcuts. Visible key hints (watermarks and the dictionary hint) follow the current bindings; the global hotkey is checked for conflicts before a save is accepted.
 - Web Search, Wikipedia and Ask DeepSeek open the default browser using a URL template (the query is URL-encoded into `{0}`). The Wikipedia site follows the `wikipediaLanguage` metadata of the active translation file (for example zh.wikipedia.org for `zh-Hans` and en.wikipedia.org for `en`).
 - Dictionary mode performs offline lookup against CC-CEDICT (Chinese → English) and ECDICT (English → Chinese):
   - real-time candidate suggestions as you type;
   - English queries are case-insensitive and ignore trailing punctuation;
   - Chinese queries accept both simplified and traditional forms;
-  - ↑/↓ moves the selection, Enter opens the definition detail, mouse click opens the entry;
+  - ↑/↓ moves the selection, Enter opens the definition detail (also rebindable via Settings → Shortcuts), mouse click opens the entry;
   - typing is non-blocking and stale query results are discarded.
 - Enter opens dictionary details without hiding the search bar. After Enter executes a browser search instead, the search bar hides automatically; reopen it with `Alt+Space` or the tray menu.
 
@@ -65,6 +66,12 @@ Example file:
   "searchEngine": "baidu",
   "clearQueryOnHide": true,
   "askAiUrlTemplate": "https://chat.deepseek.com/?q={0}",
+  "toggleVisibilityShortcut": "Alt+Space",
+  "cycleModeShortcut": "Tab",
+  "hideShortcut": "Esc",
+  "executeShortcut": "Enter",
+  "selectPreviousShortcut": "Up",
+  "selectNextShortcut": "Down",
   "modePreferences": [
     { "key": "web-search", "enabled": true },
     { "key": "wikipedia", "enabled": true },
@@ -81,13 +88,18 @@ Example file:
 - `searchEngine`: `baidu` (default), `google` or `bing`.
 - `clearQueryOnHide`: `true` (default) clears the typed query whenever the search bar is hidden; `false` keeps it.
 - `askAiUrlTemplate`: must contain `{0}`, replaced by the URL-encoded query.
-- `modePreferences`: ordered list of built-in modes; `enabled: false` removes a mode from Tab switching and the mode picker while keeping its list position. At least one mode must stay enabled; an all-disabled list is normalized back to the defaults on load.
+- `toggleVisibilityShortcut`: global show/hide hotkey, written as `Alt+Space` style text; default `Alt+Space`.
+- `cycleModeShortcut`: single key that switches modes when tapped and opens the mode wheel when held; default `Tab`.
+- `hideShortcut`: hides the search bar (and dismisses the mode wheel first when it is open); default `Esc`.
+- `executeShortcut`: executes the current item; default `Enter`.
+- `selectPreviousShortcut` / `selectNextShortcut`: move the selection in dictionary candidates and the mode wheel; defaults `Up` and `Down`.
+- `modePreferences`: ordered list of built-in modes; `enabled: false` removes a mode from mode switching and the mode picker while keeping its list position. At least one mode must stay enabled; an all-disabled list is normalized back to the defaults on load.
 - `dictionaryFilePath`: optional absolute path to a CC-CEDICT (Chinese → English) UTF-8 text file, typically `cedict_ts.u8` (`.u8`); `null` uses the user data directory, then the bundled file.
 - `ecdictFilePath`: optional absolute path to an ECDICT (English → Chinese) CSV file, typically `ecdict.csv` (`.csv`); `null` uses the user data directory, then the bundled file.
 
 UI translations live in `locales/*.json` (see `locales/README.md`). `en.json` is the complete fallback: translation files may be partial, and missing or empty keys fall back to English. To add a language, copy `en.json` to `{code}.json`, translate the strings, set `nativeName` and `wikipediaLanguage`, then rebuild; the app discovers the file automatically and no code changes are required.
 
-If the file is missing or corrupt, defaults are used. Invalid mode lists (unknown keys, duplicates, missing modes, or all modes disabled) are normalized on load and the corrected file is written back.
+If the file is missing or corrupt, defaults are used. Invalid mode lists (unknown keys, duplicates, missing modes, or all modes disabled) and unparseable shortcut values are normalized on load and the corrected file is written back.
 
 ## Repository layout
 

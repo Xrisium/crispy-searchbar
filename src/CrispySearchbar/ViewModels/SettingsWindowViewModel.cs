@@ -57,13 +57,17 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
     private AppSettingsTexts _texts;
     private AppStrings _strings;
     private readonly string _configFilePath;
+    private readonly Func<string, bool>? _globalShortcutProbe;
+    private string _savedGlobalShortcut = string.Empty;
     private string? _statusText;
     private bool _isResetConfirmationVisible;
+    private bool _rollbackInProgress;
 
     public SettingsWindowViewModel(
         AppSettings settings,
         AppStrings strings,
-        string configFilePath)
+        string configFilePath,
+        Func<string, bool>? globalShortcutProbe = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(strings);
@@ -72,6 +76,8 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         _strings = strings;
         _texts = strings.SettingsTexts;
         _configFilePath = configFilePath;
+        _globalShortcutProbe = globalShortcutProbe;
+        _savedGlobalShortcut = settings.ToggleVisibilityShortcut;
         RebuildSections();
     }
 
@@ -142,7 +148,9 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         _settings = settings;
         _strings = strings;
         _texts = strings.SettingsTexts;
+        _savedGlobalShortcut = settings.ToggleVisibilityShortcut;
         _isResetConfirmationVisible = false;
+        _rollbackInProgress = false;
         RebuildSections();
 
         OnPropertyChanged(nameof(WindowTitle));
@@ -183,7 +191,12 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
 
         // App 处理事件时会同步重读文件并触发 Reload，随后这里再用新语言显示完成状态。
         Saved?.Invoke(this, defaults);
-        StatusText = _texts.ResetDoneStatus;
+        if (!_rollbackInProgress)
+        {
+            StatusText = _texts.ResetDoneStatus;
+        }
+
+        _rollbackInProgress = false;
         HideResetConfirmation();
         return true;
     }
@@ -208,7 +221,19 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         {
             ReportValidationFailure(
                 validatorErrorField.Value.Section,
-                validatorErrorField.Value.Field);
+                validatorErrorField.Value.Field,
+                _texts.GetValidationMessage(validatorErrorField.Value.Error.ErrorKey));
+            return false;
+        }
+
+        if (!string.Equals(
+                _settings.ToggleVisibilityShortcut,
+                _savedGlobalShortcut,
+                StringComparison.OrdinalIgnoreCase)
+            && _globalShortcutProbe is not null
+            && !_globalShortcutProbe(_settings.ToggleVisibilityShortcut))
+        {
+            StatusText = _texts.HotkeyRegistrationFailed;
             return false;
         }
 
@@ -224,7 +249,12 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
 
         // App 处理事件时会同步重读文件并触发 Reload，随后这里再用新语言显示成功状态。
         Saved?.Invoke(this, _settings);
-        StatusText = _texts.SavedStatus;
+        if (!_rollbackInProgress)
+        {
+            StatusText = _texts.SavedStatus;
+        }
+
+        _rollbackInProgress = false;
         return true;
     }
 
@@ -244,25 +274,28 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         return null;
     }
 
-    private (SettingsSectionViewModel Section, SettingFieldViewModel Field)? FindFirstValidatorErrorField(
-        AppSettings settings)
+    private (SettingsSectionViewModel Section, SettingFieldViewModel Field, SettingValidationError Error)?
+        FindFirstValidatorErrorField(AppSettings settings)
     {
-        var errorProperties = AppSettingsValidator
-            .Validate(settings)
-            .Select(error => error.PropertyName)
-            .ToHashSet(StringComparer.Ordinal);
-        if (errorProperties.Count == 0)
+        var validatorErrors = AppSettingsValidator.Validate(settings);
+        if (validatorErrors.Count == 0)
         {
             return null;
         }
 
-        foreach (var section in Sections)
+        foreach (var error in validatorErrors)
         {
-            foreach (var field in section.Fields)
+            foreach (var section in Sections)
             {
-                if (errorProperties.Contains(field.Definition.PropertyName))
+                foreach (var field in section.Fields)
                 {
-                    return (section, field);
+                    if (string.Equals(
+                            field.Definition.PropertyName,
+                            error.PropertyName,
+                            StringComparison.Ordinal))
+                    {
+                        return (section, field, error);
+                    }
                 }
             }
         }
@@ -270,10 +303,23 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         return null;
     }
 
+    /// <summary>App 实际重注册全局热键失败并已回滚配置后调用，用于向用户说明原因。</summary>
+    public void ShowApplyFailure()
+    {
+        _rollbackInProgress = true;
+        StatusText = _texts.HotkeyRegistrationFailed;
+    }
+
     private void ReportValidationFailure(
         SettingsSectionViewModel section,
-        SettingFieldViewModel field)
+        SettingFieldViewModel field,
+        string? errorMessage = null)
     {
+        if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            field.SetErrorFromValidation(errorMessage);
+        }
+
         StatusText = _texts.FormatValidationFailed(section.Title, field.Label);
         ValidationFailed?.Invoke(this, field);
     }

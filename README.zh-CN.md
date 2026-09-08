@@ -11,12 +11,13 @@
 - 常驻界面是单个圆角胶囊搜索框；词典候选与释义详情按需出现在下方的浮层中。
 - `Alt+Space` 显示/隐藏搜索框；`Esc` 或点击其它窗口会隐藏它；应用常驻系统托盘，菜单包含“显示 / 隐藏搜索框”“设置”和“退出”。
 - 快速按 Tab 按“设置 → 模式”中配置的顺序循环切换模式（默认：网页搜索 → 维基百科 → 问问大肥鱼 → 词典）；长按 Tab 会打开纵向模式选择器，松开 Tab 即完成切换（鼠标滚轮或 ↑/↓ 可移动高亮）。
+- 以上六项快捷键只是默认值，可在“设置 → 快捷键”中重绑。界面里的按键提示（水印与词典提示）会跟随当前键位显示；保存前会先检查全局热键是否被其它程序占用。
 - 网页搜索、维基百科与问问大肥鱼使用网址模板在默认浏览器中打开结果（查询词会被 URL 编码并替换到 `{0}`）。维基百科模式的站点跟随当前翻译文件中的 `wikipediaLanguage` 元数据（例如 `zh-Hans` 使用 zh.wikipedia.org、`en` 使用 en.wikipedia.org）。
 - 词典模式使用 CC-CEDICT（汉 → 英）与 ECDICT（英 → 汉）进行离线查询：
   - 输入时实时提供候选词；
   - 英文查询不区分大小写，并忽略结尾标点；
   - 中文查询同时支持简体和繁体；
-  - ↑/↓ 移动选择，Enter 打开释义详情，鼠标单击直接打开词条；
+  - ↑/↓ 移动选择，Enter 打开释义详情（同样可在“设置 → 快捷键”重绑），鼠标单击直接打开词条；
   - 输入过程不阻塞界面，过期查询结果会被丢弃。
 - 词典模式下按 Enter 打开详情，不隐藏搜索框；网页类模式执行搜索后会自动隐藏搜索框，可用 `Alt+Space` 或托盘菜单再次唤出。
 
@@ -65,6 +66,12 @@ dotnet test
   "searchEngine": "baidu",
   "clearQueryOnHide": true,
   "askAiUrlTemplate": "https://chat.deepseek.com/?q={0}",
+  "toggleVisibilityShortcut": "Alt+Space",
+  "cycleModeShortcut": "Tab",
+  "hideShortcut": "Esc",
+  "executeShortcut": "Enter",
+  "selectPreviousShortcut": "Up",
+  "selectNextShortcut": "Down",
   "modePreferences": [
     { "key": "web-search", "enabled": true },
     { "key": "wikipedia", "enabled": true },
@@ -81,13 +88,18 @@ dotnet test
 - `searchEngine`：`baidu`（默认）、`google` 或 `bing`。
 - `clearQueryOnHide`：`true`（默认）在搜索框隐藏时清空已输入内容；`false` 则保留。
 - `askAiUrlTemplate`：必须包含 `{0}`，该占位符会被 URL 编码后的查询词替换。
-- `modePreferences`：内置模式的有序列表；`enabled: false` 会将该模式从 Tab 切换与模式选择器中移除，但仍保留其列表位置。至少需要启用一个模式；全禁用列表会在加载时归一化为默认值。
+- `toggleVisibilityShortcut`：全局呼出/隐藏热键，采用 `Alt+Space` 这种文本格式；默认 `Alt+Space`。
+- `cycleModeShortcut`：单个按键，轻按切换模式、长按打开模式轮盘；默认 `Tab`。
+- `hideShortcut`：隐藏搜索框（模式轮盘打开时先取消轮盘）；默认 `Esc`。
+- `executeShortcut`：执行当前项；默认 `Enter`。
+- `selectPreviousShortcut` / `selectNextShortcut`：在词典候选与模式轮盘中移动选择；默认 `Up` 与 `Down`。
+- `modePreferences`：内置模式的有序列表；`enabled: false` 会将该模式从模式切换与模式选择器中移除，但仍保留其列表位置。至少需要启用一个模式；全禁用列表会在加载时归一化为默认值。
 - `dictionaryFilePath`：可选的 CC-CEDICT（汉 → 英）UTF-8 文本文件绝对路径，通常为 `cedict_ts.u8`（`.u8`）；`null` 时依次使用用户数据目录与内置文件。
 - `ecdictFilePath`：可选的 ECDICT（英 → 汉）CSV 文件绝对路径，通常为 `ecdict.csv`（`.csv`）；`null` 时依次使用用户数据目录与内置文件。
 
 界面翻译位于 `locales/*.json`（见 `locales/README.md`）。`en.json` 是完整回退基准：翻译文件可只提供部分词条，缺失或空值会回退英文。新增语言时复制 `en.json` 为 `{code}.json`、翻译词条并填写 `nativeName` 与 `wikipediaLanguage`，重新构建即可；应用自动发现该文件，无需修改任何代码。
 
-如果配置文件缺失或损坏，则使用默认值。非法模式列表（未知键、重复键、缺失模式或全部禁用）会在加载时被归一化，并将修正后的文件写回。
+如果配置文件缺失或损坏，则使用默认值。非法模式列表（未知键、重复键、缺失模式或全部禁用）以及无法解析的快捷键值会在加载时被归一化，并将修正后的文件写回。
 
 ## 仓库结构
 

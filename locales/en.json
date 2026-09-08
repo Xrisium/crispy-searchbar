@@ -3,23 +3,23 @@
   "wikipediaLanguage": "en",
   "webSearchMode": {
     "title": "Web Search",
-    "watermark": "Type keywords and press Enter to search",
-    "actionHint": "Press Enter to search with your default search engine"
+    "watermark": "Type keywords and press {execute} to search",
+    "actionHint": "Press {execute} to search with your default search engine"
   },
   "wikipediaMode": {
     "title": "Wikipedia",
-    "watermark": "Type keywords and press Enter to search Wikipedia",
-    "actionHint": "Press Enter to open Wikipedia results in your browser"
+    "watermark": "Type keywords and press {execute} to search Wikipedia",
+    "actionHint": "Press {execute} to open Wikipedia results in your browser"
   },
   "askAiMode": {
     "title": "Ask DeepSeek",
-    "watermark": "Type a question and press Enter to open DeepSeek in your browser",
-    "actionHint": "Press Enter to open DeepSeek in your browser"
+    "watermark": "Type a question and press {execute} to open DeepSeek in your browser",
+    "actionHint": "Press {execute} to open DeepSeek in your browser"
   },
   "dictionaryMode": {
     "title": "Dictionary",
     "watermark": "Type an English word or Chinese term",
-    "actionHint": "Search as you type; press Enter to view definitions"
+    "actionHint": "Search as you type; press {execute} to view definitions"
   },
   "trayToolTip": "Crispy Searchbar",
   "showHideSearchBar": "Show / Hide Search Bar",
@@ -53,11 +53,15 @@
     "modeMoveUpToolTip": "Move mode up",
     "modeMoveDownToolTip": "Move mode down",
     "modeDragHandleToolTip": "Drag to reorder modes",
+    "shortcutRecordPrompt": "Press a shortcut… (click again to cancel)",
+    "shortcutResetText": "Restore default",
+    "hotkeyRegistrationFailed": "The global hotkey is already in use by another program. Save was cancelled and the current shortcut stays active.",
     "sectionTitles": {
       "General": "General",
       "Appearance": "Appearance",
       "Search": "Search",
       "Modes": "Modes",
+      "Shortcuts": "Shortcuts",
       "Dictionary": "Dictionary",
       "About": "About"
     },
@@ -69,7 +73,13 @@
       "AskAiUrlTemplate": "Ask DeepSeek URL template",
       "ModePreferences": "Enabled modes and order",
       "DictionaryFilePath": "Chinese-English dictionary file",
-      "EcdictFilePath": "English-Chinese dictionary file"
+      "EcdictFilePath": "English-Chinese dictionary file",
+      "ToggleVisibilityShortcut": "Show / hide search bar (global)",
+      "CycleModeShortcut": "Switch to the next mode",
+      "HideShortcut": "Hide the search bar",
+      "ExecuteShortcut": "Execute the current item",
+      "SelectPreviousShortcut": "Move selection up",
+      "SelectNextShortcut": "Move selection down"
     },
     "fieldDescriptions": {
       "Language": "The UI language updates immediately after saving.",
@@ -77,9 +87,15 @@
       "SearchEngine": "Search engine used by Web Search mode.",
       "ClearQueryOnHide": "Clear the typed query whenever the search bar hides.",
       "AskAiUrlTemplate": "Must contain {0}; the query replaces this placeholder.",
-      "ModePreferences": "Choose which modes appear in Tab switching. Drag a row or use the up/down buttons to change the order; at least one mode must stay enabled.",
+      "ModePreferences": "Choose which modes appear in mode switching. Drag a row or use the up/down buttons to change the order; at least one mode must stay enabled.",
       "DictionaryFilePath": "Accepts a CC-CEDICT UTF-8 text file, typically cedict_ts.u8 (*.u8). Leave empty to use the user data directory or the bundled file.",
-      "EcdictFilePath": "Accepts an ECDICT CSV file, typically ecdict.csv (*.csv). Leave empty to use the user data directory or the bundled file."
+      "EcdictFilePath": "Accepts an ECDICT CSV file, typically ecdict.csv (*.csv). Leave empty to use the user data directory or the bundled file.",
+      "ToggleVisibilityShortcut": "Global shortcut: shows the hidden search bar and hides it while visible. Default Alt+Space.",
+      "CycleModeShortcut": "Tap to cycle modes; press and hold to open the mode wheel, then release to confirm. Must be a single key without modifiers.",
+      "HideShortcut": "Hides the search bar to the tray; while the mode wheel is open this key dismisses the wheel first.",
+      "ExecuteShortcut": "Opens browser results in web modes and shows dictionary definitions in Dictionary mode.",
+      "SelectPreviousShortcut": "Moves selection up in dictionary candidates or the mode wheel.",
+      "SelectNextShortcut": "Moves selection down in dictionary candidates or the mode wheel."
     },
     "optionLabels": {
       "Language.system": "System",
@@ -93,9 +109,16 @@
     "fileTypeFilterNames": {
       "CcCedict": "CC-CEDICT text file",
       "Ecdict": "ECDICT CSV file"
+    },
+    "validationMessages": {
+      "ShortcutInvalid": "Unrecognized shortcut.",
+      "ShortcutDuplicate": "This shortcut is already used by another action.",
+      "ShortcutPrintableRequiresModifier": "Add Alt, Ctrl, or Win so it does not interfere with typing.",
+      "ShortcutModeSwitchRequiresSingleKey": "The mode-switch key must be a single key without modifiers or typing keys.",
+      "ShortcutReservedForTextEditing": "This combination is reserved for text editing in the input box; choose another key."
     }
   },
-  "dictionaryEmptyHint": "Type an English word or Chinese term; use ↑/↓ to select and press Enter to view the definition",
+  "dictionaryEmptyHint": "Type an English word or Chinese term; use {previous}/{next} to select and press {execute} to view the definition",
   "dictionaryLoadingHint": "Loading dictionary data…",
   "dictionaryDataSourceNotConfigured": "Dictionary data sources are not configured.",
   "dictionaryNoResultsTemplate": "No entries found for “{0}”.",

@@ -82,6 +82,9 @@ public class AppSettingsSchemaTests
                 case SettingEditorKind.ModeList:
                     Assert.Equal(typeof(ModePreference[]), definition.PropertyType);
                     break;
+                case SettingEditorKind.ShortcutKey:
+                    Assert.Equal(typeof(string), definition.PropertyType);
+                    break;
                 default:
                     Assert.Fail($"未知控件类型：{definition.EditorKind}");
                     break;
@@ -112,6 +115,7 @@ public class AppSettingsSchemaTests
                 SettingsSection.Appearance,
                 SettingsSection.Search,
                 SettingsSection.Modes,
+                SettingsSection.Shortcuts,
                 SettingsSection.Dictionary,
                 SettingsSection.About,
             },

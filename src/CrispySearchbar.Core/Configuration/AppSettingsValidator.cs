@@ -50,6 +50,7 @@ public static class AppSettingsValidator
             }
         }
 
+        errors.AddRange(ShortcutValidation.Validate(settings));
         return errors;
     }
 }

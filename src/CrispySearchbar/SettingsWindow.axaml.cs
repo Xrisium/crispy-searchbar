@@ -8,6 +8,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CrispySearchbar.Core.Configuration;
 using CrispySearchbar.Core.Localization;
+using CrispySearchbar.Input;
 using CrispySearchbar.ViewModels;
 
 namespace CrispySearchbar;
@@ -28,8 +29,16 @@ public sealed partial class SettingsWindow : Window
     private ModeListItemViewModel? _modeDragSource;
     private int _dragInsertionSlot;
     private bool _isShiftPressed;
+    private ShortcutSettingFieldViewModel? _recordingShortcutField;
+    private Control? _recordingShortcutButton;
 
+    /// <summary>XAML/运行时创建入口；App 通常使用带占用探测委托的构造函数。</summary>
     public SettingsWindow()
+        : this(null)
+    {
+    }
+
+    public SettingsWindow(Func<string, bool>? globalShortcutProbe)
     {
         InitializeComponent();
 
@@ -46,11 +55,16 @@ public sealed partial class SettingsWindow : Window
         var viewModel = new SettingsWindowViewModel(
             settings,
             strings,
-            AppSettingsStore.GetSettingsFilePath());
+            AppSettingsStore.GetSettingsFilePath(),
+            globalShortcutProbe);
         viewModel.Saved += OnViewModelSaved;
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
         viewModel.ValidationFailed += OnValidationFailed;
         DataContext = viewModel;
+
+        // 捕获期间用隧道拦截，避免聚焦的按钮把 Space/Enter 当作点击。
+        AddHandler(KeyDownEvent, OnWindowKeyDown, RoutingStrategies.Tunnel);
+        AddHandler(PointerPressedEvent, OnWindowPointerPressed, RoutingStrategies.Tunnel);
     }
 
     /// <summary>保存成功并写盘后触发，由 App 即时应用新配置。</summary>
@@ -58,9 +72,13 @@ public sealed partial class SettingsWindow : Window
 
     private SettingsWindowViewModel ViewModel => (SettingsWindowViewModel)DataContext!;
 
+    /// <summary>App 实际重注册失败并回滚后显示原因。</summary>
+    public void ShowApplyFailure() => ViewModel.ShowApplyFailure();
+
     /// <summary>App 应用配置后用它把窗口刷新成磁盘上的新文件与新语言。</summary>
     public void ReloadFromConfiguration(AppSettings settings, AppStrings strings)
     {
+        CancelShortcutRecording();
         _sectionControls.Clear();
         _fieldControls.Clear();
         _modeRowControls.Clear();
@@ -308,10 +326,97 @@ public sealed partial class SettingsWindow : Window
 
     private void OnWindowKeyDown(object? sender, KeyEventArgs e)
     {
+        if (_recordingShortcutField is not null)
+        {
+            HandleShortcutRecording(e);
+            return;
+        }
+
         if (e.Key is Key.LeftShift or Key.RightShift)
         {
             _isShiftPressed = true;
         }
+    }
+
+    private void HandleShortcutRecording(KeyEventArgs e)
+    {
+        var field = _recordingShortcutField;
+        if (field is null)
+        {
+            return;
+        }
+
+        var binding = ShortcutInputMapper.TryCreate(e.Key, e.KeyModifiers, out var candidate)
+            ? candidate
+            : null;
+        if (binding is not null)
+        {
+            if (field.TrySetCaptured(binding.ToStorageString()))
+            {
+                CancelShortcutRecording();
+            }
+        }
+
+        // 修饰键单独按下、系统键或尚未完成组合前都保持在“录制”状态，且不落到其它控件。
+        e.Handled = true;
+    }
+
+    private void OnShortcutCaptureClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: ShortcutSettingFieldViewModel field } button)
+        {
+            return;
+        }
+
+        if (_recordingShortcutField == field)
+        {
+            field.CancelRecording();
+            CancelShortcutRecording();
+        }
+        else
+        {
+            CancelShortcutRecording();
+            field.BeginRecording();
+            _recordingShortcutField = field;
+            _recordingShortcutButton = button;
+        }
+    }
+
+    private void OnShortcutResetClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: ShortcutSettingFieldViewModel field })
+        {
+            if (_recordingShortcutField == field)
+            {
+                CancelShortcutRecording();
+            }
+
+            field.ResetToDefault();
+        }
+    }
+
+    private void OnWindowPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (_recordingShortcutButton is not { } button || _recordingShortcutField is null)
+        {
+            return;
+        }
+
+        var point = e.GetPosition(button);
+        if (point.X < 0
+            || point.Y < 0
+            || point.X > button.Bounds.Width
+            || point.Y > button.Bounds.Height)
+        {
+            _recordingShortcutField.CancelRecording();
+            CancelShortcutRecording();
+        }
+    }
+
+    private void CancelShortcutRecording()
+    {
+        _recordingShortcutField = null;
+        _recordingShortcutButton = null;
     }
 
     private void OnWindowKeyUp(object? sender, KeyEventArgs e)
@@ -335,6 +440,7 @@ public sealed partial class SettingsWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        CancelShortcutRecording();
         Deactivated -= OnWindowDeactivated;
         _statusFadeTimer?.Stop();
         base.OnClosed(e);

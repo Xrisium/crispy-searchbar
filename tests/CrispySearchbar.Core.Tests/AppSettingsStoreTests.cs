@@ -51,7 +51,7 @@ public class AppSettingsStoreTests
             using var document = JsonDocument.Parse(json);
 
             var names = document.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
-            Assert.Equal(8, names.Length);
+            Assert.Equal(14, names.Length);
             Assert.Contains("language", names);
             Assert.Contains("theme", names);
             Assert.Contains("searchEngine", names);
@@ -60,6 +60,12 @@ public class AppSettingsStoreTests
             Assert.Contains("modePreferences", names);
             Assert.Contains("dictionaryFilePath", names);
             Assert.Contains("ecdictFilePath", names);
+            Assert.Contains("toggleVisibilityShortcut", names);
+            Assert.Contains("cycleModeShortcut", names);
+            Assert.Contains("hideShortcut", names);
+            Assert.Contains("executeShortcut", names);
+            Assert.Contains("selectPreviousShortcut", names);
+            Assert.Contains("selectNextShortcut", names);
         }
         finally
         {
@@ -138,6 +144,39 @@ public class AppSettingsStoreTests
             Assert.Equal(4, settings.ModePreferences.Length);
             Assert.Null(settings.DictionaryFilePath);
             Assert.Null(settings.EcdictFilePath);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void LoadOrDefault_NormalizesInvalidShortcutsAndRewritesFile()
+    {
+        var dir = CreateTempDirectory();
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllText(
+                Path.Combine(dir, AppSettingsStore.FileName),
+                """
+                {
+                  "toggleVisibilityShortcut": "Not A Hotkey",
+                  "hideShortcut": "Ctrl+Q",
+                  "executeShortcut": "Ctrl+Q"
+                }
+                """);
+
+            var settings = AppSettingsStore.LoadOrDefault(dir);
+
+            Assert.Equal("Alt+Space", settings.ToggleVisibilityShortcut);
+            Assert.Equal("Ctrl+Q", settings.HideShortcut);
+            var json = File.ReadAllText(Path.Combine(dir, AppSettingsStore.FileName));
+            using var document = JsonDocument.Parse(json);
+            Assert.Equal(
+                "Alt+Space",
+                document.RootElement.GetProperty("toggleVisibilityShortcut").GetString());
         }
         finally
         {

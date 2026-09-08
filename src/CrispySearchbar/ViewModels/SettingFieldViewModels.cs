@@ -53,6 +53,9 @@ public abstract class SettingFieldViewModel : INotifyPropertyChanged
 
     protected void SetError(string? error) => Error = error;
 
+    /// <summary>供 SettingsWindowViewModel 在校验后把错误落到具体编辑行。</summary>
+    internal void SetErrorFromValidation(string? message) => SetError(message);
+
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
@@ -478,6 +481,114 @@ public sealed class FilePathSettingFieldViewModel : SettingFieldViewModel
             string.IsNullOrWhiteSpace(FilePath) ? null : FilePath);
 }
 
+/// <summary>快捷键设置行：展示当前键位，可进入捕获态由用户按下新组合键。</summary>
+public sealed class ShortcutSettingFieldViewModel : SettingFieldViewModel
+{
+    private string _value = string.Empty;
+    private bool _isRecording;
+
+    public ShortcutSettingFieldViewModel(
+        SettingDefinition definition,
+        AppSettingsTexts texts)
+        : base(definition, texts)
+    {
+        Action = ShortcutDefaults.TryGetAction(definition.PropertyName)
+            ?? throw new ArgumentException(
+                $"未知快捷键属性：{definition.PropertyName}",
+                nameof(definition));
+    }
+
+    public ShortcutAction Action { get; }
+
+    public string Value
+    {
+        get => _value;
+        private set
+        {
+            if (string.Equals(_value, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _value = value ?? string.Empty;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(DisplayValue));
+            OnPropertyChanged(nameof(IsDefault));
+            OnPropertyChanged(nameof(CaptureLabel));
+            SetError(null);
+        }
+    }
+
+    public string DisplayValue
+        => ShortcutParser.TryParse(Value, out var binding)
+            ? binding.ToDisplayString()
+            : Value;
+
+    public bool IsDefault => string.Equals(
+        Value,
+        ShortcutDefaults.GetDefaultValue(Action),
+        StringComparison.OrdinalIgnoreCase);
+
+    public bool IsRecording
+    {
+        get => _isRecording;
+        private set
+        {
+            if (_isRecording == value)
+            {
+                return;
+            }
+
+            _isRecording = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CaptureLabel));
+        }
+    }
+
+    /// <summary>捕获中显示提示，否则显示当前键位。</summary>
+    public string CaptureLabel => IsRecording ? Texts.ShortcutRecordPrompt : DisplayValue;
+
+    public string ResetText => Texts.ShortcutResetText;
+
+    public void BeginRecording()
+    {
+        SetError(null);
+        IsRecording = true;
+    }
+
+    public void CancelRecording()
+    {
+        SetError(null);
+        IsRecording = false;
+    }
+
+    public bool TrySetCaptured(string canonical)
+    {
+        var errorKey = ShortcutValidation.ValidateCandidate(Action, canonical);
+        if (errorKey is not null)
+        {
+            SetError(Texts.GetValidationMessage(errorKey));
+            return false;
+        }
+
+        Value = canonical;
+        IsRecording = false;
+        return true;
+    }
+
+    public void ResetToDefault()
+    {
+        IsRecording = false;
+        Value = ShortcutDefaults.GetDefaultValue(Action);
+    }
+
+    public override void LoadFrom(AppSettings settings)
+        => Value = Definition.GetValue(settings) as string ?? string.Empty;
+
+    public override void ApplyTo(AppSettings settings)
+        => Definition.SetValue(settings, Value);
+}
+
 public static class SettingFieldViewModelFactory
 {
     public static SettingFieldViewModel Create(
@@ -490,6 +601,9 @@ public static class SettingFieldViewModelFactory
             SettingEditorKind.Toggle => new ToggleSettingFieldViewModel(definition, texts),
             SettingEditorKind.Text => new TextSettingFieldViewModel(definition, texts),
             SettingEditorKind.FilePath => new FilePathSettingFieldViewModel(definition, texts),
+            SettingEditorKind.ShortcutKey => new ShortcutSettingFieldViewModel(
+                definition,
+                texts),
             SettingEditorKind.ModeList => new ModeListSettingFieldViewModel(
                 definition,
                 texts,

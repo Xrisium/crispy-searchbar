@@ -26,6 +26,36 @@ public sealed class AppSettings
     [Setting(SettingsSection.Modes, SettingEditorKind.ModeList, Order = 0)]
     public ModePreference[] ModePreferences { get; set; } = ModePreferenceDefaults.AllEnabled();
 
+    /// <summary>全局呼出/隐藏搜索框快捷键，默认 Alt+Space。</summary>
+    [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 0)]
+    public string ToggleVisibilityShortcut { get; set; } =
+        ShortcutDefaults.GetDefaultValue(ShortcutAction.ToggleVisibility);
+
+    /// <summary>轻按切换下一模式、长按呼出模式轮盘的单键，默认 Tab。</summary>
+    [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 1)]
+    public string CycleModeShortcut { get; set; } =
+        ShortcutDefaults.GetDefaultValue(ShortcutAction.CycleMode);
+
+    /// <summary>隐藏搜索框到托盘，默认 Esc。</summary>
+    [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 2)]
+    public string HideShortcut { get; set; } =
+        ShortcutDefaults.GetDefaultValue(ShortcutAction.Hide);
+
+    /// <summary>执行当前项，默认 Enter。</summary>
+    [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 3)]
+    public string ExecuteShortcut { get; set; } =
+        ShortcutDefaults.GetDefaultValue(ShortcutAction.Execute);
+
+    /// <summary>上移选择（词典候选与模式轮盘），默认 Up。</summary>
+    [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 4)]
+    public string SelectPreviousShortcut { get; set; } =
+        ShortcutDefaults.GetDefaultValue(ShortcutAction.SelectPrevious);
+
+    /// <summary>下移选择（词典候选与模式轮盘），默认 Down。</summary>
+    [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 5)]
+    public string SelectNextShortcut { get; set; } =
+        ShortcutDefaults.GetDefaultValue(ShortcutAction.SelectNext);
+
     /// <summary>搜索框隐藏后是否清空已输入内容，默认 true。</summary>
     [Setting(SettingsSection.General, SettingEditorKind.Toggle, Order = 1)]
     public bool ClearQueryOnHide { get; set; } = true;

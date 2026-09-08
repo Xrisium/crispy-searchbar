@@ -62,6 +62,12 @@ public sealed class AppSettingsTexts
 
     public required string ModeDragHandleToolTip { get; init; }
 
+    public required string ShortcutRecordPrompt { get; init; }
+
+    public required string ShortcutResetText { get; init; }
+
+    public required string HotkeyRegistrationFailed { get; init; }
+
     public required IReadOnlyDictionary<string, string> SectionTitles { get; init; }
 
     public required IReadOnlyDictionary<string, string> FieldLabels { get; init; }
@@ -71,6 +77,9 @@ public sealed class AppSettingsTexts
     public required IReadOnlyDictionary<string, string> OptionLabels { get; init; }
 
     public required IReadOnlyDictionary<string, string> FileTypeFilterNames { get; init; }
+
+    /// <summary>按 ErrorKey 提供字段级校验文案，例如快捷键冲突。</summary>
+    public required IReadOnlyDictionary<string, string> ValidationMessages { get; init; }
 
     public string GetSectionTitle(SettingsSection section)
         => SectionTitles.TryGetValue(section.ToString(), out var title)
@@ -98,6 +107,11 @@ public sealed class AppSettingsTexts
     public string GetFileTypeFilterName(string key)
         => FileTypeFilterNames.TryGetValue(key, out var label)
             ? label
+            : key;
+
+    public string GetValidationMessage(string key)
+        => ValidationMessages.TryGetValue(key, out var message)
+            ? message
             : key;
 
     public string FormatSaveFailed(string? detail)

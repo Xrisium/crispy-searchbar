@@ -159,6 +159,7 @@ public static class AppSettingsSchema
             SettingEditorKind.Text => type == typeof(string),
             SettingEditorKind.FilePath => type == typeof(string),
             SettingEditorKind.ModeList => type == typeof(ModePreference[]),
+            SettingEditorKind.ShortcutKey => type == typeof(string),
             _ => false,
         };
 

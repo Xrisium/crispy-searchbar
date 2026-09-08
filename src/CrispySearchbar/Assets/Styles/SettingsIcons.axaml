@@ -81,6 +81,27 @@
     </Viewbox>
   </DataTemplate>
 
+  <!-- Lucide keyboard（快捷键）。原件：lucide-icons/lucide@a537cb6 icons/keyboard.svg -->
+  <DataTemplate x:Key="SettingsIconTemplate-shortcuts">
+    <Viewbox Width="13" Height="13">
+      <Grid Width="24" Height="24">
+        <Rectangle Width="20"
+                   Height="16"
+                   RadiusX="2"
+                   RadiusY="2"
+                   Stroke="{DynamicResource TextSecondaryBrush}"
+                   StrokeThickness="2"
+                   Margin="2,4,2,4"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" />
+        <Path Data="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10"
+              Stroke="{DynamicResource TextSecondaryBrush}"
+              StrokeThickness="2"
+              StrokeLineCap="Round" />
+      </Grid>
+    </Viewbox>
+  </DataTemplate>
+
   <!-- Lucide search（搜索）。原件：lucide-icons/lucide@a537cb6 icons/search.svg -->
   <DataTemplate x:Key="SettingsIconTemplate-search">
     <Viewbox Width="13" Height="13">

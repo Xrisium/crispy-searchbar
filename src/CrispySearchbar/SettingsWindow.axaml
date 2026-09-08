@@ -15,7 +15,6 @@
         TransparencyLevelHint="Transparent"
         Title="Crispy Searchbar"
         FontFamily="Segoe UI, Microsoft YaHei UI"
-        KeyDown="OnWindowKeyDown"
         KeyUp="OnWindowKeyUp">
 
   <Window.Resources>
@@ -134,6 +133,28 @@
     <Style Selector="TextBlock.modeRowTitle:disabled">
       <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
       <Setter Property="Opacity" Value="0.72" />
+    </Style>
+    <Style Selector="Button.shortcutCaptureButton">
+      <Setter Property="MinHeight" Value="34" />
+      <Setter Property="MinWidth" Value="130" />
+      <Setter Property="Padding" Value="12,5" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="500" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Button.shortcutCaptureButton /template/ ContentPresenter">
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.shortcutCaptureButton:pointerover">
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
     </Style>
     <Style Selector="Button.closeButton">
       <Setter Property="Width" Value="32" />
@@ -386,6 +407,47 @@
             <TextBox Text="{Binding FilePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Classes="settingsTextBox" />
           </DockPanel>
+        </Grid>
+      </Border>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:ShortcutSettingFieldViewModel}">
+      <Border Loaded="OnSettingFieldLoaded"
+              BorderBrush="{DynamicResource DividerBrush}"
+              BorderThickness="0,0,0,1"
+              Padding="0,10">
+        <Grid ColumnDefinitions="*,340">
+          <StackPanel Grid.Column="0" Margin="0,0,16,0" Spacing="2">
+            <TextBlock Text="{Binding Label}"
+                       FontSize="13"
+                       FontWeight="500"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
+            <TextBlock Text="{Binding Description}"
+                       IsVisible="{Binding HasDescription}"
+                       FontSize="12"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Error}"
+                       IsVisible="{Binding HasError}"
+                       FontSize="12"
+                       Foreground="{DynamicResource DangerBrush}"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+          <Grid Grid.Column="1"
+                ColumnDefinitions="*,Auto"
+                ColumnSpacing="6"
+                VerticalAlignment="Center">
+            <Button Grid.Column="0"
+                    Classes="shortcutCaptureButton"
+                    Content="{Binding CaptureLabel}"
+                    HorizontalAlignment="Stretch"
+                    Click="OnShortcutCaptureClicked" />
+            <Button Grid.Column="1"
+                    Classes="secondary"
+                    Content="{Binding ResetText}"
+                    IsVisible="{Binding !IsDefault}"
+                    Click="OnShortcutResetClicked" />
+          </Grid>
         </Grid>
       </Border>
     </DataTemplate>

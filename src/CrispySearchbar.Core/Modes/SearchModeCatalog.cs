@@ -29,19 +29,20 @@ public static class SearchModeCatalog
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(strings);
 
+        var shortcuts = ShortcutCatalog.Create(settings);
         var modesByKey = new Dictionary<string, SearchMode>(StringComparer.Ordinal)
         {
             [ModePreferenceDefaults.WebSearch] = SearchMode.WebSearch(
-                strings.WebSearchMode,
+                ShortcutTextFormatter.Format(strings.WebSearchMode, shortcuts),
                 SearchEngineCatalog.GetUrlTemplate(settings.SearchEngine)),
             [ModePreferenceDefaults.Wikipedia] = SearchMode.Wikipedia(
-                strings.WikipediaMode,
+                ShortcutTextFormatter.Format(strings.WikipediaMode, shortcuts),
                 GetWikipediaUrlTemplate(strings)),
             [ModePreferenceDefaults.AskAi] = SearchMode.AskAi(
-                strings.AskAiMode,
+                ShortcutTextFormatter.Format(strings.AskAiMode, shortcuts),
                 settings.AskAiUrlTemplate),
             [ModePreferenceDefaults.Dictionary] = SearchMode.Dictionary(
-                strings.DictionaryMode),
+                ShortcutTextFormatter.Format(strings.DictionaryMode, shortcuts)),
         };
 
         var preferences = ModePreferenceNormalizer.Normalize(settings.ModePreferences);

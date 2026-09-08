@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace CrispySearchbar.Core.Configuration;
@@ -34,6 +34,7 @@ public static class AppSettingsStore
                 var existing = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions);
                 if (existing is not null)
                 {
+                    var shouldRewrite = false;
                     var normalizedModes = ModePreferenceNormalizer.Normalize(
                         existing.ModePreferences);
                     if (!ModePreferenceNormalizer.IsEquivalent(
@@ -41,6 +42,16 @@ public static class AppSettingsStore
                             normalizedModes))
                     {
                         existing.ModePreferences = normalizedModes;
+                        shouldRewrite = true;
+                    }
+
+                    if (ShortcutNormalizer.Normalize(existing))
+                    {
+                        shouldRewrite = true;
+                    }
+
+                    if (shouldRewrite)
+                    {
                         Save(existing, directoryPath);
                     }
 

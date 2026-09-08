@@ -3,23 +3,23 @@
   "wikipediaLanguage": "zh",
   "webSearchMode": {
     "title": "网页搜索",
-    "watermark": "输入关键词，按 Enter 搜索",
-    "actionHint": "按 Enter 使用默认搜索引擎打开"
+    "watermark": "输入关键词，按 {execute} 搜索",
+    "actionHint": "按 {execute} 使用默认搜索引擎打开"
   },
   "wikipediaMode": {
     "title": "维基百科",
-    "watermark": "输入关键词，按 Enter 在维基百科搜索",
-    "actionHint": "按 Enter 用浏览器打开维基百科搜索结果"
+    "watermark": "输入关键词，按 {execute} 在维基百科搜索",
+    "actionHint": "按 {execute} 用浏览器打开维基百科搜索结果"
   },
   "askAiMode": {
     "title": "问问大肥鱼",
-    "watermark": "输入问题，按 Enter 跳转到 DeepSeek 网页端",
-    "actionHint": "按 Enter 跳转到 DeepSeek 网页端"
+    "watermark": "输入问题，按 {execute} 跳转到 DeepSeek 网页端",
+    "actionHint": "按 {execute} 跳转到 DeepSeek 网页端"
   },
   "dictionaryMode": {
     "title": "词典",
     "watermark": "输入英文单词或中文词语",
-    "actionHint": "输入后实时查词，Enter 查看释义"
+    "actionHint": "输入后实时查词，{execute} 查看释义"
   },
   "trayToolTip": "Crispy Searchbar（酥脆搜索）",
   "showHideSearchBar": "显示 / 隐藏搜索框",
@@ -53,11 +53,15 @@
     "modeMoveUpToolTip": "上移模式",
     "modeMoveDownToolTip": "下移模式",
     "modeDragHandleToolTip": "拖拽调整模式顺序",
+    "shortcutRecordPrompt": "按下新键位…（再次点击取消）",
+    "shortcutResetText": "恢复默认",
+    "hotkeyRegistrationFailed": "全局快捷键已被其它程序占用，保存已取消，当前键位保持不变。",
     "sectionTitles": {
       "General": "通用",
       "Appearance": "外观",
       "Search": "搜索",
       "Modes": "模式",
+      "Shortcuts": "快捷键",
       "Dictionary": "词典",
       "About": "关于"
     },
@@ -69,7 +73,13 @@
       "AskAiUrlTemplate": "询问 DeepSeek 网址模板",
       "ModePreferences": "启用模式与顺序",
       "DictionaryFilePath": "汉英词典文件",
-      "EcdictFilePath": "英汉词典文件"
+      "EcdictFilePath": "英汉词典文件",
+      "ToggleVisibilityShortcut": "显示/隐藏搜索框（全局）",
+      "CycleModeShortcut": "切换下一个模式",
+      "HideShortcut": "隐藏搜索框",
+      "ExecuteShortcut": "执行当前项",
+      "SelectPreviousShortcut": "上移选择",
+      "SelectNextShortcut": "下移选择"
     },
     "fieldDescriptions": {
       "Language": "保存后立即切换界面语言。",
@@ -77,9 +87,15 @@
       "SearchEngine": "网页搜索模式使用的搜索引擎。",
       "ClearQueryOnHide": "搜索框隐藏后清空已输入内容。",
       "AskAiUrlTemplate": "需要包含 {0}，查询词会替换该占位符。",
-      "ModePreferences": "选择参与 Tab 切换的模式。拖拽行或使用上/下按钮调整顺序；至少保留一个启用模式。",
+      "ModePreferences": "选择参与模式切换的模式。拖拽行或使用上/下按钮调整顺序；至少保留一个启用模式。",
       "DictionaryFilePath": "支持 CC-CEDICT 的 UTF-8 文本文件（.u8，如 cedict_ts.u8）。留空时使用用户数据目录或程序内置文件。",
-      "EcdictFilePath": "支持 ECDICT 的 CSV 文件（.csv，如 ecdict.csv）。留空时使用用户数据目录或程序内置文件。"
+      "EcdictFilePath": "支持 ECDICT 的 CSV 文件（.csv，如 ecdict.csv）。留空时使用用户数据目录或程序内置文件。",
+      "ToggleVisibilityShortcut": "全局快捷键：搜索框隐藏时呼出，显示时隐藏。默认 Alt+Space。",
+      "CycleModeShortcut": "轻按切换下一个模式；长按呼出模式轮盘，松开确认。需为不带修饰键的单个按键。",
+      "HideShortcut": "隐藏搜索框并回到系统托盘；模式轮盘打开时按此键取消轮盘。",
+      "ExecuteShortcut": "网页类模式用浏览器打开结果；词典模式查看释义。",
+      "SelectPreviousShortcut": "在词典候选或模式轮盘中向上移动选择。",
+      "SelectNextShortcut": "在词典候选或模式轮盘中向下移动选择。"
     },
     "optionLabels": {
       "Language.system": "跟随系统",
@@ -93,9 +109,16 @@
     "fileTypeFilterNames": {
       "CcCedict": "CC-CEDICT 文本文件",
       "Ecdict": "ECDICT CSV 文件"
+    },
+    "validationMessages": {
+      "ShortcutInvalid": "无法识别的快捷键。",
+      "ShortcutDuplicate": "该快捷键已被其它操作使用。",
+      "ShortcutPrintableRequiresModifier": "需要搭配 Alt、Ctrl 或 Win，避免影响输入。",
+      "ShortcutModeSwitchRequiresSingleKey": "模式切换键必须是单个按键，不能带修饰键或字母/数字/空格。",
+      "ShortcutReservedForTextEditing": "该组合保留给输入框文本编辑，请换一个键位。"
     }
   },
-  "dictionaryEmptyHint": "输入英文单词或中文词语，↑/↓ 选择，Enter 查看释义",
+  "dictionaryEmptyHint": "输入英文单词或中文词语，{previous}/{next} 选择，{execute} 查看释义",
   "dictionaryLoadingHint": "正在加载词典数据…",
   "dictionaryDataSourceNotConfigured": "词典数据源未配置。",
   "dictionaryNoResultsTemplate": "没有找到“{0}”的条目",

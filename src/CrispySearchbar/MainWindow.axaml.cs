@@ -2,7 +2,9 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using CrispySearchbar.Core.Configuration;
 using CrispySearchbar.Core.Modes;
+using CrispySearchbar.Input;
 using CrispySearchbar.ViewModels;
 
 namespace CrispySearchbar;
@@ -12,24 +14,25 @@ public partial class MainWindow : Window
     private const int ModeWheelHoldDelayMs = 200;
     private const int DeactivationGraceMs = 250;
 
-    private readonly DispatcherTimer _tabHoldTimer;
+    private readonly DispatcherTimer _modeKeyHoldTimer;
+    private ShortcutCatalog _shortcuts = ShortcutCatalog.Default;
     private bool _allowClose;
-    private bool _tabDown;
+    private bool _modeKeyDown;
     private bool _modeWheelOpened;
-    private bool _suppressTabRelease;
+    private bool _suppressModeKeyRelease;
     private DateTime _lastActivatedUtc = DateTime.MinValue;
 
     public MainWindow()
     {
         InitializeComponent();
 
-        _tabHoldTimer = new DispatcherTimer
+        _modeKeyHoldTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromMilliseconds(ModeWheelHoldDelayMs),
         };
-        _tabHoldTimer.Tick += OnTabHoldTimerTick;
+        _modeKeyHoldTimer.Tick += OnModeKeyHoldTimerTick;
 
-        // 键盘事件用隧道方式拦截，保证 Tab 不会先移动焦点。
+        // 键盘事件用隧道方式拦截，保证模式切换键不会先移动焦点。
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         AddHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel);
         Closing += OnClosing;
@@ -41,10 +44,24 @@ public partial class MainWindow : Window
 
     public void AllowClose() => _allowClose = true;
 
+    /// <summary>设置保存后由 App 下发最新键位；未完成的长按状态一并取消。</summary>
+    public void ApplyShortcuts(ShortcutCatalog shortcuts)
+    {
+        ArgumentNullException.ThrowIfNull(shortcuts);
+
+        if (ReferenceEquals(_shortcuts, shortcuts))
+        {
+            return;
+        }
+
+        _shortcuts = shortcuts;
+        CancelModeKeyHold();
+    }
+
     /// <summary>隐藏到托盘；应用保持运行，等待全局快捷键或托盘菜单唤回。</summary>
     public void HideToTray()
     {
-        CancelTabHold();
+        CancelModeKeyHold();
         ViewModel.CancelModeWheel();
         ViewModel.OnWindowHidden();
         DictionaryPopup.IsOpen = false;
@@ -94,7 +111,7 @@ public partial class MainWindow : Window
 
         // 托盘常驻应用：关闭请求（Alt+F4 等）一律转为隐藏。
         e.Cancel = true;
-        CancelTabHold();
+        CancelModeKeyHold();
         ViewModel.CancelModeWheel();
         ViewModel.OnWindowHidden();
         DictionaryPopup.IsOpen = false;
@@ -117,10 +134,10 @@ public partial class MainWindow : Window
         Dispatcher.UIThread.Post(() => QueryBox.Focus(), DispatcherPriority.Input);
     }
 
-    private void OnTabHoldTimerTick(object? sender, EventArgs e)
+    private void OnModeKeyHoldTimerTick(object? sender, EventArgs e)
     {
-        _tabHoldTimer.Stop();
-        if (!_tabDown || _suppressTabRelease)
+        _modeKeyHoldTimer.Stop();
+        if (!_modeKeyDown || _suppressModeKeyRelease)
         {
             return;
         }
@@ -131,56 +148,35 @@ public partial class MainWindow : Window
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Tab)
+        if (IsModeSwitchKey(e.Key, e.KeyModifiers))
         {
-            OnTabKeyDown(e);
+            OnModeSwitchKeyDown(e);
             return;
         }
 
-        if (ViewModel.IsModeWheelOpen)
+        if (ShortcutInputMapper.TryCreate(e.Key, e.KeyModifiers, out var pressed)
+            && _shortcuts.FindAction(pressed) is { } action)
         {
-            OnModeWheelKeyDown(e);
+            HandleShortcutAction(action, e);
             return;
-        }
-
-        if (e.Key == Key.Escape)
-        {
-            CancelTabHold();
-            HideToTray();
-            e.Handled = true;
-        }
-        else if (e.Key is Key.Up or Key.Down && ViewModel.IsDictionaryMode)
-        {
-            ViewModel.MoveDictionarySelection(e.Key == Key.Down ? 1 : -1);
-            e.Handled = true;
-        }
-        else if (e.Key == Key.Enter)
-        {
-            if (ViewModel.ExecuteCurrent())
-            {
-                // 搜索执行成功后自动隐藏，等待 Alt+Space/托盘再次唤出。
-                HideToTray();
-            }
-
-            e.Handled = true;
         }
     }
 
     private void OnKeyUp(object? sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Tab || !_tabDown)
+        if (!_modeKeyDown || !IsModeSwitchKey(e.Key, e.KeyModifiers))
         {
             return;
         }
 
-        _tabHoldTimer.Stop();
+        _modeKeyHoldTimer.Stop();
         e.Handled = true;
 
         var opened = _modeWheelOpened;
-        var suppress = _suppressTabRelease;
-        _tabDown = false;
+        var suppress = _suppressModeKeyRelease;
+        _modeKeyDown = false;
         _modeWheelOpened = false;
-        _suppressTabRelease = false;
+        _suppressModeKeyRelease = false;
 
         if (suppress)
         {
@@ -197,41 +193,75 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnTabKeyDown(KeyEventArgs e)
+    private void OnModeSwitchKeyDown(KeyEventArgs e)
     {
         e.Handled = true;
-        if (_tabDown)
+        if (_modeKeyDown)
         {
             // 按住期间的系统自动重复：轮盘打开后忽略，未到阈值时保持计时。
             return;
         }
 
-        _tabDown = true;
+        _modeKeyDown = true;
         _modeWheelOpened = false;
-        _suppressTabRelease = false;
-        _tabHoldTimer.Stop();
-        _tabHoldTimer.Start();
+        _suppressModeKeyRelease = false;
+        _modeKeyHoldTimer.Stop();
+        _modeKeyHoldTimer.Start();
     }
 
-    private void OnModeWheelKeyDown(KeyEventArgs e)
+    private void HandleShortcutAction(ShortcutAction action, KeyEventArgs e)
     {
-        switch (e.Key)
+        if (ViewModel.IsModeWheelOpen)
         {
-            case Key.Up:
+            HandleModeWheelAction(action, e);
+            return;
+        }
+
+        switch (action)
+        {
+            case ShortcutAction.Hide:
+                HideToTray();
+                e.Handled = true;
+                break;
+            case ShortcutAction.Execute:
+                if (ViewModel.ExecuteCurrent())
+                {
+                    // 搜索执行成功后自动隐藏，等待全局快捷键/托盘再次唤出。
+                    HideToTray();
+                }
+
+                e.Handled = true;
+                break;
+            case ShortcutAction.SelectPrevious when ViewModel.IsDictionaryMode:
+                ViewModel.MoveDictionarySelection(-1);
+                e.Handled = true;
+                break;
+            case ShortcutAction.SelectNext when ViewModel.IsDictionaryMode:
+                ViewModel.MoveDictionarySelection(1);
+                e.Handled = true;
+                break;
+        }
+    }
+
+    private void HandleModeWheelAction(ShortcutAction action, KeyEventArgs e)
+    {
+        switch (action)
+        {
+            case ShortcutAction.SelectPrevious:
                 ViewModel.MoveModeWheelSelection(-1);
                 break;
-            case Key.Down:
+            case ShortcutAction.SelectNext:
                 ViewModel.MoveModeWheelSelection(1);
                 break;
-            case Key.Enter:
+            case ShortcutAction.Execute:
                 ViewModel.CommitModeWheel();
                 _modeWheelOpened = false;
-                _suppressTabRelease = _tabDown;
+                _suppressModeKeyRelease = _modeKeyDown;
                 break;
-            case Key.Escape:
+            case ShortcutAction.Hide:
                 ViewModel.CancelModeWheel();
                 _modeWheelOpened = false;
-                _suppressTabRelease = _tabDown;
+                _suppressModeKeyRelease = _modeKeyDown;
                 break;
             default:
                 return;
@@ -240,12 +270,21 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private void CancelTabHold()
+    private bool IsModeSwitchKey(Key key, KeyModifiers modifiers)
+        => modifiers == KeyModifiers.None
+            && _shortcuts.TryGetBinding(ShortcutAction.CycleMode, out var binding)
+            && binding.Modifiers == ShortcutModifiers.None
+            && string.Equals(
+                binding.Key,
+                ShortcutInputMapper.ToKeyToken(key),
+                StringComparison.Ordinal);
+
+    private void CancelModeKeyHold()
     {
-        _tabHoldTimer.Stop();
-        _tabDown = false;
+        _modeKeyHoldTimer.Stop();
+        _modeKeyDown = false;
         _modeWheelOpened = false;
-        _suppressTabRelease = false;
+        _suppressModeKeyRelease = false;
     }
 
     private void OnModeWheelItemPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -255,7 +294,7 @@ public partial class MainWindow : Window
         {
             ViewModel.CommitModeWheel(mode);
             _modeWheelOpened = false;
-            _suppressTabRelease = _tabDown;
+            _suppressModeKeyRelease = _modeKeyDown;
             e.Handled = true;
         }
     }
@@ -268,10 +307,10 @@ public partial class MainWindow : Window
     {
         if (!ViewModel.IsModeWheelOpen)
         {
-            // Tab 按住期间滚动：立即呼出轮盘，并把这次滚动用于移动高亮。
-            if (_tabDown && !_suppressTabRelease)
+            // 模式键按住期间滚动：立即呼出轮盘，并把这次滚动用于移动高亮。
+            if (_modeKeyDown && !_suppressModeKeyRelease)
             {
-                _tabHoldTimer.Stop();
+                _modeKeyHoldTimer.Stop();
                 ViewModel.OpenModeWheel();
                 _modeWheelOpened = true;
             }
