@@ -34,6 +34,16 @@ public static class AppSettingsStore
                 var existing = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions);
                 if (existing is not null)
                 {
+                    var normalizedModes = ModePreferenceNormalizer.Normalize(
+                        existing.ModePreferences);
+                    if (!ModePreferenceNormalizer.IsEquivalent(
+                            existing.ModePreferences,
+                            normalizedModes))
+                    {
+                        existing.ModePreferences = normalizedModes;
+                        Save(existing, directoryPath);
+                    }
+
                     return existing;
                 }
             }

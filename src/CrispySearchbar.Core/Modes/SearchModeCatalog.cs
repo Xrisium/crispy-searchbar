@@ -4,7 +4,7 @@ using CrispySearchbar.Core.Localization;
 
 namespace CrispySearchbar.Core.Modes;
 
-/// <summary>默认搜索模式列表，Tab 按此顺序循环。</summary>
+/// <summary>内置搜索模式目录；Tab 与模式轮盘按用户配置的顺序与启用状态生成。</summary>
 public static class SearchModeCatalog
 {
     private static readonly Regex WikipediaLanguagePattern = new(
@@ -22,24 +22,33 @@ public static class SearchModeCatalog
         return $"https://{language}.wikipedia.org/w/index.php?search={{0}}";
     }
 
-    public static IReadOnlyList<SearchMode> CreateDefault(
+    public static IReadOnlyList<SearchMode> Create(
         AppSettings settings,
         AppStrings strings)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(strings);
 
-        return new SearchMode[]
+        var modesByKey = new Dictionary<string, SearchMode>(StringComparer.Ordinal)
         {
-            SearchMode.WebSearch(
+            [ModePreferenceDefaults.WebSearch] = SearchMode.WebSearch(
                 strings.WebSearchMode,
                 SearchEngineCatalog.GetUrlTemplate(settings.SearchEngine)),
-            SearchMode.Wikipedia(
+            [ModePreferenceDefaults.Wikipedia] = SearchMode.Wikipedia(
                 strings.WikipediaMode,
                 GetWikipediaUrlTemplate(strings)),
-            SearchMode.AskAi(strings.AskAiMode, settings.AskAiUrlTemplate),
-            SearchMode.Dictionary(strings.DictionaryMode),
+            [ModePreferenceDefaults.AskAi] = SearchMode.AskAi(
+                strings.AskAiMode,
+                settings.AskAiUrlTemplate),
+            [ModePreferenceDefaults.Dictionary] = SearchMode.Dictionary(
+                strings.DictionaryMode),
         };
+
+        var preferences = ModePreferenceNormalizer.Normalize(settings.ModePreferences);
+        return preferences
+            .Where(preference => preference.Enabled)
+            .Select(preference => modesByKey[preference.Key])
+            .ToArray();
     }
 
     private static string NormalizeWikipediaLanguage(string? code)

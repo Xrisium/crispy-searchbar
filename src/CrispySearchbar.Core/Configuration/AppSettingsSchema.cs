@@ -158,6 +158,7 @@ public static class AppSettingsSchema
             SettingEditorKind.Toggle => type == typeof(bool),
             SettingEditorKind.Text => type == typeof(string),
             SettingEditorKind.FilePath => type == typeof(string),
+            SettingEditorKind.ModeList => type == typeof(ModePreference[]),
             _ => false,
         };
 

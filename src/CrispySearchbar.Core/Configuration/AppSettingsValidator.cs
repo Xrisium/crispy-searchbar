@@ -10,6 +10,8 @@ public static class AppSettingsValidator
 
     public const string UrlTemplatePlaceholderMissingError = "UrlTemplatePlaceholderMissing";
 
+    public const string AtLeastOneModeEnabledError = "AtLeastOneModeEnabled";
+
     public static IReadOnlyList<SettingValidationError> Validate(AppSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -17,23 +19,34 @@ public static class AppSettingsValidator
         var errors = new List<SettingValidationError>();
         foreach (var definition in AppSettingsSchema.Discover())
         {
-            if (definition.Validation != SettingValidation.UrlTemplate)
+            if (definition.PropertyName == nameof(AppSettings.ModePreferences))
             {
+                var preferences = definition.GetValue(settings) as ModePreference[];
+                if (preferences is null || !preferences.Any(item => item.Enabled))
+                {
+                    errors.Add(new SettingValidationError(
+                        definition.PropertyName,
+                        AtLeastOneModeEnabledError));
+                }
+
                 continue;
             }
 
-            var value = definition.GetValue(settings) as string;
-            if (string.IsNullOrWhiteSpace(value))
+            if (definition.Validation == SettingValidation.UrlTemplate)
             {
-                errors.Add(new SettingValidationError(
-                    definition.PropertyName,
-                    UrlTemplateRequiredError));
-            }
-            else if (!value.Contains("{0}", StringComparison.Ordinal))
-            {
-                errors.Add(new SettingValidationError(
-                    definition.PropertyName,
-                    UrlTemplatePlaceholderMissingError));
+                var value = definition.GetValue(settings) as string;
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    errors.Add(new SettingValidationError(
+                        definition.PropertyName,
+                        UrlTemplateRequiredError));
+                }
+                else if (!value.Contains("{0}", StringComparison.Ordinal))
+                {
+                    errors.Add(new SettingValidationError(
+                        definition.PropertyName,
+                        UrlTemplatePlaceholderMissingError));
+                }
             }
         }
 

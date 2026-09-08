@@ -10,7 +10,7 @@ Current milestone: search shell with a functional dictionary mode.
 
 - The visible UI is a single rounded capsule search bar. Dictionary candidates and details appear in an on-demand popup below it.
 - `Alt+Space` shows/hides the search bar; `Esc` or clicking another window hides it; the app keeps running in the tray with “Show / Hide Search Bar”, “Settings” and “Exit” menu items.
-- Quick Tab cycles through modes: Web Search → Wikipedia → Ask DeepSeek → Dictionary; holding Tab opens the vertical mode picker and releasing Tab switches (mouse wheel or ↑/↓ moves the highlight).
+- Quick Tab cycles through modes in the order configured under Settings → Modes (default: Web Search → Wikipedia → Ask DeepSeek → Dictionary); holding Tab opens the vertical mode picker and releasing Tab switches (mouse wheel or ↑/↓ moves the highlight).
 - Web Search, Wikipedia and Ask DeepSeek open the default browser using a URL template (the query is URL-encoded into `{0}`). The Wikipedia site follows the `wikipediaLanguage` metadata of the active translation file (for example zh.wikipedia.org for `zh-Hans` and en.wikipedia.org for `en`).
 - Dictionary mode performs offline lookup against CC-CEDICT (Chinese → English) and ECDICT (English → Chinese):
   - real-time candidate suggestions as you type;
@@ -50,9 +50,9 @@ The dictionary mode needs two bundled datasets: CC-CEDICT’s `cedict_ts.u8` for
 
 On first run the app creates `settings.json` in the same directory as the executable (in development this is the `bin` output directory; in a published build it sits next to the exe), so users can edit it directly.
 
-Tray menu → “Settings” opens a visual settings editor for the same `settings.json`. The editor never keeps a second settings store: it reads the file on open, writes the file on “Save”, and the running app immediately re-applies the saved values (theme, language, search settings, dictionary paths). The path shown in the window footer opens `settings.json` in its default JSON application when you click “Open configuration file”. Manually editing the file is still fully supported; the file remains the source of truth.
+Tray menu → “Settings” opens a visual settings editor for the same `settings.json`. The editor never keeps a second settings store: it reads the file on open, writes the file on “Save”, and the running app immediately re-applies the saved values (theme, language, search settings, enabled modes and order, dictionary paths). The path shown in the window footer opens `settings.json` in its default JSON application when you click “Open configuration file”. Manually editing the file is still fully supported; the file remains the source of truth.
 
-The settings window is generated from `AppSettings` property annotations (`[Setting]`). Adding a new configurable property plus its localized copy makes a new editing row appear automatically; no per-field window code is needed.
+The settings window is generated from `AppSettings` property annotations (`[Setting]`). Adding a new configurable property plus its localized copy makes a new editing row appear automatically; the Modes section is one such data-driven row and lets you enable/disable each mode and reorder it by drag-and-drop or the up/down buttons.
 
 The About section at the bottom is informational: it shows the app version, links to the GitHub repository and `THIRD_PARTY_NOTICES.md`, and offers a reset button that restores `settings.json` to defaults after confirmation.
 
@@ -65,6 +65,12 @@ Example file:
   "searchEngine": "baidu",
   "clearQueryOnHide": true,
   "askAiUrlTemplate": "https://chat.deepseek.com/?q={0}",
+  "modePreferences": [
+    { "key": "web-search", "enabled": true },
+    { "key": "wikipedia", "enabled": true },
+    { "key": "ask-ai", "enabled": true },
+    { "key": "dictionary", "enabled": true }
+  ],
   "dictionaryFilePath": null,
   "ecdictFilePath": null
 }
@@ -75,12 +81,13 @@ Example file:
 - `searchEngine`: `baidu` (default), `google` or `bing`.
 - `clearQueryOnHide`: `true` (default) clears the typed query whenever the search bar is hidden; `false` keeps it.
 - `askAiUrlTemplate`: must contain `{0}`, replaced by the URL-encoded query.
+- `modePreferences`: ordered list of built-in modes; `enabled: false` removes a mode from Tab switching and the mode picker while keeping its list position. At least one mode must stay enabled; an all-disabled list is normalized back to the defaults on load.
 - `dictionaryFilePath`: optional absolute path to a CC-CEDICT (Chinese → English) UTF-8 text file, typically `cedict_ts.u8` (`.u8`); `null` uses the user data directory, then the bundled file.
 - `ecdictFilePath`: optional absolute path to an ECDICT (English → Chinese) CSV file, typically `ecdict.csv` (`.csv`); `null` uses the user data directory, then the bundled file.
 
 UI translations live in `locales/*.json` (see `locales/README.md`). `en.json` is the complete fallback: translation files may be partial, and missing or empty keys fall back to English. To add a language, copy `en.json` to `{code}.json`, translate the strings, set `nativeName` and `wikipediaLanguage`, then rebuild; the app discovers the file automatically and no code changes are required.
 
-If the file is missing or corrupt, defaults are used.
+If the file is missing or corrupt, defaults are used. Invalid mode lists (unknown keys, duplicates, missing modes, or all modes disabled) are normalized on load and the corrected file is written back.
 
 ## Repository layout
 

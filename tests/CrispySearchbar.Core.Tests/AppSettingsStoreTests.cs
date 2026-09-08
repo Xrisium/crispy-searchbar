@@ -26,6 +26,10 @@ public class AppSettingsStoreTests
             Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
             Assert.True(settings.ClearQueryOnHide);
+            Assert.Equal(
+                ModePreferenceDefaults.BuiltInOrder,
+                settings.ModePreferences.Select(preference => preference.Key));
+            Assert.All(settings.ModePreferences, preference => Assert.True(preference.Enabled));
             Assert.Null(settings.DictionaryFilePath);
             Assert.Null(settings.EcdictFilePath);
             Assert.True(File.Exists(Path.Combine(dir, AppSettingsStore.FileName)));
@@ -47,12 +51,13 @@ public class AppSettingsStoreTests
             using var document = JsonDocument.Parse(json);
 
             var names = document.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
-            Assert.Equal(7, names.Length);
+            Assert.Equal(8, names.Length);
             Assert.Contains("language", names);
             Assert.Contains("theme", names);
             Assert.Contains("searchEngine", names);
             Assert.Contains("clearQueryOnHide", names);
             Assert.Contains("askAiUrlTemplate", names);
+            Assert.Contains("modePreferences", names);
             Assert.Contains("dictionaryFilePath", names);
             Assert.Contains("ecdictFilePath", names);
         }
@@ -75,6 +80,13 @@ public class AppSettingsStoreTests
                 SearchEngine = SearchEngineKind.Google,
                 AskAiUrlTemplate = "https://chat.deepseek.com/?q={0}",
                 ClearQueryOnHide = false,
+                ModePreferences =
+                [
+                    new ModePreference(ModePreferenceDefaults.WebSearch, enabled: false),
+                    new ModePreference(ModePreferenceDefaults.Wikipedia, enabled: true),
+                    new ModePreference(ModePreferenceDefaults.AskAi, enabled: true),
+                    new ModePreference(ModePreferenceDefaults.Dictionary, enabled: false),
+                ],
                 DictionaryFilePath = "C:\\dict\\cedict_ts.u8",
                 EcdictFilePath = "C:\\dict\\ecdict.csv",
             };
@@ -87,6 +99,17 @@ public class AppSettingsStoreTests
             Assert.Equal(SearchEngineKind.Google, loaded.SearchEngine);
             Assert.Equal(expected.AskAiUrlTemplate, loaded.AskAiUrlTemplate);
             Assert.False(loaded.ClearQueryOnHide);
+            Assert.Equal(
+                expected.ModePreferences.Select(preference => new
+                {
+                    preference.Key,
+                    preference.Enabled,
+                }),
+                loaded.ModePreferences.Select(preference => new
+                {
+                    preference.Key,
+                    preference.Enabled,
+                }));
             Assert.Equal("C:\\dict\\cedict_ts.u8", loaded.DictionaryFilePath);
             Assert.Equal("C:\\dict\\ecdict.csv", loaded.EcdictFilePath);
         }
@@ -112,8 +135,45 @@ public class AppSettingsStoreTests
             Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
             Assert.True(settings.ClearQueryOnHide);
+            Assert.Equal(4, settings.ModePreferences.Length);
             Assert.Null(settings.DictionaryFilePath);
             Assert.Null(settings.EcdictFilePath);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void LoadOrDefault_NormalizesAllDisabledModesAndRewritesFile()
+    {
+        var dir = CreateTempDirectory();
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllText(
+                Path.Combine(dir, AppSettingsStore.FileName),
+                """
+                {
+                  "modePreferences": [
+                    { "key": "web-search", "enabled": false },
+                    { "key": "wikipedia", "enabled": false },
+                    { "key": "ask-ai", "enabled": false },
+                    { "key": "dictionary", "enabled": false }
+                  ]
+                }
+                """);
+
+            var settings = AppSettingsStore.LoadOrDefault(dir);
+
+            Assert.All(settings.ModePreferences, preference => Assert.True(preference.Enabled));
+            var json = File.ReadAllText(Path.Combine(dir, AppSettingsStore.FileName));
+            using var document = JsonDocument.Parse(json);
+            var savedModes = document.RootElement
+                .GetProperty("modePreferences")
+                .EnumerateArray();
+            Assert.All(savedModes, mode => Assert.True(mode.GetProperty("enabled").GetBoolean()));
         }
         finally
         {

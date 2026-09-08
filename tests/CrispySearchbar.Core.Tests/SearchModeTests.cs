@@ -26,7 +26,7 @@ public class SearchModeTests
     {
         var settings = new AppSettings();
         var strings = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese);
-        var modes = SearchModeCatalog.CreateDefault(settings, strings);
+        var modes = SearchModeCatalog.Create(settings, strings);
 
         Assert.Equal(
             new[] { "web-search", "wikipedia", "ask-ai", "dictionary" },
@@ -42,7 +42,7 @@ public class SearchModeTests
     {
         var settings = new AppSettings();
         var strings = TranslationCatalog.Default.Resolve(AppLanguage.English);
-        var modes = SearchModeCatalog.CreateDefault(settings, strings);
+        var modes = SearchModeCatalog.Create(settings, strings);
 
         Assert.Equal("Web Search", modes[0].Title);
         Assert.Equal("Wikipedia", modes[1].Title);
@@ -59,15 +59,84 @@ public class SearchModeTests
         var settings = new AppSettings();
 
         var chineseStrings = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese);
-        var chineseModes = SearchModeCatalog.CreateDefault(settings, chineseStrings);
+        var chineseModes = SearchModeCatalog.Create(settings, chineseStrings);
         Assert.Equal(
             "https://zh.wikipedia.org/w/index.php?search={0}",
             chineseModes[1].UrlTemplate);
 
         var englishStrings = TranslationCatalog.Default.Resolve(AppLanguage.English);
-        var englishModes = SearchModeCatalog.CreateDefault(settings, englishStrings);
+        var englishModes = SearchModeCatalog.Create(settings, englishStrings);
         Assert.Equal(
             "https://en.wikipedia.org/w/index.php?search={0}",
             englishModes[1].UrlTemplate);
+    }
+
+    [Fact]
+    public void ConfiguredCatalog_SkipsDisabledModesAndKeepsStoredOrder()
+    {
+        var settings = new AppSettings
+        {
+            ModePreferences =
+            [
+                new ModePreference(ModePreferenceDefaults.Dictionary, enabled: true),
+                new ModePreference(ModePreferenceDefaults.WebSearch, enabled: false),
+                new ModePreference(ModePreferenceDefaults.Wikipedia, enabled: true),
+                new ModePreference(ModePreferenceDefaults.AskAi, enabled: false),
+            ],
+        };
+        var strings = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese);
+
+        var modes = SearchModeCatalog.Create(settings, strings);
+
+        Assert.Equal(
+            new[] { "dictionary", "wikipedia" },
+            modes.Select(mode => mode.Key));
+    }
+
+    [Fact]
+    public void Normalize_DropsUnknownAndDuplicateKeysAndAppendsMissingEnabledModes()
+    {
+        var normalized = ModePreferenceNormalizer.Normalize(
+        [
+            new ModePreference("future-mode", enabled: true),
+            new ModePreference(ModePreferenceDefaults.WebSearch, enabled: true),
+            new ModePreference(ModePreferenceDefaults.WebSearch, enabled: false),
+            new ModePreference(ModePreferenceDefaults.Dictionary, enabled: false),
+        ]);
+
+        Assert.Equal(
+            new[]
+            {
+                ModePreferenceDefaults.WebSearch,
+                ModePreferenceDefaults.Dictionary,
+                ModePreferenceDefaults.Wikipedia,
+                ModePreferenceDefaults.AskAi,
+            },
+            normalized.Select(preference => preference.Key));
+        Assert.True(normalized.Single(preference =>
+            preference.Key == ModePreferenceDefaults.WebSearch).Enabled);
+        Assert.True(normalized.Single(preference =>
+            preference.Key == ModePreferenceDefaults.Wikipedia).Enabled);
+        Assert.True(normalized.Single(preference =>
+            preference.Key == ModePreferenceDefaults.AskAi).Enabled);
+        Assert.False(normalized.Single(preference =>
+            preference.Key == ModePreferenceDefaults.Dictionary).Enabled);
+    }
+
+    [Fact]
+    public void Normalize_AllDisabledFallsBackToDefaultAllEnabled()
+    {
+        var normalized = ModePreferenceNormalizer.Normalize(
+        [
+            new ModePreference(ModePreferenceDefaults.WebSearch, enabled: false),
+            new ModePreference(ModePreferenceDefaults.Wikipedia, enabled: false),
+            new ModePreference(ModePreferenceDefaults.AskAi, enabled: false),
+            new ModePreference(ModePreferenceDefaults.Dictionary, enabled: false),
+        ]);
+
+        Assert.All(normalized, preference => Assert.True(preference.Enabled));
+        Assert.Equal(
+            ModePreferenceDefaults.BuiltInOrder,
+            normalized.Select(preference => preference.Key));
     }
 }

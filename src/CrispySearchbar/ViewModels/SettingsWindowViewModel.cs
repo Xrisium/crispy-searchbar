@@ -57,20 +57,22 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
 
     private AppSettings _settings;
     private AppSettingsTexts _texts;
+    private AppStrings _strings;
     private readonly string _configFilePath;
     private string? _statusText;
     private bool _isResetConfirmationVisible;
 
     public SettingsWindowViewModel(
         AppSettings settings,
-        AppSettingsTexts texts,
+        AppStrings strings,
         string configFilePath)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        ArgumentNullException.ThrowIfNull(texts);
+        ArgumentNullException.ThrowIfNull(strings);
 
         _settings = settings;
-        _texts = texts;
+        _strings = strings;
+        _texts = strings.SettingsTexts;
         _configFilePath = configFilePath;
         RebuildSections();
     }
@@ -131,13 +133,14 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
     }
 
     /// <summary>语言等配置保存后由 App 用磁盘上的新文件重建编辑区。</summary>
-    public void Reload(AppSettings settings, AppSettingsTexts texts)
+    public void Reload(AppSettings settings, AppStrings strings)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        ArgumentNullException.ThrowIfNull(texts);
+        ArgumentNullException.ThrowIfNull(strings);
 
         _settings = settings;
-        _texts = texts;
+        _strings = strings;
+        _texts = strings.SettingsTexts;
         _isResetConfirmationVisible = false;
         RebuildSections();
 
@@ -227,7 +230,10 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
     {
         if (definition.PropertyName != nameof(AppSettings.Language))
         {
-            return SettingFieldViewModelFactory.Create(definition, _texts);
+            return SettingFieldViewModelFactory.Create(
+                definition,
+                _texts,
+                BuildModeTitles());
         }
 
         var overrides = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -243,6 +249,15 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
 
         return new ChoiceSettingFieldViewModel(definition, _texts, overrides);
     }
+
+    private IReadOnlyDictionary<string, string> BuildModeTitles()
+        => new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [ModePreferenceDefaults.WebSearch] = _strings.WebSearchMode.Title,
+            [ModePreferenceDefaults.Wikipedia] = _strings.WikipediaMode.Title,
+            [ModePreferenceDefaults.AskAi] = _strings.AskAiMode.Title,
+            [ModePreferenceDefaults.Dictionary] = _strings.DictionaryMode.Title,
+        };
 
     private void RebuildSections()
     {

@@ -19,6 +19,13 @@ public sealed class AppSettings
     [Setting(SettingsSection.Search, SettingEditorKind.Choice, Order = 0)]
     public SearchEngineKind SearchEngine { get; set; } = SearchEngineKind.Baidu;
 
+    /// <summary>
+    /// 内置模式列表，顺序即 Tab/模式轮盘顺序；Enabled=false 的模式不参与切换但保留在列表中。
+    /// 至少启用一个模式；规范化见 <see cref="ModePreferenceNormalizer"/>。
+    /// </summary>
+    [Setting(SettingsSection.Modes, SettingEditorKind.ModeList, Order = 0)]
+    public ModePreference[] ModePreferences { get; set; } = ModePreferenceDefaults.AllEnabled();
+
     /// <summary>搜索框隐藏后是否清空已输入内容，默认 true。</summary>
     [Setting(SettingsSection.General, SettingEditorKind.Toggle, Order = 1)]
     public bool ClearQueryOnHide { get; set; } = true;

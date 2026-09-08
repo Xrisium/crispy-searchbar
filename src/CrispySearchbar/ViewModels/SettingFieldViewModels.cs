@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using CrispySearchbar.Core.Configuration;
@@ -166,6 +167,203 @@ public sealed class ToggleSettingFieldViewModel : SettingFieldViewModel
         => Definition.SetValue(settings, IsChecked);
 }
 
+/// <summary>模式设置列表中的一行；开关、上/下按钮与拖拽共用同一 owner 的集合操作。</summary>
+public sealed class ModeListItemViewModel : INotifyPropertyChanged
+{
+    private readonly ModeListSettingFieldViewModel _owner;
+    private bool _enabled;
+    private bool _canMoveUp;
+    private bool _canMoveDown;
+
+    internal ModeListItemViewModel(
+        ModeListSettingFieldViewModel owner,
+        string key,
+        string title,
+        bool enabled)
+    {
+        _owner = owner;
+        Key = key;
+        Title = title;
+        _enabled = enabled;
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public ModeListSettingFieldViewModel Owner => _owner;
+
+    public string Key { get; }
+
+    public string Title { get; }
+
+    public bool IsEnabled
+    {
+        get => _enabled;
+        set => _owner.TrySetEnabled(this, value);
+    }
+
+    public bool CanMoveUp
+    {
+        get => _canMoveUp;
+        private set
+        {
+            if (_canMoveUp == value)
+            {
+                return;
+            }
+
+            _canMoveUp = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool CanMoveDown
+    {
+        get => _canMoveDown;
+        private set
+        {
+            if (_canMoveDown == value)
+            {
+                return;
+            }
+
+            _canMoveDown = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public void MoveUp() => _owner.MoveBy(this, -1);
+
+    public void MoveDown() => _owner.MoveBy(this, 1);
+
+    internal void ApplyMoveState(bool canMoveUp, bool canMoveDown)
+    {
+        CanMoveUp = canMoveUp;
+        CanMoveDown = canMoveDown;
+    }
+
+    internal void SetEnabledInternal(bool enabled)
+    {
+        if (_enabled == enabled)
+        {
+            return;
+        }
+
+        _enabled = enabled;
+        OnPropertyChanged(nameof(IsEnabled));
+    }
+
+    internal void NotifyIsEnabledChanged()
+        => OnPropertyChanged(nameof(IsEnabled));
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}
+
+/// <summary>
+/// ModeList 设置项：以一行可拖拽/可移动的模式列表编辑 <see cref="AppSettings.ModePreferences"/>。
+/// 至少保留一个启用模式；尝试关闭最后一个时显示内联错误且开关不翻转。
+/// </summary>
+public sealed class ModeListSettingFieldViewModel : SettingFieldViewModel
+{
+    private readonly IReadOnlyDictionary<string, string> _modeTitles;
+
+    public ModeListSettingFieldViewModel(
+        SettingDefinition definition,
+        AppSettingsTexts texts,
+        IReadOnlyDictionary<string, string> modeTitles)
+        : base(definition, texts)
+    {
+        _modeTitles = modeTitles;
+    }
+
+    public ObservableCollection<ModeListItemViewModel> Items { get; } = [];
+
+    public string ModeMoveUpToolTip => Texts.ModeMoveUpToolTip;
+
+    public string ModeMoveDownToolTip => Texts.ModeMoveDownToolTip;
+
+    public string ModeDragHandleToolTip => Texts.ModeDragHandleToolTip;
+
+    public override void LoadFrom(AppSettings settings)
+    {
+        var preferences = ModePreferenceNormalizer.Normalize(settings.ModePreferences);
+        Items.Clear();
+        foreach (var preference in preferences)
+        {
+            var title = _modeTitles.TryGetValue(preference.Key, out var localizedTitle)
+                ? localizedTitle
+                : preference.Key;
+            Items.Add(new ModeListItemViewModel(
+                this,
+                preference.Key,
+                title,
+                preference.Enabled));
+        }
+
+        RefreshMoveState();
+        SetError(null);
+    }
+
+    public override void ApplyTo(AppSettings settings)
+        => settings.ModePreferences = Items
+            .Select(item => new ModePreference(item.Key, item.IsEnabled))
+            .ToArray();
+
+    internal bool TrySetEnabled(ModeListItemViewModel item, bool enabled)
+    {
+        if (enabled || Items.Count(candidate => candidate.IsEnabled) > 1)
+        {
+            item.SetEnabledInternal(enabled);
+            if (enabled)
+            {
+                SetError(null);
+            }
+
+            return true;
+        }
+
+        SetError(Texts.ModeListAtLeastOneEnabledError);
+        item.NotifyIsEnabledChanged();
+        return false;
+    }
+
+    internal void MoveBy(ModeListItemViewModel item, int offset)
+    {
+        var oldIndex = Items.IndexOf(item);
+        var newIndex = oldIndex + offset;
+        if (oldIndex < 0 || newIndex < 0 || newIndex >= Items.Count)
+        {
+            return;
+        }
+
+        Items.Move(oldIndex, newIndex);
+        RefreshMoveState();
+    }
+
+    internal void DropOnto(ModeListItemViewModel source, ModeListItemViewModel target)
+    {
+        var sourceIndex = Items.IndexOf(source);
+        var targetIndex = Items.IndexOf(target);
+        if (sourceIndex < 0 || targetIndex < 0 || sourceIndex == targetIndex)
+        {
+            return;
+        }
+
+        Items.Move(sourceIndex, targetIndex);
+        RefreshMoveState();
+    }
+
+    private void RefreshMoveState()
+    {
+        for (var index = 0; index < Items.Count; index++)
+        {
+            Items[index].ApplyMoveState(
+                canMoveUp: index > 0,
+                canMoveDown: index < Items.Count - 1);
+        }
+    }
+}
+
 public sealed class TextSettingFieldViewModel : SettingFieldViewModel
 {
     private string _text = string.Empty;
@@ -270,13 +468,21 @@ public static class SettingFieldViewModelFactory
 {
     public static SettingFieldViewModel Create(
         SettingDefinition definition,
-        AppSettingsTexts texts)
+        AppSettingsTexts texts,
+        IReadOnlyDictionary<string, string>? modeTitles = null)
         => definition.EditorKind switch
         {
             SettingEditorKind.Choice => new ChoiceSettingFieldViewModel(definition, texts),
             SettingEditorKind.Toggle => new ToggleSettingFieldViewModel(definition, texts),
             SettingEditorKind.Text => new TextSettingFieldViewModel(definition, texts),
             SettingEditorKind.FilePath => new FilePathSettingFieldViewModel(definition, texts),
+            SettingEditorKind.ModeList => new ModeListSettingFieldViewModel(
+                definition,
+                texts,
+                modeTitles
+                    ?? throw new ArgumentException(
+                        "ModeList 设置项需要模式标题字典。",
+                        nameof(modeTitles))),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(definition),
                 definition.EditorKind,

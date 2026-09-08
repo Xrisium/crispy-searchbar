@@ -54,6 +54,14 @@ public sealed class AppSettingsTexts
 
     public required string ResetDoneStatus { get; init; }
 
+    public required string ModeListAtLeastOneEnabledError { get; init; }
+
+    public required string ModeMoveUpToolTip { get; init; }
+
+    public required string ModeMoveDownToolTip { get; init; }
+
+    public required string ModeDragHandleToolTip { get; init; }
+
     public required IReadOnlyDictionary<string, string> SectionTitles { get; init; }
 
     public required IReadOnlyDictionary<string, string> FieldLabels { get; init; }

@@ -99,6 +99,48 @@
     </Viewbox>
   </DataTemplate>
 
+  <!-- Lucide layout-list（模式）。原件：lucide-icons/lucide@a537cb6 icons/layout-list.svg -->
+  <DataTemplate x:Key="SettingsIconTemplate-modes">
+    <Viewbox Width="13" Height="13">
+      <Grid Width="24" Height="24">
+        <Rectangle Width="7"
+                   Height="7"
+                   RadiusX="1"
+                   RadiusY="1"
+                   Stroke="{DynamicResource TextSecondaryBrush}"
+                   StrokeThickness="2"
+                   Margin="3,3,0,0"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top" />
+        <Rectangle Width="7"
+                   Height="7"
+                   RadiusX="1"
+                   RadiusY="1"
+                   Stroke="{DynamicResource TextSecondaryBrush}"
+                   StrokeThickness="2"
+                   Margin="3,14,0,0"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top" />
+        <Path Data="M14 4h7"
+              Stroke="{DynamicResource TextSecondaryBrush}"
+              StrokeThickness="2"
+              StrokeLineCap="Round" />
+        <Path Data="M14 9h7"
+              Stroke="{DynamicResource TextSecondaryBrush}"
+              StrokeThickness="2"
+              StrokeLineCap="Round" />
+        <Path Data="M14 15h7"
+              Stroke="{DynamicResource TextSecondaryBrush}"
+              StrokeThickness="2"
+              StrokeLineCap="Round" />
+        <Path Data="M14 20h7"
+              Stroke="{DynamicResource TextSecondaryBrush}"
+              StrokeThickness="2"
+              StrokeLineCap="Round" />
+      </Grid>
+    </Viewbox>
+  </DataTemplate>
+
   <!-- Lucide book-open-text（词典）。原件：lucide-icons/lucide@a537cb6 icons/book-open-text.svg -->
   <DataTemplate x:Key="SettingsIconTemplate-dictionary">
     <Viewbox Width="13" Height="13">

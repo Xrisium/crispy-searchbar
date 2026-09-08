@@ -79,6 +79,9 @@ public class AppSettingsSchemaTests
                 case SettingEditorKind.FilePath:
                     Assert.Equal(typeof(string), definition.PropertyType);
                     break;
+                case SettingEditorKind.ModeList:
+                    Assert.Equal(typeof(ModePreference[]), definition.PropertyType);
+                    break;
                 default:
                     Assert.Fail($"未知控件类型：{definition.EditorKind}");
                     break;
@@ -108,10 +111,22 @@ public class AppSettingsSchemaTests
                 SettingsSection.General,
                 SettingsSection.Appearance,
                 SettingsSection.Search,
+                SettingsSection.Modes,
                 SettingsSection.Dictionary,
                 SettingsSection.About,
             },
             Enum.GetValues<SettingsSection>());
+    }
+
+    [Fact]
+    public void ModePreferencesField_IsModeListInModesSection()
+    {
+        var definition = AppSettingsSchema.Discover()
+            .Single(item => item.PropertyName == nameof(AppSettings.ModePreferences));
+
+        Assert.Equal(SettingsSection.Modes, definition.Section);
+        Assert.Equal(SettingEditorKind.ModeList, definition.EditorKind);
+        Assert.Equal(0, definition.Order);
     }
 
     [Fact]

@@ -20,6 +20,7 @@ public sealed partial class SettingsWindow : Window
 
     private readonly Dictionary<SettingsSectionViewModel, Control> _sectionControls = [];
     private readonly VectorTransition _scrollTransition;
+    private ModeListItemViewModel? _modeDragSource;
 
     public SettingsWindow()
     {
@@ -37,7 +38,7 @@ public sealed partial class SettingsWindow : Window
         var strings = TranslationCatalog.Default.Resolve(settings.Language);
         var viewModel = new SettingsWindowViewModel(
             settings,
-            strings.SettingsTexts,
+            strings,
             AppSettingsStore.GetSettingsFilePath());
         viewModel.Saved += OnViewModelSaved;
         DataContext = viewModel;
@@ -52,7 +53,7 @@ public sealed partial class SettingsWindow : Window
     public void ReloadFromConfiguration(AppSettings settings, AppStrings strings)
     {
         _sectionControls.Clear();
-        ViewModel.Reload(settings, strings.SettingsTexts);
+        ViewModel.Reload(settings, strings);
     }
 
     private void OnViewModelSaved(object? sender, AppSettings settings)
@@ -222,4 +223,64 @@ public sealed partial class SettingsWindow : Window
 
     private void OnResetCancelledClicked(object? sender, RoutedEventArgs e)
         => ViewModel.HideResetConfirmation();
+
+    private void OnModeMoveUpClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: ModeListItemViewModel item })
+        {
+            item.MoveUp();
+        }
+    }
+
+    private void OnModeMoveDownClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: ModeListItemViewModel item })
+        {
+            item.MoveDown();
+        }
+    }
+
+    private async void OnModeDragHandlePointerPressed(
+        object? sender,
+        PointerPressedEventArgs e)
+    {
+        if (sender is not Control { DataContext: ModeListItemViewModel item } handle)
+        {
+            return;
+        }
+
+        if (!e.GetCurrentPoint(handle).Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        _modeDragSource = item;
+        var data = new DataTransfer();
+        data.Add(DataTransferItem.CreateText(item.Key));
+        await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
+        _modeDragSource = null;
+    }
+
+    private void OnModeRowDragOver(object? sender, DragEventArgs e)
+    {
+        if (_modeDragSource is not null
+            && sender is Control { DataContext: ModeListItemViewModel })
+        {
+            e.DragEffects = DragDropEffects.Move;
+            e.Handled = true;
+            return;
+        }
+
+        e.DragEffects = DragDropEffects.None;
+    }
+
+    private void OnModeRowDrop(object? sender, DragEventArgs e)
+    {
+        if (sender is Control { DataContext: ModeListItemViewModel target }
+            && _modeDragSource is not null)
+        {
+            target.Owner.DropOnto(_modeDragSource, target);
+            e.Handled = true;
+        }
+    }
 }

@@ -1,3 +1,4 @@
+using CrispySearchbar.Core.Configuration;
 using CrispySearchbar.Core.Localization;
 
 namespace CrispySearchbar.Core.Modes;
@@ -11,14 +12,34 @@ public sealed record SearchMode(
     string? UrlTemplate)
 {
     public static SearchMode WebSearch(SearchModeTexts texts, string urlTemplate)
-        => new("web-search", texts.Title, texts.Watermark, texts.ActionHint, urlTemplate);
+        => new(
+            ModePreferenceDefaults.WebSearch,
+            texts.Title,
+            texts.Watermark,
+            texts.ActionHint,
+            urlTemplate);
 
     public static SearchMode AskAi(SearchModeTexts texts, string urlTemplate)
-        => new("ask-ai", texts.Title, texts.Watermark, texts.ActionHint, urlTemplate);
+        => new(
+            ModePreferenceDefaults.AskAi,
+            texts.Title,
+            texts.Watermark,
+            texts.ActionHint,
+            urlTemplate);
 
     public static SearchMode Wikipedia(SearchModeTexts texts, string urlTemplate)
-        => new("wikipedia", texts.Title, texts.Watermark, texts.ActionHint, urlTemplate);
+        => new(
+            ModePreferenceDefaults.Wikipedia,
+            texts.Title,
+            texts.Watermark,
+            texts.ActionHint,
+            urlTemplate);
 
     public static SearchMode Dictionary(SearchModeTexts texts)
-        => new("dictionary", texts.Title, texts.Watermark, texts.ActionHint, UrlTemplate: null);
+        => new(
+            ModePreferenceDefaults.Dictionary,
+            texts.Title,
+            texts.Watermark,
+            texts.ActionHint,
+            UrlTemplate: null);
 }

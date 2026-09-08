@@ -7,4 +7,5 @@ public enum SettingEditorKind
     Toggle,
     Text,
     FilePath,
+    ModeList,
 }

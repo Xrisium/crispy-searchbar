@@ -57,4 +57,25 @@ public class AppSettingsValidatorTests
 
         Assert.Empty(AppSettingsValidator.Validate(settings));
     }
+
+    [Fact]
+    public void Validate_AllModesDisabled_ReturnsAtLeastOneModeError()
+    {
+        var settings = new AppSettings
+        {
+            ModePreferences =
+            [
+                new ModePreference(ModePreferenceDefaults.WebSearch, enabled: false),
+                new ModePreference(ModePreferenceDefaults.Wikipedia, enabled: false),
+                new ModePreference(ModePreferenceDefaults.AskAi, enabled: false),
+                new ModePreference(ModePreferenceDefaults.Dictionary, enabled: false),
+            ],
+        };
+
+        var error = Assert.Single(AppSettingsValidator.Validate(settings));
+        Assert.Equal(nameof(AppSettings.ModePreferences), error.PropertyName);
+        Assert.Equal(
+            AppSettingsValidator.AtLeastOneModeEnabledError,
+            error.ErrorKey);
+    }
 }

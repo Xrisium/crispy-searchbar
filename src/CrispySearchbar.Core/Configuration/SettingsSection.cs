@@ -9,6 +9,7 @@ public enum SettingsSection
     General,
     Appearance,
     Search,
+    Modes,
     Dictionary,
     About,
 }

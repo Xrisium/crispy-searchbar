@@ -49,10 +49,15 @@
     "resetConfirmAcceptText": "Reset",
     "resetConfirmCancelText": "Cancel",
     "resetDoneStatus": "Reset to default configuration.",
+    "modeListAtLeastOneEnabledError": "Enable at least one mode.",
+    "modeMoveUpToolTip": "Move mode up",
+    "modeMoveDownToolTip": "Move mode down",
+    "modeDragHandleToolTip": "Drag to reorder modes",
     "sectionTitles": {
       "General": "General",
       "Appearance": "Appearance",
       "Search": "Search",
+      "Modes": "Modes",
       "Dictionary": "Dictionary",
       "About": "About"
     },
@@ -62,6 +67,7 @@
       "SearchEngine": "Default search engine",
       "ClearQueryOnHide": "Clear query when hidden",
       "AskAiUrlTemplate": "Ask DeepSeek URL template",
+      "ModePreferences": "Enabled modes and order",
       "DictionaryFilePath": "Chinese-English dictionary file",
       "EcdictFilePath": "English-Chinese dictionary file"
     },
@@ -71,6 +77,7 @@
       "SearchEngine": "Search engine used by Web Search mode.",
       "ClearQueryOnHide": "Clear the typed query whenever the search bar hides.",
       "AskAiUrlTemplate": "Must contain {0}; the query replaces this placeholder.",
+      "ModePreferences": "Choose which modes appear in Tab switching. Drag a row or use the up/down buttons to change the order; at least one mode must stay enabled.",
       "DictionaryFilePath": "Accepts a CC-CEDICT UTF-8 text file, typically cedict_ts.u8 (*.u8). Leave empty to use the user data directory or the bundled file.",
       "EcdictFilePath": "Accepts an ECDICT CSV file, typically ecdict.csv (*.csv). Leave empty to use the user data directory or the bundled file."
     },

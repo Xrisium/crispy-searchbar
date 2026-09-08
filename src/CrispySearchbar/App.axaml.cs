@@ -35,7 +35,7 @@ public partial class App : Application
             _strings = TranslationCatalog.Default.Resolve(_settings.Language);
             ApplyTheme(_settings.Theme);
 
-            var modes = SearchModeCatalog.CreateDefault(_settings, _strings);
+            var modes = SearchModeCatalog.Create(_settings, _strings);
             // 启动即后台加载两套词典资源；仅在配置里的词典路径改变时重建加载任务。
             _dictionaryResources = new AppDictionaryResources(
                 _strings,
@@ -96,7 +96,7 @@ public partial class App : Application
             _viewModel?.ReloadDictionarySource(() => _dictionaryLoadTask);
         }
 
-        var modes = SearchModeCatalog.CreateDefault(settings, _strings);
+        var modes = SearchModeCatalog.Create(settings, _strings);
         _viewModel?.ApplyConfiguration(
             _strings,
             modes,

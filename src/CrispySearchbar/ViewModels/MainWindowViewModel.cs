@@ -67,12 +67,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         ArgumentNullException.ThrowIfNull(strings);
         ArgumentNullException.ThrowIfNull(modes);
 
+        var previousModeKey = _modes.Count > 0 ? _modes[_modeIndex].Key : null;
         _strings = strings;
         _modes = modes;
         _clearQueryOnHide = clearQueryOnHide;
         if (_modes.Count > 0)
         {
-            _modeIndex = Math.Clamp(_modeIndex, 0, _modes.Count - 1);
+            var preservedIndex = previousModeKey is null
+                ? -1
+                : FindModeIndexByKey(previousModeKey);
+            _modeIndex = preservedIndex >= 0 ? preservedIndex : 0;
         }
 
         OnPropertyChanged(nameof(CurrentMode));
@@ -312,6 +316,19 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         for (var i = 0; i < _modes.Count; i++)
         {
             if (_modes[i] == mode)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private int FindModeIndexByKey(string key)
+    {
+        for (var i = 0; i < _modes.Count; i++)
+        {
+            if (string.Equals(_modes[i].Key, key, StringComparison.Ordinal))
             {
                 return i;
             }
