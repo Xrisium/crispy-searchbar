@@ -380,7 +380,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Enter 键执行当前动作。网页/问问大肥鱼模式在浏览器打开结果；
+    /// Enter 键执行当前动作。网页/询问 DeepSeek 模式在浏览器打开结果；
     /// 词典模式打开详情。返回是否应隐藏搜索框。
     /// </summary>
     public bool ExecuteCurrent()

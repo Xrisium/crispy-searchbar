@@ -104,7 +104,7 @@ public sealed class AppStrings
                 [nameof(AppSettings.Theme)] = "主题",
                 [nameof(AppSettings.SearchEngine)] = "默认搜索引擎",
                 [nameof(AppSettings.ClearQueryOnHide)] = "隐藏搜索框时清空输入",
-                [nameof(AppSettings.AskAiUrlTemplate)] = "问问大肥鱼网址模板",
+                [nameof(AppSettings.AskAiUrlTemplate)] = "询问 DeepSeek 网址模板",
                 [nameof(AppSettings.DictionaryFilePath)] = "汉英词典文件",
                 [nameof(AppSettings.EcdictFilePath)] = "英汉词典文件",
             },

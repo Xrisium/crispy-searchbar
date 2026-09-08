@@ -55,7 +55,7 @@
     </Viewbox>
   </DataTemplate>
 
-  <!-- DeepSeek 官方鲸鱼（问问大肥鱼）。原件：deepseek-ai/deepseek-harness@c389f96 apps/web/public/favicon.svg -->
+  <!-- 询问 DeepSeek 模式使用的 DeepSeek 官方鲸鱼图标。原件：deepseek-ai/deepseek-harness@c389f96 apps/web/public/favicon.svg -->
   <DataTemplate x:Key="ModeIconTemplate-ask-ai">
     <Viewbox Width="13" Height="13">
       <Grid Width="50" Height="50">

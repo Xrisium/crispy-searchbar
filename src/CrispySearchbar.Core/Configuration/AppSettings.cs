@@ -24,7 +24,7 @@ public sealed class AppSettings
     [Setting(SettingsSection.General, SettingEditorKind.Toggle, Order = 1)]
     public bool ClearQueryOnHide { get; set; } = true;
 
-    /// <summary>问问大肥鱼（DeepSeek 网页端）地址模板，{0} 将被替换为 URL 编码后的查询词。</summary>
+    /// <summary>询问 DeepSeek 网页端地址模板，{0} 将被替换为 URL 编码后的查询词。</summary>
     [Setting(
         SettingsSection.Search,
         SettingEditorKind.Text,
