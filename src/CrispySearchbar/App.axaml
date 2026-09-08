@@ -27,6 +27,7 @@
           <SolidColorBrush x:Key="SelectionBrush" Color="#263B6EF6" />
           <SolidColorBrush x:Key="HoverBrush" Color="#0F000000" />
           <SolidColorBrush x:Key="DangerBrush" Color="#C9322F" />
+          <SolidColorBrush x:Key="WarningBrush" Color="#9A6700" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="SearchSurfaceBrush" Color="#222226" />
@@ -42,6 +43,7 @@
           <SolidColorBrush x:Key="SelectionBrush" Color="#336C8CFF" />
           <SolidColorBrush x:Key="HoverBrush" Color="#12FFFFFF" />
           <SolidColorBrush x:Key="DangerBrush" Color="#F28B82" />
+          <SolidColorBrush x:Key="WarningBrush" Color="#E5B567" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>

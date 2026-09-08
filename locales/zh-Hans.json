@@ -53,9 +53,11 @@
     "modeMoveUpToolTip": "上移模式",
     "modeMoveDownToolTip": "下移模式",
     "modeDragHandleToolTip": "拖拽调整模式顺序",
-    "shortcutRecordPrompt": "按下新键位…（再次点击取消）",
+    "shortcutRecordPrompt": "按下新键位…（Esc 清空）",
     "shortcutResetText": "恢复默认",
-    "hotkeyRegistrationFailed": "全局快捷键已被其它程序占用，保存已取消，当前键位保持不变。",
+    "shortcutUnsetText": "未设定快捷键",
+    "shortcutResetAllText": "重置全部快捷键为默认",
+    "shortcutGlobalConflictWarning": "与其他应用的全局快捷键冲突，可能引发预期外的行为。",
     "sectionTitles": {
       "General": "通用",
       "Appearance": "外观",
@@ -76,7 +78,7 @@
       "EcdictFilePath": "英汉词典文件",
       "ToggleVisibilityShortcut": "显示/隐藏搜索框（全局）",
       "CycleModeShortcut": "切换下一个模式",
-      "HideShortcut": "隐藏搜索框",
+      "HideOnEscape": "按下 Esc 时隐藏搜索框",
       "ExecuteShortcut": "执行当前项",
       "SelectPreviousShortcut": "上移选择",
       "SelectNextShortcut": "下移选择"
@@ -90,9 +92,9 @@
       "ModePreferences": "选择参与模式切换的模式。拖拽行或使用上/下按钮调整顺序；至少保留一个启用模式。",
       "DictionaryFilePath": "支持 CC-CEDICT 的 UTF-8 文本文件（.u8，如 cedict_ts.u8）。留空时使用用户数据目录或程序内置文件。",
       "EcdictFilePath": "支持 ECDICT 的 CSV 文件（.csv，如 ecdict.csv）。留空时使用用户数据目录或程序内置文件。",
-      "ToggleVisibilityShortcut": "全局快捷键：搜索框隐藏时呼出，显示时隐藏。默认 Alt+Space。",
+      "ToggleVisibilityShortcut": "全局快捷键：搜索框隐藏时呼出，显示时隐藏。默认 Alt+Space；录制时按 Esc 可清除。",
       "CycleModeShortcut": "轻按切换下一个模式；长按呼出模式轮盘，松开确认。需为不带修饰键的单个按键。",
-      "HideShortcut": "隐藏搜索框并回到系统托盘；模式轮盘打开时按此键取消轮盘。",
+      "HideOnEscape": "搜索框显示时按 Esc 隐藏；模式轮盘打开时 Esc 始终先取消轮盘。",
       "ExecuteShortcut": "网页类模式用浏览器打开结果；词典模式查看释义。",
       "SelectPreviousShortcut": "在词典候选或模式轮盘中向上移动选择。",
       "SelectNextShortcut": "在词典候选或模式轮盘中向下移动选择。"
@@ -112,8 +114,8 @@
     },
     "validationMessages": {
       "ShortcutInvalid": "无法识别的快捷键。",
-      "ShortcutDuplicate": "该快捷键已被其它操作使用。",
-      "ShortcutPrintableRequiresModifier": "需要搭配 Alt、Ctrl 或 Win，避免影响输入。",
+      "ShortcutDuplicate": "该快捷键已被本设置中的另一操作使用。",
+      "ShortcutPrintableRequiresModifier": "建议搭配 Alt、Ctrl 或 Win，避免影响输入。",
       "ShortcutModeSwitchRequiresSingleKey": "模式切换键必须是单个按键，不能带修饰键或字母/数字/空格。",
       "ShortcutReservedForTextEditing": "该组合保留给输入框文本编辑，请换一个键位。"
     }

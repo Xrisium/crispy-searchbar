@@ -36,10 +36,6 @@ public sealed class AppSettings
     public string CycleModeShortcut { get; set; } =
         ShortcutDefaults.GetDefaultValue(ShortcutAction.CycleMode);
 
-    /// <summary>隐藏搜索框到托盘，默认 Esc。</summary>
-    [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 2)]
-    public string HideShortcut { get; set; } =
-        ShortcutDefaults.GetDefaultValue(ShortcutAction.Hide);
 
     /// <summary>执行当前项，默认 Enter。</summary>
     [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 3)]
@@ -55,6 +51,10 @@ public sealed class AppSettings
     [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 5)]
     public string SelectNextShortcut { get; set; } =
         ShortcutDefaults.GetDefaultValue(ShortcutAction.SelectNext);
+
+    /// <summary>搜索框显示时是否在按下 Esc 后隐藏；模式轮盘打开时 Esc 始终先取消轮盘。</summary>
+    [Setting(SettingsSection.Shortcuts, SettingEditorKind.Toggle, Order = 6)]
+    public bool HideOnEscape { get; set; } = true;
 
     /// <summary>搜索框隐藏后是否清空已输入内容，默认 true。</summary>
     [Setting(SettingsSection.General, SettingEditorKind.Toggle, Order = 1)]

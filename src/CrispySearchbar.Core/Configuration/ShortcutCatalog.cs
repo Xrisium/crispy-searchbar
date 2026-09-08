@@ -25,6 +25,11 @@ public sealed class ShortcutCatalog
         foreach (var action in Enum.GetValues<ShortcutAction>())
         {
             var raw = ShortcutDefaults.GetValue(settings, action);
+            if (ShortcutParser.IsEmpty(raw))
+            {
+                continue;
+            }
+
             bindings[action] = ShortcutParser.TryParse(raw, out var binding)
                 ? binding
                 : ShortcutParser.TryParse(
@@ -39,6 +44,8 @@ public sealed class ShortcutCatalog
     }
 
     public ShortcutBinding this[ShortcutAction action] => _bindings[action];
+
+    public bool IsBound(ShortcutAction action) => _bindings.ContainsKey(action);
 
     public bool TryGetBinding(ShortcutAction action, out ShortcutBinding binding)
         => _bindings.TryGetValue(action, out binding!);

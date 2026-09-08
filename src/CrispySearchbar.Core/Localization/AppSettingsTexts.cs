@@ -66,7 +66,11 @@ public sealed class AppSettingsTexts
 
     public required string ShortcutResetText { get; init; }
 
-    public required string HotkeyRegistrationFailed { get; init; }
+    public required string ShortcutUnsetText { get; init; }
+
+    public required string ShortcutResetAllText { get; init; }
+
+    public required string ShortcutGlobalConflictWarning { get; init; }
 
     public required IReadOnlyDictionary<string, string> SectionTitles { get; init; }
 

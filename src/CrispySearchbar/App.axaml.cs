@@ -50,11 +50,12 @@ public partial class App : Application
                 clearQueryOnHide: _settings.ClearQueryOnHide,
                 dictionaryEmptyHint: ShortcutTextFormatter.Format(
                     _strings.DictionaryEmptyHint,
-                    shortcuts),
+                    shortcuts,
+                    _strings.SettingsTexts.ShortcutUnsetText),
                 loadDictionary: () => _dictionaryLoadTask);
             var mainWindow = new MainWindow { DataContext = _viewModel };
             _mainWindow = mainWindow;
-            mainWindow.ApplyShortcuts(shortcuts);
+            mainWindow.ApplyConfiguration(shortcuts, _settings.HideOnEscape);
 
             // 托盘常驻：没有窗口时也不退出，退出由托盘菜单显式触发。
             desktop.MainWindow = mainWindow;
@@ -62,7 +63,10 @@ public partial class App : Application
 
             _hotkeyService = GlobalHotkeyServiceFactory.Create();
             _hotkeyService.Pressed += ToggleSearchBar;
-            _hotkeyService.TryStart(shortcuts[ShortcutAction.ToggleVisibility]);
+            if (shortcuts.TryGetBinding(ShortcutAction.ToggleVisibility, out var initialGlobal))
+            {
+                _hotkeyService.TryStart(initialGlobal);
+            }
 
             _trayIconService = new TrayIconService(
                 _strings,
@@ -80,16 +84,16 @@ public partial class App : Application
     /// <summary>
     /// 设置窗口保存成功后从磁盘重读 settings.json，并让运行中的应用组件按新文件刷新。
     /// 配置文件始终是唯一权威来源，运行中的组件只消费它的快照。
-    /// 返回 false 表示全局热键注册失败；此时本方法不改动任何运行状态。
+    /// 全局热键注册失败不阻断应用：运行中的组件照常刷新，失败键位由设置界面黄色提醒。
     /// </summary>
-    private bool ApplyConfiguration(AppSettings settings)
+    private void ApplyConfiguration(AppSettings settings)
     {
         var shortcuts = ShortcutCatalog.Create(settings);
-        if (_hotkeyService is not null
-            && !_hotkeyService.TryApply(shortcuts[ShortcutAction.ToggleVisibility]))
-        {
-            return false;
-        }
+        _hotkeyService?.TryApply(shortcuts.TryGetBinding(
+            ShortcutAction.ToggleVisibility,
+            out var globalBinding)
+            ? globalBinding
+            : null);
 
         var dictionaryPathsChanged =
             !SameNormalizedPath(_settings.DictionaryFilePath, settings.DictionaryFilePath)
@@ -112,15 +116,15 @@ public partial class App : Application
         var modes = SearchModeCatalog.Create(settings, _strings);
         var dictionaryEmptyHint = ShortcutTextFormatter.Format(
             _strings.DictionaryEmptyHint,
-            shortcuts);
+            shortcuts,
+            _strings.SettingsTexts.ShortcutUnsetText);
         _viewModel?.ApplyConfiguration(
             _strings,
             modes,
             clearQueryOnHide: settings.ClearQueryOnHide,
             dictionaryEmptyHint: dictionaryEmptyHint);
-        _mainWindow?.ApplyShortcuts(shortcuts);
+        _mainWindow?.ApplyConfiguration(shortcuts, settings.HideOnEscape);
         _trayIconService?.UpdateStrings(_strings);
-        return true;
     }
 
     private void OpenSettingsWindow()
@@ -137,7 +141,13 @@ public partial class App : Application
         }
 
         var probe = GlobalHotkeyProbeFactory.Create();
-        var window = new SettingsWindow(probe.CanRegister);
+        var window = new SettingsWindow(
+            probe.CanRegister,
+            candidate => _hotkeyService?.IsRegistered == true
+                && string.Equals(
+                    _hotkeyService.CurrentBinding?.ToStorageString(),
+                    candidate,
+                    StringComparison.OrdinalIgnoreCase));
         window.SettingsSaved += OnSettingsSaved;
         window.Closed += (_, _) =>
         {
@@ -151,16 +161,7 @@ public partial class App : Application
     private void OnSettingsSaved(object? sender, AppSettings saved)
     {
         var fromDisk = AppSettingsStore.LoadOrDefault();
-        if (!ApplyConfiguration(fromDisk))
-        {
-            // 实际注册竞态失败：写回上一份配置并刷新设置窗口，保留原键位可用。
-            AppSettingsStore.Save(_settings);
-            var rollbackStrings = TranslationCatalog.Default.Resolve(_settings.Language);
-            _settingsWindow?.ReloadFromConfiguration(_settings, rollbackStrings);
-            _settingsWindow?.ShowApplyFailure();
-            return;
-        }
-
+        ApplyConfiguration(fromDisk);
         _settingsWindow?.ReloadFromConfiguration(_settings, _strings);
     }
 

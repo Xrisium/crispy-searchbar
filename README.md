@@ -11,7 +11,7 @@ Current milestone: search shell with a functional dictionary mode.
 - The visible UI is a single rounded capsule search bar. Dictionary candidates and details appear in an on-demand popup below it.
 - `Alt+Space` shows/hides the search bar; `Esc` or clicking another window hides it; the app keeps running in the tray with “Show / Hide Search Bar”, “Settings” and “Exit” menu items.
 - Quick Tab cycles through modes in the order configured under Settings → Modes (default: Web Search → Wikipedia → Ask DeepSeek → Dictionary); holding Tab opens the vertical mode picker and releasing Tab switches (mouse wheel or ↑/↓ moves the highlight).
-- The six shortcuts above are defaults and can be rebound in Settings → Shortcuts. Visible key hints (watermarks and the dictionary hint) follow the current bindings; the global hotkey is checked for conflicts before a save is accepted.
+- The five key bindings above are defaults and can be rebound in Settings → Shortcuts, where each row can also be cleared with Esc. Visible key hints follow the current bindings; conflicts with other applications are shown as non-blocking warnings.
 - Web Search, Wikipedia and Ask DeepSeek open the default browser using a URL template (the query is URL-encoded into `{0}`). The Wikipedia site follows the `wikipediaLanguage` metadata of the active translation file (for example zh.wikipedia.org for `zh-Hans` and en.wikipedia.org for `en`).
 - Dictionary mode performs offline lookup against CC-CEDICT (Chinese → English) and ECDICT (English → Chinese):
   - real-time candidate suggestions as you type;
@@ -68,7 +68,7 @@ Example file:
   "askAiUrlTemplate": "https://chat.deepseek.com/?q={0}",
   "toggleVisibilityShortcut": "Alt+Space",
   "cycleModeShortcut": "Tab",
-  "hideShortcut": "Esc",
+  "hideOnEscape": true,
   "executeShortcut": "Enter",
   "selectPreviousShortcut": "Up",
   "selectNextShortcut": "Down",
@@ -90,7 +90,7 @@ Example file:
 - `askAiUrlTemplate`: must contain `{0}`, replaced by the URL-encoded query.
 - `toggleVisibilityShortcut`: global show/hide hotkey, written as `Alt+Space` style text; default `Alt+Space`.
 - `cycleModeShortcut`: single key that switches modes when tapped and opens the mode wheel when held; default `Tab`.
-- `hideShortcut`: hides the search bar (and dismisses the mode wheel first when it is open); default `Esc`.
+- `hideOnEscape`: `true` (default) hides the search bar when Esc is pressed while it is visible; Esc always dismisses the mode wheel first when it is open.
 - `executeShortcut`: executes the current item; default `Enter`.
 - `selectPreviousShortcut` / `selectNextShortcut`: move the selection in dictionary candidates and the mode wheel; defaults `Up` and `Down`.
 - `modePreferences`: ordered list of built-in modes; `enabled: false` removes a mode from mode switching and the mode picker while keeping its list position. At least one mode must stay enabled; an all-disabled list is normalized back to the defaults on load.

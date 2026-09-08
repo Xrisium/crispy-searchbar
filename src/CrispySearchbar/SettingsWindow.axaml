@@ -432,6 +432,11 @@
                        FontSize="12"
                        Foreground="{DynamicResource DangerBrush}"
                        TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Warning}"
+                       IsVisible="{Binding HasWarning}"
+                       FontSize="12"
+                       Foreground="{DynamicResource WarningBrush}"
+                       TextWrapping="Wrap" />
           </StackPanel>
           <Grid Grid.Column="1"
                 ColumnDefinitions="*,Auto"
@@ -439,9 +444,17 @@
                 VerticalAlignment="Center">
             <Button Grid.Column="0"
                     Classes="shortcutCaptureButton"
-                    Content="{Binding CaptureLabel}"
                     HorizontalAlignment="Stretch"
-                    Click="OnShortcutCaptureClicked" />
+                    Click="OnShortcutCaptureClicked">
+              <Grid>
+                <TextBlock Text="{Binding CaptureLabel}"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           IsVisible="{Binding !IsEmpty}" />
+                <TextBlock Text="{Binding CaptureLabel}"
+                           Foreground="{DynamicResource TextPlaceholderBrush}"
+                           IsVisible="{Binding IsEmpty}" />
+              </Grid>
+            </Button>
             <Button Grid.Column="1"
                     Classes="secondary"
                     Content="{Binding ResetText}"
@@ -595,6 +608,17 @@
       </Border>
     </DataTemplate>
 
+    <DataTemplate DataType="{x:Type vm:ShortcutResetAllViewModel}">
+      <Border Margin="0,6,0,0"
+              BorderBrush="{DynamicResource DividerBrush}"
+              BorderThickness="0,1,0,0"
+              Padding="0,12,0,0">
+        <Button Classes="secondary"
+                Content="{Binding Text}"
+                HorizontalAlignment="Left"
+                Click="OnResetAllShortcutsClicked" />
+      </Border>
+    </DataTemplate>
     <DataTemplate DataType="{x:Type vm:AboutParagraphViewModel}">
       <Border Padding="0,7">
         <TextBlock Text="{Binding Text}"
@@ -642,6 +666,15 @@
   </Window.DataTemplates>
 
   <Grid>
+    <Border x:Name="ShortcutCaptureFocusHost"
+            Width="1"
+            Height="1"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Background="Transparent"
+            Opacity="0"
+            IsHitTestVisible="False"
+            Focusable="True" />
   <Border x:Name="SettingsSurface"
           Margin="10"
           Background="{DynamicResource SearchSurfaceBrush}"

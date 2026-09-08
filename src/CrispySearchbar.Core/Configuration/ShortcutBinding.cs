@@ -45,6 +45,8 @@ public sealed record ShortcutBinding(ShortcutModifiers Modifiers, string Key)
         {
             "Up" => "↑",
             "Down" => "↓",
+            "Left" => "←",
+            "Right" => "→",
             _ => key,
         };
 }

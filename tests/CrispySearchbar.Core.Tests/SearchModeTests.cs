@@ -11,7 +11,10 @@ public class SearchModeTests
     public void AskAi_UsesLocalizedAskAiTexts()
     {
         var strings = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese);
-        var formatted = ShortcutTextFormatter.Format(strings.AskAiMode, ShortcutCatalog.Default);
+        var formatted = ShortcutTextFormatter.Format(
+            strings.AskAiMode,
+            ShortcutCatalog.Default,
+            strings.SettingsTexts.ShortcutUnsetText);
         var mode = SearchMode.AskAi(
             formatted,
             "https://chat.deepseek.com/?q={0}");

@@ -1,8 +1,21 @@
 namespace CrispySearchbar.Core.Configuration;
 
+/// <summary>快捷键问题的严重级别：Error 阻止保存；Warning 仅提示。</summary>
+public enum ShortcutSeverity
+{
+    Error,
+    Warning,
+}
+
+/// <summary>一次快捷键校验结果，由设置界面映射为红字或黄字。</summary>
+public sealed record ShortcutIssue(
+    string PropertyName,
+    ShortcutSeverity Severity,
+    string ErrorKey);
+
 /// <summary>
-/// 快捷键合法性规则：阻止会挡住输入的键位、防止重复，并保证模式切换键保留长按语义。
-/// 返回的 ErrorKey 由设置界面按语言映射文案。
+/// 快捷键合法性规则：空键位合法；应用内重复/保留组合为 Error；
+/// 可打印键缺少修饰键为 Warning。全局外部占用由界面层异步探测并按 Warning 展示。
 /// </summary>
 public static class ShortcutValidation
 {
@@ -16,23 +29,34 @@ public static class ShortcutValidation
 
     public const string ReservedForTextEditingError = "ShortcutReservedForTextEditing";
 
-    public static string? ValidateCandidate(ShortcutAction action, string? raw)
+    public static ShortcutIssue? ValidateCandidate(ShortcutAction action, string? raw)
     {
+        if (ShortcutParser.IsEmpty(raw))
+        {
+            return null;
+        }
+
         if (!ShortcutParser.TryParse(raw, out var binding))
         {
-            return InvalidError;
+            return Issue(action, ShortcutSeverity.Error, InvalidError);
         }
 
         if (action == ShortcutAction.CycleMode)
         {
             if (binding.Modifiers != ShortcutModifiers.None)
             {
-                return ModeSwitchRequiresSingleKeyError;
+                return Issue(
+                    action,
+                    ShortcutSeverity.Error,
+                    ModeSwitchRequiresSingleKeyError);
             }
 
             if (ShortcutParser.IsTypingKey(binding.Key))
             {
-                return PrintableRequiresModifierError;
+                return Issue(
+                    action,
+                    ShortcutSeverity.Warning,
+                    PrintableRequiresModifierError);
             }
 
             return null;
@@ -41,49 +65,99 @@ public static class ShortcutValidation
         if (ShortcutParser.IsTypingKey(binding.Key)
             && !HasNonShiftModifier(binding))
         {
-            return PrintableRequiresModifierError;
+            return Issue(
+                action,
+                ShortcutSeverity.Warning,
+                PrintableRequiresModifierError);
         }
 
         if (action != ShortcutAction.ToggleVisibility
             && IsReservedTextEditingBinding(binding))
         {
-            return ReservedForTextEditingError;
+            return Issue(
+                action,
+                ShortcutSeverity.Error,
+                ReservedForTextEditingError);
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// 对设置面板当前各行值做整体校验（调用方传入 UI 顺序与当前编辑值，而非磁盘配置）。
+    /// 重复键按出现顺序把后一项标为 Error。
+    /// </summary>
+    public static IReadOnlyList<ShortcutIssue> ValidatePanel(
+        IEnumerable<(string PropertyName, string Raw)> values)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+
+        var byProperty = values.ToDictionary(
+            pair => pair.PropertyName,
+            pair => pair.Raw,
+            StringComparer.Ordinal);
+        var issues = new List<ShortcutIssue>();
+        var seenBindings = new Dictionary<ShortcutBinding, ShortcutAction>();
+        foreach (var action in Enum.GetValues<ShortcutAction>())
+        {
+            var propertyName = ShortcutDefaults.GetPropertyName(action);
+            if (!byProperty.TryGetValue(propertyName, out var raw)
+                || ShortcutParser.IsEmpty(raw))
+            {
+                continue;
+            }
+
+            if (!ShortcutParser.TryParse(raw, out var binding))
+            {
+                issues.Add(new ShortcutIssue(
+                    propertyName,
+                    ShortcutSeverity.Error,
+                    InvalidError));
+                continue;
+            }
+
+            if (seenBindings.ContainsKey(binding))
+            {
+                issues.Add(new ShortcutIssue(
+                    propertyName,
+                    ShortcutSeverity.Error,
+                    DuplicateError));
+                continue;
+            }
+
+            seenBindings[binding] = action;
+            if (ValidateCandidate(action, raw) is { } issue)
+            {
+                issues.Add(issue);
+            }
+        }
+
+        return issues;
     }
 
     public static IReadOnlyList<SettingValidationError> Validate(AppSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
 
-        var errors = new List<SettingValidationError>();
-        var seenBindings = new Dictionary<ShortcutBinding, ShortcutAction>();
-        foreach (var action in Enum.GetValues<ShortcutAction>())
-        {
-            var propertyName = ShortcutDefaults.GetPropertyName(action);
-            var raw = ShortcutDefaults.GetValue(settings, action);
-            if (!ShortcutParser.TryParse(raw, out var binding))
-            {
-                errors.Add(new SettingValidationError(propertyName, InvalidError));
-                continue;
-            }
-
-            if (seenBindings.TryGetValue(binding, out _))
-            {
-                errors.Add(new SettingValidationError(propertyName, DuplicateError));
-                continue;
-            }
-
-            seenBindings[binding] = action;
-            if (ValidateCandidate(action, raw) is { } errorKey)
-            {
-                errors.Add(new SettingValidationError(propertyName, errorKey));
-            }
-        }
-
-        return errors;
+        return ValidatePanel(Enum.GetValues<ShortcutAction>()
+            .Select(action => (
+                ShortcutDefaults.GetPropertyName(action),
+                ShortcutDefaults.GetValue(settings, action))))
+            .Where(issue => issue.Severity == ShortcutSeverity.Error)
+            .Select(issue => new SettingValidationError(
+                issue.PropertyName,
+                issue.ErrorKey))
+            .ToArray();
     }
+
+    private static ShortcutIssue Issue(
+        ShortcutAction action,
+        ShortcutSeverity severity,
+        string errorKey)
+        => new(
+            ShortcutDefaults.GetPropertyName(action),
+            severity,
+            errorKey);
 
     private static bool HasNonShiftModifier(ShortcutBinding binding)
         => (binding.Modifiers

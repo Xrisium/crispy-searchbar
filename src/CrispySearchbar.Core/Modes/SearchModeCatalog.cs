@@ -33,16 +33,16 @@ public static class SearchModeCatalog
         var modesByKey = new Dictionary<string, SearchMode>(StringComparer.Ordinal)
         {
             [ModePreferenceDefaults.WebSearch] = SearchMode.WebSearch(
-                ShortcutTextFormatter.Format(strings.WebSearchMode, shortcuts),
+                ShortcutTextFormatter.Format(strings.WebSearchMode, shortcuts, strings.SettingsTexts.ShortcutUnsetText),
                 SearchEngineCatalog.GetUrlTemplate(settings.SearchEngine)),
             [ModePreferenceDefaults.Wikipedia] = SearchMode.Wikipedia(
-                ShortcutTextFormatter.Format(strings.WikipediaMode, shortcuts),
+                ShortcutTextFormatter.Format(strings.WikipediaMode, shortcuts, strings.SettingsTexts.ShortcutUnsetText),
                 GetWikipediaUrlTemplate(strings)),
             [ModePreferenceDefaults.AskAi] = SearchMode.AskAi(
-                ShortcutTextFormatter.Format(strings.AskAiMode, shortcuts),
+                ShortcutTextFormatter.Format(strings.AskAiMode, shortcuts, strings.SettingsTexts.ShortcutUnsetText),
                 settings.AskAiUrlTemplate),
             [ModePreferenceDefaults.Dictionary] = SearchMode.Dictionary(
-                ShortcutTextFormatter.Format(strings.DictionaryMode, shortcuts)),
+                ShortcutTextFormatter.Format(strings.DictionaryMode, shortcuts, strings.SettingsTexts.ShortcutUnsetText)),
         };
 
         var preferences = ModePreferenceNormalizer.Normalize(settings.ModePreferences);

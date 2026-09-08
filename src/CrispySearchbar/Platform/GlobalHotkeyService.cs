@@ -16,11 +16,8 @@ public interface IGlobalHotkeyService : IDisposable
     /// <summary>启动消息线程并注册；失败返回 false（例如组合键已被占用）。</summary>
     bool TryStart(ShortcutBinding binding);
 
-    /// <summary>
-    /// 运行期切换到新键位；失败时尽量保持旧键位并返回 false。
-    /// 调用方应把“写盘前探测”与“写盘后切换”分开，失败时回滚配置。
-    /// </summary>
-    bool TryApply(ShortcutBinding binding);
+    /// <summary>运行期切换/注销新键位；失败时尽量保持旧键位并返回 false。</summary>
+    bool TryApply(ShortcutBinding? binding);
 }
 
 /// <summary>创建当前平台可用的全局快捷键服务（非 Windows 时为 no-op）。</summary>
@@ -75,7 +72,7 @@ public sealed class WindowsGlobalHotkeyService : IGlobalHotkeyService
     private bool _isRegistered;
     private bool _operationSucceeded;
     private ShortcutBinding? _currentBinding;
-    private ShortcutBinding _requestedBinding = null!;
+    private ShortcutBinding? _requestedBinding;
 
     public event Action? Pressed;
 
@@ -135,7 +132,7 @@ public sealed class WindowsGlobalHotkeyService : IGlobalHotkeyService
         }
     }
 
-    public bool TryApply(ShortcutBinding binding)
+    public bool TryApply(ShortcutBinding? binding)
     {
         if (!OperatingSystem.IsWindows())
         {
@@ -155,7 +152,7 @@ public sealed class WindowsGlobalHotkeyService : IGlobalHotkeyService
 
         if (needsStart)
         {
-            return TryStart(binding);
+            return binding is null || TryStart(binding);
         }
 
         IntPtr windowHandle;
@@ -166,7 +163,8 @@ public sealed class WindowsGlobalHotkeyService : IGlobalHotkeyService
                 return false;
             }
 
-            if (_isRegistered
+            if (binding is not null
+                && _isRegistered
                 && _currentBinding is { } current
                 && current == binding)
             {
@@ -312,23 +310,25 @@ public sealed class WindowsGlobalHotkeyService : IGlobalHotkeyService
         }
     }
 
-    private ShortcutBinding NormalizeRequestedBinding()
+    private ShortcutBinding? NormalizeRequestedBinding()
     {
         var requested = _requestedBinding;
-        return ShortcutParser.TryParse(requested.ToStorageString(), out var normalized)
-            ? normalized
-            : requested;
+        return requested is null
+            ? null
+            : ShortcutParser.TryParse(requested.ToStorageString(), out var normalized)
+                ? normalized
+                : requested;
     }
 
     private bool RegisterCurrentOnWindow(IntPtr windowHandle)
     {
-        ShortcutBinding binding;
+        ShortcutBinding? binding;
         lock (_gate)
         {
             binding = _requestedBinding;
         }
 
-        return RegisterSingle(windowHandle, binding);
+        return binding is null || RegisterSingle(windowHandle, binding);
     }
 
     private bool RegisterSingle(IntPtr windowHandle, ShortcutBinding binding)
@@ -347,7 +347,7 @@ public sealed class WindowsGlobalHotkeyService : IGlobalHotkeyService
 
     private void ApplyRequestedBinding()
     {
-        ShortcutBinding requested;
+        ShortcutBinding? requested;
         lock (_gate)
         {
             requested = _requestedBinding;
@@ -358,7 +358,22 @@ public sealed class WindowsGlobalHotkeyService : IGlobalHotkeyService
         if (handle != IntPtr.Zero)
         {
             var previous = _currentBinding;
-            if (previous is not null && previous == requested && _isRegistered)
+            if (requested is null)
+            {
+                if (previous is not null && _isRegistered)
+                {
+                    UnregisterHotKey(handle, HotkeyId);
+                }
+
+                lock (_gate)
+                {
+                    _isRegistered = false;
+                    _currentBinding = null;
+                }
+
+                succeeded = true;
+            }
+            else if (previous is not null && previous == requested && _isRegistered)
             {
                 succeeded = true;
             }
@@ -455,8 +470,29 @@ public sealed class WindowsGlobalHotkeyService : IGlobalHotkeyService
             return char.ToUpperInvariant(key[0]);
         }
 
+        if (key.Length is >= 2 and <= 3
+            && key[0] == 'F'
+            && int.TryParse(key.AsSpan(1), out var functionNumber)
+            && functionNumber is >= 1 and <= 24)
+        {
+            return (uint)(0x70 + functionNumber - 1);
+        }
+
         return key switch
         {
+            "-" => 0xBD,
+            "=" => 0xBB,
+            "[" => 0xDB,
+            "]" => 0xDD,
+            "\\" => 0xDC,
+            ";" => 0xBA,
+            "'" => 0xDE,
+            "," => 0xBC,
+            "." => 0xBE,
+            "/" => 0xBF,
+            "`" => 0xC0,
+            "XButton1" => 0x05,
+            "XButton2" => 0x06,
             "Space" => 0x20,
             "Tab" => 0x09,
             "Esc" => 0x1B,
@@ -613,7 +649,7 @@ internal sealed class NoopGlobalHotkeyService : IGlobalHotkeyService
         return true;
     }
 
-    public bool TryApply(ShortcutBinding binding)
+    public bool TryApply(ShortcutBinding? binding)
     {
         _binding = binding;
         return true;

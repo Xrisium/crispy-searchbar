@@ -11,6 +11,11 @@ public static class ShortcutNormalizer
         foreach (var action in Enum.GetValues<ShortcutAction>())
         {
             var current = ShortcutDefaults.GetValue(settings, action);
+            if (ShortcutParser.IsEmpty(current))
+            {
+                continue;
+            }
+
             if (!ShortcutParser.TryParse(current, out _))
             {
                 ShortcutDefaults.SetValue(

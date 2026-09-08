@@ -8,7 +8,7 @@ public static class ShortcutDefaults
         {
             [ShortcutAction.ToggleVisibility] = "ToggleVisibilityShortcut",
             [ShortcutAction.CycleMode] = "CycleModeShortcut",
-            [ShortcutAction.Hide] = "HideShortcut",
+
             [ShortcutAction.Execute] = "ExecuteShortcut",
             [ShortcutAction.SelectPrevious] = "SelectPreviousShortcut",
             [ShortcutAction.SelectNext] = "SelectNextShortcut",
@@ -19,7 +19,7 @@ public static class ShortcutDefaults
         {
             [ShortcutAction.ToggleVisibility] = "Alt+Space",
             [ShortcutAction.CycleMode] = "Tab",
-            [ShortcutAction.Hide] = "Esc",
+
             [ShortcutAction.Execute] = "Enter",
             [ShortcutAction.SelectPrevious] = "Up",
             [ShortcutAction.SelectNext] = "Down",
@@ -49,7 +49,7 @@ public static class ShortcutDefaults
         {
             ShortcutAction.ToggleVisibility => settings.ToggleVisibilityShortcut,
             ShortcutAction.CycleMode => settings.CycleModeShortcut,
-            ShortcutAction.Hide => settings.HideShortcut,
+
             ShortcutAction.Execute => settings.ExecuteShortcut,
             ShortcutAction.SelectPrevious => settings.SelectPreviousShortcut,
             ShortcutAction.SelectNext => settings.SelectNextShortcut,
@@ -66,9 +66,7 @@ public static class ShortcutDefaults
             case ShortcutAction.CycleMode:
                 settings.CycleModeShortcut = value;
                 break;
-            case ShortcutAction.Hide:
-                settings.HideShortcut = value;
-                break;
+
             case ShortcutAction.Execute:
                 settings.ExecuteShortcut = value;
                 break;

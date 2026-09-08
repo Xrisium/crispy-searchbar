@@ -26,6 +26,7 @@ public class AppSettingsStoreTests
             Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
             Assert.True(settings.ClearQueryOnHide);
+            Assert.True(settings.HideOnEscape);
             Assert.Equal(
                 ModePreferenceDefaults.BuiltInOrder,
                 settings.ModePreferences.Select(preference => preference.Key));
@@ -62,7 +63,7 @@ public class AppSettingsStoreTests
             Assert.Contains("ecdictFilePath", names);
             Assert.Contains("toggleVisibilityShortcut", names);
             Assert.Contains("cycleModeShortcut", names);
-            Assert.Contains("hideShortcut", names);
+            Assert.Contains("hideOnEscape", names);
             Assert.Contains("executeShortcut", names);
             Assert.Contains("selectPreviousShortcut", names);
             Assert.Contains("selectNextShortcut", names);
@@ -86,6 +87,7 @@ public class AppSettingsStoreTests
                 SearchEngine = SearchEngineKind.Google,
                 AskAiUrlTemplate = "https://chat.deepseek.com/?q={0}",
                 ClearQueryOnHide = false,
+                HideOnEscape = false,
                 ModePreferences =
                 [
                     new ModePreference(ModePreferenceDefaults.WebSearch, enabled: false),
@@ -105,6 +107,7 @@ public class AppSettingsStoreTests
             Assert.Equal(SearchEngineKind.Google, loaded.SearchEngine);
             Assert.Equal(expected.AskAiUrlTemplate, loaded.AskAiUrlTemplate);
             Assert.False(loaded.ClearQueryOnHide);
+            Assert.False(loaded.HideOnEscape);
             Assert.Equal(
                 expected.ModePreferences.Select(preference => new
                 {
@@ -163,7 +166,6 @@ public class AppSettingsStoreTests
                 """
                 {
                   "toggleVisibilityShortcut": "Not A Hotkey",
-                  "hideShortcut": "Ctrl+Q",
                   "executeShortcut": "Ctrl+Q"
                 }
                 """);
@@ -171,7 +173,7 @@ public class AppSettingsStoreTests
             var settings = AppSettingsStore.LoadOrDefault(dir);
 
             Assert.Equal("Alt+Space", settings.ToggleVisibilityShortcut);
-            Assert.Equal("Ctrl+Q", settings.HideShortcut);
+            Assert.True(settings.HideOnEscape);
             var json = File.ReadAllText(Path.Combine(dir, AppSettingsStore.FileName));
             using var document = JsonDocument.Parse(json);
             Assert.Equal(
@@ -184,6 +186,40 @@ public class AppSettingsStoreTests
         }
     }
 
+    [Fact]
+    public void LoadOrDefault_PreservesEmptyShortcutsAndIgnoresLegacyHideShortcut()
+    {
+        var dir = CreateTempDirectory();
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllText(
+                Path.Combine(dir, AppSettingsStore.FileName),
+                """
+                {
+                  "toggleVisibilityShortcut": "",
+                  "hideShortcut": "Ctrl+Q",
+                  "hideOnEscape": false,
+                  "executeShortcut": "Ctrl+J"
+                }
+                """);
+
+            var settings = AppSettingsStore.LoadOrDefault(dir);
+
+            Assert.Equal(string.Empty, settings.ToggleVisibilityShortcut);
+            Assert.Equal("Ctrl+J", settings.ExecuteShortcut);
+            Assert.False(settings.HideOnEscape);
+            var json = File.ReadAllText(Path.Combine(dir, AppSettingsStore.FileName));
+            using var document = JsonDocument.Parse(json);
+            Assert.Equal(
+                string.Empty,
+                document.RootElement.GetProperty("toggleVisibilityShortcut").GetString());
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
     [Fact]
     public void LoadOrDefault_NormalizesAllDisabledModesAndRewritesFile()
     {

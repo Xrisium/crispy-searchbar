@@ -34,11 +34,13 @@ public sealed partial class SettingsWindow : Window
 
     /// <summary>XAML/运行时创建入口；App 通常使用带占用探测委托的构造函数。</summary>
     public SettingsWindow()
-        : this(null)
+        : this(null, null)
     {
     }
 
-    public SettingsWindow(Func<string, bool>? globalShortcutProbe)
+    public SettingsWindow(
+        Func<string, bool>? globalShortcutProbe,
+        Func<string, bool>? isCurrentGlobalShortcut)
     {
         InitializeComponent();
 
@@ -56,7 +58,8 @@ public sealed partial class SettingsWindow : Window
             settings,
             strings,
             AppSettingsStore.GetSettingsFilePath(),
-            globalShortcutProbe);
+            globalShortcutProbe,
+            isCurrentGlobalShortcut);
         viewModel.Saved += OnViewModelSaved;
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
         viewModel.ValidationFailed += OnValidationFailed;
@@ -71,9 +74,6 @@ public sealed partial class SettingsWindow : Window
     public event EventHandler<AppSettings>? SettingsSaved;
 
     private SettingsWindowViewModel ViewModel => (SettingsWindowViewModel)DataContext!;
-
-    /// <summary>App 实际重注册失败并回滚后显示原因。</summary>
-    public void ShowApplyFailure() => ViewModel.ShowApplyFailure();
 
     /// <summary>App 应用配置后用它把窗口刷新成磁盘上的新文件与新语言。</summary>
     public void ReloadFromConfiguration(AppSettings settings, AppStrings strings)
@@ -346,14 +346,21 @@ public sealed partial class SettingsWindow : Window
             return;
         }
 
-        var binding = ShortcutInputMapper.TryCreate(e.Key, e.KeyModifiers, out var candidate)
-            ? candidate
-            : null;
-        if (binding is not null)
+        if (e.Key == Key.Escape && e.KeyModifiers == KeyModifiers.None)
         {
-            if (field.TrySetCaptured(binding.ToStorageString()))
+            field.ClearToUnset();
+            CancelShortcutRecording();
+            e.Handled = true;
+            ViewModel.RevalidateShortcuts();
+            return;
+        }
+
+        if (ShortcutInputMapper.TryCreate(e.Key, e.KeyModifiers, out var candidate))
+        {
+            if (field.TrySetCaptured(candidate.ToStorageString()))
             {
                 CancelShortcutRecording();
+                ViewModel.RevalidateShortcuts();
             }
         }
 
@@ -379,6 +386,7 @@ public sealed partial class SettingsWindow : Window
             field.BeginRecording();
             _recordingShortcutField = field;
             _recordingShortcutButton = button;
+            ShortcutCaptureFocusHost.Focus();
         }
     }
 
@@ -392,12 +400,39 @@ public sealed partial class SettingsWindow : Window
             }
 
             field.ResetToDefault();
+            ViewModel.RevalidateShortcuts();
         }
     }
 
+    private void OnResetAllShortcutsClicked(object? sender, RoutedEventArgs e)
+        => ViewModel.ResetAllShortcuts();
+
     private void OnWindowPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (_recordingShortcutButton is not { } button || _recordingShortcutField is null)
+        var field = _recordingShortcutField;
+        if (field is null)
+        {
+            return;
+        }
+
+        var properties = e.GetCurrentPoint(this).Properties;
+        if (properties.IsXButton1Pressed || properties.IsXButton2Pressed)
+        {
+            if (ShortcutInputMapper.TryCreatePointer(
+                    e.KeyModifiers,
+                    properties,
+                    out var candidate)
+                && field.TrySetCaptured(candidate.ToStorageString()))
+            {
+                CancelShortcutRecording();
+                ViewModel.RevalidateShortcuts();
+            }
+
+            e.Handled = true;
+            return;
+        }
+
+        if (_recordingShortcutButton is not { } button)
         {
             return;
         }
@@ -408,7 +443,7 @@ public sealed partial class SettingsWindow : Window
             || point.X > button.Bounds.Width
             || point.Y > button.Bounds.Height)
         {
-            _recordingShortcutField.CancelRecording();
+            field.CancelRecording();
             CancelShortcutRecording();
         }
     }

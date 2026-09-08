@@ -11,7 +11,7 @@
 - 常驻界面是单个圆角胶囊搜索框；词典候选与释义详情按需出现在下方的浮层中。
 - `Alt+Space` 显示/隐藏搜索框；`Esc` 或点击其它窗口会隐藏它；应用常驻系统托盘，菜单包含“显示 / 隐藏搜索框”“设置”和“退出”。
 - 快速按 Tab 按“设置 → 模式”中配置的顺序循环切换模式（默认：网页搜索 → 维基百科 → 问问大肥鱼 → 词典）；长按 Tab 会打开纵向模式选择器，松开 Tab 即完成切换（鼠标滚轮或 ↑/↓ 可移动高亮）。
-- 以上六项快捷键只是默认值，可在“设置 → 快捷键”中重绑。界面里的按键提示（水印与词典提示）会跟随当前键位显示；保存前会先检查全局热键是否被其它程序占用。
+- 以上五项键位只是默认值，可在“设置 → 快捷键”中重绑（每行录制时按 Esc 可清空）。界面里的按键提示会跟随当前键位显示；与其它应用的全局快捷键冲突仅显示黄色提醒，不会阻止保存。
 - 网页搜索、维基百科与问问大肥鱼使用网址模板在默认浏览器中打开结果（查询词会被 URL 编码并替换到 `{0}`）。维基百科模式的站点跟随当前翻译文件中的 `wikipediaLanguage` 元数据（例如 `zh-Hans` 使用 zh.wikipedia.org、`en` 使用 en.wikipedia.org）。
 - 词典模式使用 CC-CEDICT（汉 → 英）与 ECDICT（英 → 汉）进行离线查询：
   - 输入时实时提供候选词；
@@ -68,7 +68,7 @@ dotnet test
   "askAiUrlTemplate": "https://chat.deepseek.com/?q={0}",
   "toggleVisibilityShortcut": "Alt+Space",
   "cycleModeShortcut": "Tab",
-  "hideShortcut": "Esc",
+  "hideOnEscape": true,
   "executeShortcut": "Enter",
   "selectPreviousShortcut": "Up",
   "selectNextShortcut": "Down",
@@ -90,7 +90,7 @@ dotnet test
 - `askAiUrlTemplate`：必须包含 `{0}`，该占位符会被 URL 编码后的查询词替换。
 - `toggleVisibilityShortcut`：全局呼出/隐藏热键，采用 `Alt+Space` 这种文本格式；默认 `Alt+Space`。
 - `cycleModeShortcut`：单个按键，轻按切换模式、长按打开模式轮盘；默认 `Tab`。
-- `hideShortcut`：隐藏搜索框（模式轮盘打开时先取消轮盘）；默认 `Esc`。
+- `hideOnEscape`：`true`（默认）在搜索框显示时按 Esc 隐藏；模式轮盘打开时 Esc 始终先取消轮盘。
 - `executeShortcut`：执行当前项；默认 `Enter`。
 - `selectPreviousShortcut` / `selectNextShortcut`：在词典候选与模式轮盘中移动选择；默认 `Up` 与 `Down`。
 - `modePreferences`：内置模式的有序列表；`enabled: false` 会将该模式从模式切换与模式选择器中移除，但仍保留其列表位置。至少需要启用一个模式；全禁用列表会在加载时归一化为默认值。

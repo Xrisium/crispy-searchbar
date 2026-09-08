@@ -4,8 +4,8 @@ using CrispySearchbar.Core.Configuration;
 namespace CrispySearchbar.Input;
 
 /// <summary>
-/// 把 Avalonia 按键事件转换为与平台无关的 <see cref="ShortcutBinding"/>。
-/// 捕获记录与主窗口按键分发共用同一映射，保证同一键显示/触发一致。
+/// 把 Avalonia 键盘/鼠标侧键事件转换为与平台无关的 <see cref="ShortcutBinding"/>。
+/// 捕获记录与主窗口按键/侧键分发共用同一映射，保证同一键显示/触发一致。
 /// </summary>
 public static class ShortcutInputMapper
 {
@@ -15,6 +15,26 @@ public static class ShortcutInputMapper
         out ShortcutBinding binding)
     {
         var token = ToKeyToken(key);
+        if (token is null)
+        {
+            binding = null!;
+            return false;
+        }
+
+        binding = new ShortcutBinding(ToModifiers(modifiers), token);
+        return true;
+    }
+
+    public static bool TryCreatePointer(
+        KeyModifiers modifiers,
+        PointerPointProperties properties,
+        out ShortcutBinding binding)
+    {
+        var token = properties.IsXButton1Pressed
+            ? "XButton1"
+            : properties.IsXButton2Pressed
+                ? "XButton2"
+                : null;
         if (token is null)
         {
             binding = null!;
@@ -43,7 +63,7 @@ public static class ShortcutInputMapper
             result |= ShortcutModifiers.Shift;
         }
 
-        // Avalonia 的 Meta/Command 在 Windows 上对应 Win 键；跨平台键位留给未来实现细化。
+        // Avalonia 的 Meta 在 Windows 上对应 Win 键；跨平台键位留给未来实现细化。
         if (modifiers.HasFlag(KeyModifiers.Meta))
         {
             result |= ShortcutModifiers.Win;
@@ -86,6 +106,17 @@ public static class ShortcutInputMapper
             Key.Insert => "Insert",
             Key.Delete => "Delete",
             Key.Back => "Backspace",
+            Key.OemMinus => "-",
+            Key.OemPlus => "=",
+            Key.OemOpenBrackets => "[",
+            Key.OemCloseBrackets => "]",
+            Key.OemPipe => "\\",
+            Key.OemSemicolon => ";",
+            Key.OemQuotes => "'",
+            Key.OemComma => ",",
+            Key.OemPeriod => ".",
+            Key.OemQuestion => "/",
+            Key.OemTilde => "`",
             _ => null,
         };
     }

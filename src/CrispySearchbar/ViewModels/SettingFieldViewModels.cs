@@ -10,6 +10,7 @@ namespace CrispySearchbar.ViewModels;
 public abstract class SettingFieldViewModel : INotifyPropertyChanged
 {
     private string? _error;
+    private string? _warning;
 
     protected SettingFieldViewModel(SettingDefinition definition, AppSettingsTexts texts)
     {
@@ -47,14 +48,37 @@ public abstract class SettingFieldViewModel : INotifyPropertyChanged
 
     public bool HasError => !string.IsNullOrWhiteSpace(Error);
 
+    public string? Warning
+    {
+        get => _warning;
+        private set
+        {
+            if (_warning == value)
+            {
+                return;
+            }
+
+            _warning = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasWarning));
+        }
+    }
+
+    public bool HasWarning => !string.IsNullOrWhiteSpace(Warning);
+
     public abstract void LoadFrom(AppSettings settings);
 
     public abstract void ApplyTo(AppSettings settings);
 
     protected void SetError(string? error) => Error = error;
 
-    /// <summary>供 SettingsWindowViewModel 在校验后把错误落到具体编辑行。</summary>
+    protected void SetWarning(string? warning) => Warning = warning;
+
+    /// <summary>供 SettingsWindowViewModel 在校验后把硬错误落到具体编辑行。</summary>
     internal void SetErrorFromValidation(string? message) => SetError(message);
+
+    /// <summary>供 SettingsWindowViewModel 在校验后把提醒落到具体编辑行。</summary>
+    internal void SetWarningFromValidation(string? message) => SetWarning(message);
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -513,16 +537,22 @@ public sealed class ShortcutSettingFieldViewModel : SettingFieldViewModel
             _value = value ?? string.Empty;
             OnPropertyChanged();
             OnPropertyChanged(nameof(DisplayValue));
+            OnPropertyChanged(nameof(IsEmpty));
             OnPropertyChanged(nameof(IsDefault));
             OnPropertyChanged(nameof(CaptureLabel));
             SetError(null);
+            SetWarning(null);
         }
     }
 
     public string DisplayValue
-        => ShortcutParser.TryParse(Value, out var binding)
-            ? binding.ToDisplayString()
-            : Value;
+        => ShortcutParser.IsEmpty(Value)
+            ? Texts.ShortcutUnsetText
+            : ShortcutParser.TryParse(Value, out var binding)
+                ? binding.ToDisplayString()
+                : Value;
+
+    public bool IsEmpty => ShortcutParser.IsEmpty(Value);
 
     public bool IsDefault => string.Equals(
         Value,
@@ -550,6 +580,13 @@ public sealed class ShortcutSettingFieldViewModel : SettingFieldViewModel
 
     public string ResetText => Texts.ShortcutResetText;
 
+    /// <summary>Esc 录制时调用：把键位设为未设定（不写盘）。</summary>
+    public void ClearToUnset()
+    {
+        IsRecording = false;
+        Value = string.Empty;
+    }
+
     public void BeginRecording()
     {
         SetError(null);
@@ -564,14 +601,19 @@ public sealed class ShortcutSettingFieldViewModel : SettingFieldViewModel
 
     public bool TrySetCaptured(string canonical)
     {
-        var errorKey = ShortcutValidation.ValidateCandidate(Action, canonical);
-        if (errorKey is not null)
+        var issue = ShortcutValidation.ValidateCandidate(Action, canonical);
+        if (issue is { Severity: ShortcutSeverity.Error })
         {
-            SetError(Texts.GetValidationMessage(errorKey));
+            SetError(Texts.GetValidationMessage(issue.ErrorKey));
             return false;
         }
 
         Value = canonical;
+        if (issue is { Severity: ShortcutSeverity.Warning })
+        {
+            SetWarning(Texts.GetValidationMessage(issue.ErrorKey));
+        }
+
         IsRecording = false;
         return true;
     }
@@ -587,6 +629,17 @@ public sealed class ShortcutSettingFieldViewModel : SettingFieldViewModel
 
     public override void ApplyTo(AppSettings settings)
         => Definition.SetValue(settings, Value);
+}
+
+/// <summary>快捷键分类底部的“重置全部”静态动作行，只重置当前面板不写盘。</summary>
+public sealed class ShortcutResetAllViewModel
+{
+    public ShortcutResetAllViewModel(AppSettingsTexts texts)
+    {
+        Text = texts.ShortcutResetAllText;
+    }
+
+    public string Text { get; }
 }
 
 public static class SettingFieldViewModelFactory

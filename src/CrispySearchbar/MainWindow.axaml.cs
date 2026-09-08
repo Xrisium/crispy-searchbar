@@ -17,6 +17,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _modeKeyHoldTimer;
     private ShortcutCatalog _shortcuts = ShortcutCatalog.Default;
     private bool _allowClose;
+    private bool _hideOnEscape = true;
     private bool _modeKeyDown;
     private bool _modeWheelOpened;
     private bool _suppressModeKeyRelease;
@@ -35,6 +36,7 @@ public partial class MainWindow : Window
         // 键盘事件用隧道方式拦截，保证模式切换键不会先移动焦点。
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         AddHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel);
+        AddHandler(PointerPressedEvent, OnWindowPointerPressed, RoutingStrategies.Tunnel);
         Closing += OnClosing;
         Activated += OnActivated;
         Deactivated += OnDeactivated;
@@ -44,17 +46,17 @@ public partial class MainWindow : Window
 
     public void AllowClose() => _allowClose = true;
 
-    /// <summary>设置保存后由 App 下发最新键位；未完成的长按状态一并取消。</summary>
-    public void ApplyShortcuts(ShortcutCatalog shortcuts)
+    /// <summary>设置保存后由 App 下发最新键位与 Esc 行为；未完成的长按状态一并取消。</summary>
+    public void ApplyConfiguration(ShortcutCatalog shortcuts, bool hideOnEscape)
     {
         ArgumentNullException.ThrowIfNull(shortcuts);
 
-        if (ReferenceEquals(_shortcuts, shortcuts))
+        if (!ReferenceEquals(_shortcuts, shortcuts))
         {
-            return;
+            _shortcuts = shortcuts;
         }
 
-        _shortcuts = shortcuts;
+        _hideOnEscape = hideOnEscape;
         CancelModeKeyHold();
     }
 
@@ -148,6 +150,24 @@ public partial class MainWindow : Window
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
+        if (e.Key == Key.Escape && e.KeyModifiers == KeyModifiers.None)
+        {
+            if (ViewModel.IsModeWheelOpen)
+            {
+                CancelModeWheelAndSuppressModeKeyRelease();
+                e.Handled = true;
+                return;
+            }
+
+            if (_hideOnEscape)
+            {
+                HideToTray();
+                e.Handled = true;
+            }
+
+            return;
+        }
+
         if (IsModeSwitchKey(e.Key, e.KeyModifiers))
         {
             OnModeSwitchKeyDown(e);
@@ -158,7 +178,6 @@ public partial class MainWindow : Window
             && _shortcuts.FindAction(pressed) is { } action)
         {
             HandleShortcutAction(action, e);
-            return;
         }
     }
 
@@ -209,7 +228,7 @@ public partial class MainWindow : Window
         _modeKeyHoldTimer.Start();
     }
 
-    private void HandleShortcutAction(ShortcutAction action, KeyEventArgs e)
+    private void HandleShortcutAction(ShortcutAction action, RoutedEventArgs e)
     {
         if (ViewModel.IsModeWheelOpen)
         {
@@ -219,10 +238,6 @@ public partial class MainWindow : Window
 
         switch (action)
         {
-            case ShortcutAction.Hide:
-                HideToTray();
-                e.Handled = true;
-                break;
             case ShortcutAction.Execute:
                 if (ViewModel.ExecuteCurrent())
                 {
@@ -243,7 +258,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void HandleModeWheelAction(ShortcutAction action, KeyEventArgs e)
+    private void HandleModeWheelAction(ShortcutAction action, RoutedEventArgs e)
     {
         switch (action)
         {
@@ -255,11 +270,6 @@ public partial class MainWindow : Window
                 break;
             case ShortcutAction.Execute:
                 ViewModel.CommitModeWheel();
-                _modeWheelOpened = false;
-                _suppressModeKeyRelease = _modeKeyDown;
-                break;
-            case ShortcutAction.Hide:
-                ViewModel.CancelModeWheel();
                 _modeWheelOpened = false;
                 _suppressModeKeyRelease = _modeKeyDown;
                 break;
@@ -287,6 +297,13 @@ public partial class MainWindow : Window
         _suppressModeKeyRelease = false;
     }
 
+    private void CancelModeWheelAndSuppressModeKeyRelease()
+    {
+        ViewModel.CancelModeWheel();
+        _modeWheelOpened = false;
+        _suppressModeKeyRelease = _modeKeyDown;
+    }
+
     private void OnModeWheelItemPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is Control { DataContext: SearchMode mode }
@@ -296,6 +313,23 @@ public partial class MainWindow : Window
             _modeWheelOpened = false;
             _suppressModeKeyRelease = _modeKeyDown;
             e.Handled = true;
+        }
+    }
+
+    private void OnWindowPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        var properties = e.GetCurrentPoint(this).Properties;
+        if (!properties.IsXButton1Pressed && !properties.IsXButton2Pressed)
+        {
+            return;
+        }
+
+        if (ShortcutInputMapper.TryCreatePointer(e.KeyModifiers, properties, out var pressed)
+            && _shortcuts.FindAction(pressed) is { } action
+            && action != ShortcutAction.ToggleVisibility)
+        {
+            // 全局呼出/隐藏由系统热键处理；框内动作在这里直接分发。
+            HandleShortcutAction(action, e);
         }
     }
 

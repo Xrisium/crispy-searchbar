@@ -36,7 +36,7 @@ public sealed class SettingsSectionViewModel
 
     public IReadOnlyList<SettingFieldViewModel> Fields { get; }
 
-    /// <summary>本分类内不绑定 AppSettings 的静态展示行（当前仅“关于”使用）。</summary>
+    /// <summary>本分类内不绑定 AppSettings 的静态展示行。</summary>
     public IReadOnlyList<object> StaticItems { get; }
 
     /// <summary>右侧页面实际渲染的行：先设置编辑行，后接静态行。</summary>
@@ -45,7 +45,7 @@ public sealed class SettingsSectionViewModel
 
 /// <summary>
 /// 设置窗口主视图模型：从磁盘设置构建、编辑并显式写回同一 settings.json。
-/// 窗口只负责“修改配置文件”，不保存任何第二份设置状态。
+/// 快捷键校验以设置面板当前各行的值为准；硬错误阻止保存，提醒不阻止。
 /// </summary>
 public sealed class SettingsWindowViewModel : INotifyPropertyChanged
 {
@@ -58,16 +58,18 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
     private AppStrings _strings;
     private readonly string _configFilePath;
     private readonly Func<string, bool>? _globalShortcutProbe;
-    private string _savedGlobalShortcut = string.Empty;
+    private readonly Func<string, bool>? _isCurrentGlobalShortcut;
+    private readonly Dictionary<string, bool> _globalConflictByProperty = new(StringComparer.Ordinal);
+    private int _globalProbeVersion;
     private string? _statusText;
     private bool _isResetConfirmationVisible;
-    private bool _rollbackInProgress;
 
     public SettingsWindowViewModel(
         AppSettings settings,
         AppStrings strings,
         string configFilePath,
-        Func<string, bool>? globalShortcutProbe = null)
+        Func<string, bool>? globalShortcutProbe = null,
+        Func<string, bool>? isCurrentGlobalShortcut = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(strings);
@@ -77,8 +79,9 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         _texts = strings.SettingsTexts;
         _configFilePath = configFilePath;
         _globalShortcutProbe = globalShortcutProbe;
-        _savedGlobalShortcut = settings.ToggleVisibilityShortcut;
+        _isCurrentGlobalShortcut = isCurrentGlobalShortcut;
         RebuildSections();
+        RevalidateShortcuts();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -148,10 +151,11 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         _settings = settings;
         _strings = strings;
         _texts = strings.SettingsTexts;
-        _savedGlobalShortcut = settings.ToggleVisibilityShortcut;
         _isResetConfirmationVisible = false;
-        _rollbackInProgress = false;
+        _globalProbeVersion++;
+        _globalConflictByProperty.Clear();
         RebuildSections();
+        RevalidateShortcuts();
 
         OnPropertyChanged(nameof(WindowTitle));
         OnPropertyChanged(nameof(SaveText));
@@ -165,15 +169,13 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ResetConfirmationCancelText));
     }
 
-    /// <summary>显示“重置配置文件”确认层。</summary>
     public void ShowResetConfirmation()
         => IsResetConfirmationVisible = true;
 
-    /// <summary>关闭“重置配置文件”确认层且不修改任何配置。</summary>
     public void HideResetConfirmation()
         => IsResetConfirmationVisible = false;
 
-    /// <summary>把配置文件恢复为默认值并立即应用；成功时沿用 Saved 事件链路让 App 刷新。</summary>
+    /// <summary>把配置文件恢复为默认值并立即应用。</summary>
     public bool TryResetConfiguration()
     {
         AppSettings defaults;
@@ -189,21 +191,18 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
             return false;
         }
 
-        // App 处理事件时会同步重读文件并触发 Reload，随后这里再用新语言显示完成状态。
         Saved?.Invoke(this, defaults);
-        if (!_rollbackInProgress)
-        {
-            StatusText = _texts.ResetDoneStatus;
-        }
-
-        _rollbackInProgress = false;
+        StatusText = _texts.ResetDoneStatus;
         HideResetConfirmation();
         return true;
     }
 
-    /// <summary>校验并保存到配置文件；成功时通知 App 即时应用。</summary>
+    /// <summary>校验并保存到配置文件；硬错误阻止保存，黄色提醒不阻止。</summary>
     public bool TrySave()
     {
+        // 先按当前面板各行的值重算快捷键红/黄状态，避免残留旧错误抢占位置。
+        RevalidateShortcuts();
+
         var invalidField = FindFirstFieldWithError();
         if (invalidField is not null)
         {
@@ -216,27 +215,6 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
             field.ApplyTo(_settings);
         }
 
-        var validatorErrorField = FindFirstValidatorErrorField(_settings);
-        if (validatorErrorField is not null)
-        {
-            ReportValidationFailure(
-                validatorErrorField.Value.Section,
-                validatorErrorField.Value.Field,
-                _texts.GetValidationMessage(validatorErrorField.Value.Error.ErrorKey));
-            return false;
-        }
-
-        if (!string.Equals(
-                _settings.ToggleVisibilityShortcut,
-                _savedGlobalShortcut,
-                StringComparison.OrdinalIgnoreCase)
-            && _globalShortcutProbe is not null
-            && !_globalShortcutProbe(_settings.ToggleVisibilityShortcut))
-        {
-            StatusText = _texts.HotkeyRegistrationFailed;
-            return false;
-        }
-
         try
         {
             AppSettingsStore.Save(_settings);
@@ -247,15 +225,35 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
             return false;
         }
 
-        // App 处理事件时会同步重读文件并触发 Reload，随后这里再用新语言显示成功状态。
         Saved?.Invoke(this, _settings);
-        if (!_rollbackInProgress)
+        StatusText = _texts.SavedStatus;
+        return true;
+    }
+
+    /// <summary>把快捷键区所有字段与 Esc 复选框重置为默认，只改当前面板不写盘。</summary>
+    public void ResetAllShortcuts()
+    {
+        foreach (var field in CollectShortcutFields())
         {
-            StatusText = _texts.SavedStatus;
+            field.ResetToDefault();
         }
 
-        _rollbackInProgress = false;
-        return true;
+        var hideField = CollectFieldsByPropertyName(nameof(AppSettings.HideOnEscape))
+            .OfType<ToggleSettingFieldViewModel>()
+            .FirstOrDefault();
+        if (hideField is not null)
+        {
+            hideField.IsChecked = true;
+        }
+
+        RevalidateShortcuts();
+    }
+
+    /// <summary>捕获/重置/加载后调用：重算重复与提醒，并异步探测全局占用。</summary>
+    public void RevalidateShortcuts()
+    {
+        ApplyShortcutFeedback();
+        RunGlobalConflictProbe();
     }
 
     private (SettingsSectionViewModel Section, SettingFieldViewModel Field)? FindFirstFieldWithError()
@@ -274,52 +272,125 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         return null;
     }
 
-    private (SettingsSectionViewModel Section, SettingFieldViewModel Field, SettingValidationError Error)?
-        FindFirstValidatorErrorField(AppSettings settings)
+    private IReadOnlyList<ShortcutSettingFieldViewModel> CollectShortcutFields()
+        => Sections
+            .SelectMany(section => section.Fields)
+            .OfType<ShortcutSettingFieldViewModel>()
+            .ToArray();
+
+    private IReadOnlyList<SettingFieldViewModel> CollectFieldsByPropertyName(string propertyName)
+        => Sections
+            .SelectMany(section => section.Fields)
+            .Where(field => string.Equals(
+                field.Definition.PropertyName,
+                propertyName,
+                StringComparison.Ordinal))
+            .ToArray();
+
+    private void ApplyShortcutFeedback()
     {
-        var validatorErrors = AppSettingsValidator.Validate(settings);
-        if (validatorErrors.Count == 0)
+        var fields = CollectShortcutFields();
+        foreach (var field in fields)
         {
-            return null;
+            field.SetErrorFromValidation(null);
+            field.SetWarningFromValidation(null);
         }
 
-        foreach (var error in validatorErrors)
+        var issues = ShortcutValidation.ValidatePanel(fields.Select(field => (
+            field.Definition.PropertyName,
+            field.Value)));
+        foreach (var issue in issues)
         {
-            foreach (var section in Sections)
+            var field = fields.FirstOrDefault(candidate => string.Equals(
+                candidate.Definition.PropertyName,
+                issue.PropertyName,
+                StringComparison.Ordinal));
+            if (field is null)
             {
-                foreach (var field in section.Fields)
-                {
-                    if (string.Equals(
-                            field.Definition.PropertyName,
-                            error.PropertyName,
-                            StringComparison.Ordinal))
-                    {
-                        return (section, field, error);
-                    }
-                }
+                continue;
+            }
+
+            var message = _texts.GetValidationMessage(issue.ErrorKey);
+            if (issue.Severity == ShortcutSeverity.Error)
+            {
+                field.SetErrorFromValidation(message);
+            }
+            else
+            {
+                field.SetWarningFromValidation(message);
             }
         }
 
-        return null;
+        foreach (var pair in _globalConflictByProperty)
+        {
+            if (!pair.Value)
+            {
+                continue;
+            }
+
+            var field = fields.FirstOrDefault(candidate => string.Equals(
+                candidate.Definition.PropertyName,
+                pair.Key,
+                StringComparison.Ordinal));
+            field?.SetWarningFromValidation(_texts.ShortcutGlobalConflictWarning);
+        }
     }
 
-    /// <summary>App 实际重注册全局热键失败并已回滚配置后调用，用于向用户说明原因。</summary>
-    public void ShowApplyFailure()
+    private async void RunGlobalConflictProbe()
     {
-        _rollbackInProgress = true;
-        StatusText = _texts.HotkeyRegistrationFailed;
+        if (_globalShortcutProbe is null)
+        {
+            return;
+        }
+
+        var version = ++_globalProbeVersion;
+        var toggleField = CollectShortcutFields().FirstOrDefault(field =>
+            string.Equals(
+                field.Definition.PropertyName,
+                ShortcutDefaults.GetPropertyName(ShortcutAction.ToggleVisibility),
+                StringComparison.Ordinal));
+        var propertyName = ShortcutDefaults.GetPropertyName(ShortcutAction.ToggleVisibility);
+        if (toggleField is null || toggleField.IsEmpty)
+        {
+            _globalConflictByProperty[propertyName] = false;
+            ApplyShortcutFeedback();
+            return;
+        }
+
+        var candidate = toggleField.Value;
+        if (_isCurrentGlobalShortcut?.Invoke(candidate) == true)
+        {
+            _globalConflictByProperty[propertyName] = false;
+            ApplyShortcutFeedback();
+            return;
+        }
+
+        var succeeded = await Task.Run(() => TryProbe(candidate));
+        if (version != _globalProbeVersion)
+        {
+            return;
+        }
+
+        _globalConflictByProperty[propertyName] = !succeeded;
+        ApplyShortcutFeedback();
+    }
+
+    private bool TryProbe(string candidate)
+    {
+        try
+        {
+            return _globalShortcutProbe?.Invoke(candidate) == true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private void ReportValidationFailure(
         SettingsSectionViewModel section,
-        SettingFieldViewModel field,
-        string? errorMessage = null)
+        SettingFieldViewModel field)
     {
-        if (!string.IsNullOrWhiteSpace(errorMessage))
-        {
-            field.SetErrorFromValidation(errorMessage);
-        }
-
         StatusText = _texts.FormatValidationFailed(section.Title, field.Label);
         ValidationFailed?.Invoke(this, field);
     }
@@ -369,6 +440,16 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
                 var field = CreateSettingField(definition);
                 field.LoadFrom(_settings);
                 fields.Add(field);
+            }
+
+            if (section == SettingsSection.Shortcuts)
+            {
+                Sections.Add(new SettingsSectionViewModel(
+                    section,
+                    _texts.GetSectionTitle(section),
+                    fields,
+                    new List<object> { new ShortcutResetAllViewModel(_texts) }));
+                continue;
             }
 
             if (section == SettingsSection.About)

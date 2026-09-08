@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace CrispySearchbar.Core.Configuration;
 
 /// <summary>
 /// 在“修饰键+键名”规范文本与 <see cref="ShortcutBinding"/> 间转换。
-/// 接受的键集合有限，避免把任意 Avalonia 平台键名写入跨平台配置。
+/// 空字符串/空值表示“未设定快捷键”；非空值必须由 <see cref="TryParse"/> 解析。
 /// </summary>
 public static class ShortcutParser
 {
@@ -50,12 +52,43 @@ public static class ShortcutParser
             ["del"] = "Delete",
             ["backspace"] = "Backspace",
             ["back"] = "Backspace",
+            ["minus"] = "-",
+            ["hyphen"] = "-",
+            ["oemminus"] = "-",
+            ["equal"] = "=",
+            ["oemplus"] = "=",
+            ["leftbracket"] = "[",
+            ["oemopenbrackets"] = "[",
+            ["rightbracket"] = "]",
+            ["oemclosebrackets"] = "]",
+            ["backslash"] = "\\",
+            ["oem5"] = "\\",
+            ["semicolon"] = ";",
+            ["oem1"] = ";",
+            ["quote"] = "'",
+            ["apostrophe"] = "'",
+            ["comma"] = ",",
+            ["oemcomma"] = ",",
+            ["period"] = ".",
+            ["oemperiod"] = ".",
+            ["slash"] = "/",
+            ["oem2"] = "/",
+            ["grave"] = "`",
+            ["backquote"] = "`",
+            ["oem3"] = "`",
+            ["xbutton1"] = "XButton1",
+            ["mousebutton1"] = "XButton1",
+            ["xbutton2"] = "XButton2",
+            ["mousebutton2"] = "XButton2",
         };
+
+    public static bool IsEmpty([NotNullWhen(false)] string? text)
+        => string.IsNullOrWhiteSpace(text);
 
     public static bool TryParse(string? text, out ShortcutBinding binding)
     {
         binding = default!;
-        if (string.IsNullOrWhiteSpace(text))
+        if (IsEmpty(text))
         {
             return false;
         }
@@ -111,13 +144,13 @@ public static class ShortcutParser
         return true;
     }
 
-    /// <summary>是否属于会向文本框输入内容的键（字母/数字/空格）。</summary>
+    /// <summary>是否属于会向文本框输入内容的键（字母/数字/空格/主键盘标点）。</summary>
     public static bool IsTypingKey(string keyToken)
     {
         if (keyToken.Length == 1)
         {
             var c = keyToken[0];
-            return char.IsAsciiLetterOrDigit(c);
+            return c is >= ' ' and <= '~';
         }
 
         return string.Equals(keyToken, "Space", StringComparison.Ordinal);
@@ -134,7 +167,12 @@ public static class ShortcutParser
         if (token.Length == 1)
         {
             var c = token[0];
-            return char.IsAsciiLetter(c) ? char.ToUpperInvariant(c).ToString() : token;
+            if (char.IsAsciiLetter(c))
+            {
+                return char.ToUpperInvariant(c).ToString();
+            }
+
+            return c is >= '!' and <= '~' ? token : null;
         }
 
         if (KeyAliases.TryGetValue(token, out var canonical))

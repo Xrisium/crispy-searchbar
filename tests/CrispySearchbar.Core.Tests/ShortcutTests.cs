@@ -13,6 +13,11 @@ public class ShortcutParserTests
     [InlineData("Esc", ShortcutModifiers.None, "Esc")]
     [InlineData("enter", ShortcutModifiers.None, "Enter")]
     [InlineData("Ctrl+Alt+Win+q", ShortcutModifiers.Control | ShortcutModifiers.Alt | ShortcutModifiers.Win, "Q")]
+    [InlineData("Alt+-", ShortcutModifiers.Alt, "-")]
+    [InlineData("Ctrl+,", ShortcutModifiers.Control, ",")]
+    [InlineData("Ctrl+Alt+XButton1", ShortcutModifiers.Control | ShortcutModifiers.Alt, "XButton1")]
+    [InlineData("shift+xbutton2", ShortcutModifiers.Shift, "XButton2")]
+    [InlineData("`", ShortcutModifiers.None, "`")]
     public void Parse_NormalizesModifierOrderAndKeyNames(
         string text,
         ShortcutModifiers expectedModifiers,
@@ -23,10 +28,16 @@ public class ShortcutParserTests
         Assert.Equal(expectedKey, binding.Key);
     }
 
+    [Fact]
+    public void Empty_IsAcceptedAsUnset()
+    {
+        Assert.True(ShortcutParser.IsEmpty(null));
+        Assert.True(ShortcutParser.IsEmpty(string.Empty));
+        Assert.True(ShortcutParser.IsEmpty("   "));
+        Assert.False(ShortcutParser.IsEmpty("Alt+Space"));
+    }
+
     [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
     [InlineData("Alt")]
     [InlineData("Ctrl+Alt+Q+R")]
     [InlineData("Alt+Alt+Q")]
@@ -36,9 +47,12 @@ public class ShortcutParserTests
         => Assert.False(ShortcutParser.TryParse(text, out _));
 
     [Fact]
-    public void Display_UsesArrowsForUpAndDown()
+    public void Display_UsesArrowsForAllDirections()
     {
         Assert.Equal("↑", new ShortcutBinding(ShortcutModifiers.None, "Up").ToDisplayString());
+        Assert.Equal("↓", new ShortcutBinding(ShortcutModifiers.None, "Down").ToDisplayString());
+        Assert.Equal("←", new ShortcutBinding(ShortcutModifiers.None, "Left").ToDisplayString());
+        Assert.Equal("→", new ShortcutBinding(ShortcutModifiers.None, "Right").ToDisplayString());
         Assert.Equal("Alt+↓", new ShortcutBinding(ShortcutModifiers.Alt, "Down").ToDisplayString());
         Assert.Equal("Alt+Space", new ShortcutBinding(ShortcutModifiers.Alt, "Space").ToDisplayString());
     }
@@ -51,14 +65,14 @@ public class ShortcutValidationTests
         => Assert.Empty(AppSettingsValidator.Validate(new AppSettings()));
 
     [Fact]
-    public void PrintableKeyWithoutModifier_IsRejectedForInAppActions()
+    public void PrintableKeyWithoutModifier_IsOnlyAWarning()
     {
         Assert.Equal(
-            ShortcutValidation.PrintableRequiresModifierError,
-            ShortcutValidation.ValidateCandidate(ShortcutAction.Execute, "Q"));
+            ShortcutSeverity.Warning,
+            ShortcutValidation.ValidateCandidate(ShortcutAction.Execute, "Q")?.Severity);
         Assert.Equal(
-            ShortcutValidation.PrintableRequiresModifierError,
-            ShortcutValidation.ValidateCandidate(ShortcutAction.ToggleVisibility, "Space"));
+            ShortcutSeverity.Warning,
+            ShortcutValidation.ValidateCandidate(ShortcutAction.ToggleVisibility, "Space")?.Severity);
         Assert.Null(ShortcutValidation.ValidateCandidate(ShortcutAction.Execute, "Ctrl+J"));
     }
 
@@ -68,20 +82,20 @@ public class ShortcutValidationTests
         Assert.Null(ShortcutValidation.ValidateCandidate(ShortcutAction.CycleMode, "F8"));
         Assert.Null(ShortcutValidation.ValidateCandidate(ShortcutAction.CycleMode, "Tab"));
         Assert.Equal(
-            ShortcutValidation.ModeSwitchRequiresSingleKeyError,
-            ShortcutValidation.ValidateCandidate(ShortcutAction.CycleMode, "Ctrl+Tab"));
+            ShortcutSeverity.Error,
+            ShortcutValidation.ValidateCandidate(ShortcutAction.CycleMode, "Ctrl+Tab")?.Severity);
         Assert.Equal(
-            ShortcutValidation.PrintableRequiresModifierError,
-            ShortcutValidation.ValidateCandidate(ShortcutAction.CycleMode, "Space"));
+            ShortcutSeverity.Warning,
+            ShortcutValidation.ValidateCandidate(ShortcutAction.CycleMode, "Space")?.Severity);
     }
 
     [Fact]
-    public void TextEditingCombination_IsRejectedForInAppActions()
+    public void TextEditingCombination_IsAHardError()
     {
         Assert.Equal(
-            ShortcutValidation.ReservedForTextEditingError,
-            ShortcutValidation.ValidateCandidate(ShortcutAction.Hide, "Ctrl+C"));
-        Assert.Null(ShortcutValidation.ValidateCandidate(ShortcutAction.Hide, "Ctrl+Q"));
+            ShortcutSeverity.Error,
+            ShortcutValidation.ValidateCandidate(ShortcutAction.Execute, "Ctrl+C")?.Severity);
+        Assert.Null(ShortcutValidation.ValidateCandidate(ShortcutAction.Execute, "Ctrl+Q"));
     }
 
     [Fact]
@@ -89,7 +103,7 @@ public class ShortcutValidationTests
     {
         var settings = new AppSettings
         {
-            HideShortcut = "Ctrl+Q",
+            ToggleVisibilityShortcut = "Ctrl+Q",
             ExecuteShortcut = "Ctrl+Q",
         };
 
@@ -101,9 +115,29 @@ public class ShortcutValidationTests
     }
 
     [Fact]
-    public void FunctionKeyAlone_IsAllowedForGlobalHotkey()
+    public void PanelValidation_UsesCurrentValuesAndDistinguishesSeverity()
     {
-        Assert.Null(ShortcutValidation.ValidateCandidate(ShortcutAction.ToggleVisibility, "F9"));
+        var issues = ShortcutValidation.ValidatePanel(
+        [
+            (nameof(AppSettings.ToggleVisibilityShortcut), "Ctrl+Q"),
+            (nameof(AppSettings.ExecuteShortcut), "Q"),
+        ]);
+
+        var warning = Assert.Single(issues, issue =>
+            issue.PropertyName == nameof(AppSettings.ExecuteShortcut));
+        Assert.Equal(ShortcutSeverity.Warning, warning.Severity);
+    }
+
+    [Fact]
+    public void EmptyValues_ProduceNoIssues()
+    {
+        var issues = ShortcutValidation.ValidatePanel(
+        [
+            (nameof(AppSettings.ToggleVisibilityShortcut), ""),
+            (nameof(AppSettings.CycleModeShortcut), ""),
+        ]);
+
+        Assert.Empty(issues);
     }
 }
 
@@ -132,7 +166,6 @@ public class ShortcutCatalogTests
 
         Assert.Equal(new ShortcutBinding(ShortcutModifiers.Alt, "Space"), catalog[ShortcutAction.ToggleVisibility]);
         Assert.Equal(new ShortcutBinding(ShortcutModifiers.None, "Tab"), catalog[ShortcutAction.CycleMode]);
-        Assert.Equal(new ShortcutBinding(ShortcutModifiers.None, "Esc"), catalog[ShortcutAction.Hide]);
         Assert.Equal(new ShortcutBinding(ShortcutModifiers.None, "Enter"), catalog[ShortcutAction.Execute]);
         Assert.Equal(new ShortcutBinding(ShortcutModifiers.None, "Up"), catalog[ShortcutAction.SelectPrevious]);
         Assert.Equal(new ShortcutBinding(ShortcutModifiers.None, "Down"), catalog[ShortcutAction.SelectNext]);
@@ -154,19 +187,31 @@ public class ShortcutCatalogTests
         Assert.Equal(
             ShortcutAction.SelectPrevious,
             catalog.FindAction(new ShortcutBinding(ShortcutModifiers.None, "Up")));
-        Assert.Equal(
-            ShortcutAction.SelectNext,
-            catalog.FindAction(new ShortcutBinding(ShortcutModifiers.None, "Down")));
         Assert.Null(catalog.FindAction(new ShortcutBinding(ShortcutModifiers.None, "F12")));
     }
 
     [Fact]
     public void Create_FallsBackToDefaultForUnparseableField()
     {
-        var settings = new AppSettings { HideShortcut = "Not a shortcut" };
+        var settings = new AppSettings { CycleModeShortcut = "Not a shortcut" };
         var catalog = ShortcutCatalog.Create(settings);
 
-        Assert.Equal(new ShortcutBinding(ShortcutModifiers.None, "Esc"), catalog[ShortcutAction.Hide]);
+        Assert.Equal(new ShortcutBinding(ShortcutModifiers.None, "Tab"), catalog[ShortcutAction.CycleMode]);
+    }
+
+    [Fact]
+    public void EmptyBinding_IsOmittedFromCatalog()
+    {
+        var settings = new AppSettings
+        {
+            ToggleVisibilityShortcut = string.Empty,
+            ExecuteShortcut = string.Empty,
+        };
+        var catalog = ShortcutCatalog.Create(settings);
+
+        Assert.False(catalog.IsBound(ShortcutAction.ToggleVisibility));
+        Assert.False(catalog.IsBound(ShortcutAction.Execute));
+        Assert.True(catalog.IsBound(ShortcutAction.CycleMode));
     }
 }
 
@@ -176,14 +221,18 @@ public class ShortcutTextFormatterTests
     public void DefaultBindings_ProduceOriginalDefaultHints()
     {
         var strings = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese);
-        var formatted = ShortcutTextFormatter.Format(strings.AskAiMode, ShortcutCatalog.Default);
+        var formatted = ShortcutTextFormatter.Format(
+            strings.AskAiMode,
+            ShortcutCatalog.Default,
+            strings.SettingsTexts.ShortcutUnsetText);
 
         Assert.Equal("输入问题，按 Enter 跳转到 DeepSeek 网页端", formatted.Watermark);
         Assert.Equal("按 Enter 跳转到 DeepSeek 网页端", formatted.ActionHint);
 
         var hint = ShortcutTextFormatter.Format(
             strings.DictionaryEmptyHint,
-            ShortcutCatalog.Default);
+            ShortcutCatalog.Default,
+            strings.SettingsTexts.ShortcutUnsetText);
         Assert.Contains("↑/↓ 选择", hint);
         Assert.Contains("Enter 查看释义", hint);
     }
@@ -198,9 +247,20 @@ public class ShortcutTextFormatterTests
             SelectNextShortcut = "Alt+Down",
         });
 
-        Assert.Equal("按 Ctrl+J 查看释义", ShortcutTextFormatter.Format("按 {execute} 查看释义", shortcuts));
+        Assert.Equal(
+            "按 Ctrl+J 查看释义",
+            ShortcutTextFormatter.Format("按 {execute} 查看释义", shortcuts));
         Assert.Equal(
             "Alt+↑ / Alt+↓",
             ShortcutTextFormatter.Format("{previous} / {next}", shortcuts));
+    }
+
+    [Fact]
+    public void EmptyBindings_UseUnsetText()
+    {
+        var shortcuts = ShortcutCatalog.Create(new AppSettings { ExecuteShortcut = string.Empty });
+        Assert.Equal(
+            "按 未设定快捷键 查看",
+            ShortcutTextFormatter.Format("按 {execute} 查看", shortcuts, "未设定快捷键"));
     }
 }

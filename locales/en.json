@@ -53,9 +53,11 @@
     "modeMoveUpToolTip": "Move mode up",
     "modeMoveDownToolTip": "Move mode down",
     "modeDragHandleToolTip": "Drag to reorder modes",
-    "shortcutRecordPrompt": "Press a shortcut… (click again to cancel)",
+    "shortcutRecordPrompt": "Press a shortcut… (Esc clears)",
     "shortcutResetText": "Restore default",
-    "hotkeyRegistrationFailed": "The global hotkey is already in use by another program. Save was cancelled and the current shortcut stays active.",
+    "shortcutUnsetText": "No shortcut set",
+    "shortcutResetAllText": "Reset all shortcuts to default",
+    "shortcutGlobalConflictWarning": "Conflicts with another app\u2019s global shortcut and may behave unexpectedly.",
     "sectionTitles": {
       "General": "General",
       "Appearance": "Appearance",
@@ -76,7 +78,7 @@
       "EcdictFilePath": "English-Chinese dictionary file",
       "ToggleVisibilityShortcut": "Show / hide search bar (global)",
       "CycleModeShortcut": "Switch to the next mode",
-      "HideShortcut": "Hide the search bar",
+      "HideOnEscape": "Hide the search bar with Esc",
       "ExecuteShortcut": "Execute the current item",
       "SelectPreviousShortcut": "Move selection up",
       "SelectNextShortcut": "Move selection down"
@@ -90,9 +92,9 @@
       "ModePreferences": "Choose which modes appear in mode switching. Drag a row or use the up/down buttons to change the order; at least one mode must stay enabled.",
       "DictionaryFilePath": "Accepts a CC-CEDICT UTF-8 text file, typically cedict_ts.u8 (*.u8). Leave empty to use the user data directory or the bundled file.",
       "EcdictFilePath": "Accepts an ECDICT CSV file, typically ecdict.csv (*.csv). Leave empty to use the user data directory or the bundled file.",
-      "ToggleVisibilityShortcut": "Global shortcut: shows the hidden search bar and hides it while visible. Default Alt+Space.",
+      "ToggleVisibilityShortcut": "Global shortcut: shows the hidden search bar and hides it while visible. Default Alt+Space; press Esc while recording to clear it.",
       "CycleModeShortcut": "Tap to cycle modes; press and hold to open the mode wheel, then release to confirm. Must be a single key without modifiers.",
-      "HideShortcut": "Hides the search bar to the tray; while the mode wheel is open this key dismisses the wheel first.",
+      "HideOnEscape": "Hides the search bar with Esc while it is visible; Esc always dismisses the mode wheel first when it is open.",
       "ExecuteShortcut": "Opens browser results in web modes and shows dictionary definitions in Dictionary mode.",
       "SelectPreviousShortcut": "Moves selection up in dictionary candidates or the mode wheel.",
       "SelectNextShortcut": "Moves selection down in dictionary candidates or the mode wheel."
@@ -112,8 +114,8 @@
     },
     "validationMessages": {
       "ShortcutInvalid": "Unrecognized shortcut.",
-      "ShortcutDuplicate": "This shortcut is already used by another action.",
-      "ShortcutPrintableRequiresModifier": "Add Alt, Ctrl, or Win so it does not interfere with typing.",
+      "ShortcutDuplicate": "This shortcut is already used by another action in the current settings.",
+      "ShortcutPrintableRequiresModifier": "Consider adding Alt, Ctrl, or Win so it does not interfere with typing.",
       "ShortcutModeSwitchRequiresSingleKey": "The mode-switch key must be a single key without modifiers or typing keys.",
       "ShortcutReservedForTextEditing": "This combination is reserved for text editing in the input box; choose another key."
     }
