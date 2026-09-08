@@ -126,6 +126,7 @@
               BorderThickness="1"
               CornerRadius="18"
               BoxShadow="0 12 28 0 #38000000">
+        <Border CornerRadius="18" ClipToBounds="True">
         <Grid>
           <!-- 候选列表 / 空状态提示 -->
           <Grid IsVisible="{Binding IsDictionaryPanelOpen}">
@@ -211,6 +212,7 @@
             </StackPanel>
           </ScrollViewer>
         </Grid>
+        </Border>
       </Border>
     </Popup>
 
@@ -230,6 +232,7 @@
               CornerRadius="12"
               BoxShadow="0 12 28 0 #38000000"
               PointerWheelChanged="OnModeWheelPointerWheelChanged">
+        <Border CornerRadius="12" ClipToBounds="True">
         <ListBox x:Name="ModeWheelList"
                  ItemsSource="{Binding Modes}"
                  SelectedIndex="{Binding ModeWheelSelectedIndex, Mode=TwoWay}"
@@ -274,6 +277,7 @@
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>
+        </Border>
       </Border>
     </Popup>
   </Panel>
