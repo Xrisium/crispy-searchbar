@@ -28,11 +28,12 @@ public class SearchModeTests
         var modes = SearchModeCatalog.CreateDefault(settings, AppStrings.SimplifiedChinese);
 
         Assert.Equal(
-            new[] { "web-search", "ask-ai", "dictionary" },
+            new[] { "web-search", "wikipedia", "ask-ai", "dictionary" },
             modes.Select(mode => mode.Key));
         Assert.Equal("网页搜索", modes[0].Title);
-        Assert.Equal("问问大肥鱼", modes[1].Title);
-        Assert.Equal("词典", modes[2].Title);
+        Assert.Equal("维基百科", modes[1].Title);
+        Assert.Equal("问问大肥鱼", modes[2].Title);
+        Assert.Equal("词典", modes[3].Title);
     }
 
     [Fact]
@@ -42,10 +43,27 @@ public class SearchModeTests
         var modes = SearchModeCatalog.CreateDefault(settings, AppStrings.English);
 
         Assert.Equal("Web Search", modes[0].Title);
-        Assert.Equal("Ask DeepSeek", modes[1].Title);
-        Assert.Equal("Dictionary", modes[2].Title);
+        Assert.Equal("Wikipedia", modes[1].Title);
+        Assert.Equal("Ask DeepSeek", modes[2].Title);
+        Assert.Equal("Dictionary", modes[3].Title);
         Assert.Equal(
             "Type an English word or Chinese term",
-            modes[2].Watermark);
+            modes[3].Watermark);
+    }
+
+    [Fact]
+    public void Wikipedia_ModeTargetsSiteLanguageFollowingUiLanguage()
+    {
+        var settings = new AppSettings();
+
+        var chineseModes = SearchModeCatalog.CreateDefault(settings, AppStrings.SimplifiedChinese);
+        Assert.Equal(
+            "https://zh.wikipedia.org/w/index.php?search={0}",
+            chineseModes[1].UrlTemplate);
+
+        var englishModes = SearchModeCatalog.CreateDefault(settings, AppStrings.English);
+        Assert.Equal(
+            "https://en.wikipedia.org/w/index.php?search={0}",
+            englishModes[1].UrlTemplate);
     }
 }

@@ -21,6 +21,9 @@ public class AppStringsTests
         Assert.False(string.IsNullOrWhiteSpace(strings.WebSearchMode.Title));
         Assert.False(string.IsNullOrWhiteSpace(strings.WebSearchMode.Watermark));
         Assert.False(string.IsNullOrWhiteSpace(strings.WebSearchMode.ActionHint));
+        Assert.False(string.IsNullOrWhiteSpace(strings.WikipediaMode.Title));
+        Assert.False(string.IsNullOrWhiteSpace(strings.WikipediaMode.Watermark));
+        Assert.False(string.IsNullOrWhiteSpace(strings.WikipediaMode.ActionHint));
         Assert.False(string.IsNullOrWhiteSpace(strings.AskAiMode.Title));
         Assert.False(string.IsNullOrWhiteSpace(strings.AskAiMode.Watermark));
         Assert.False(string.IsNullOrWhiteSpace(strings.AskAiMode.ActionHint));

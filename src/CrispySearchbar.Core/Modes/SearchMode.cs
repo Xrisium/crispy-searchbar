@@ -16,6 +16,9 @@ public sealed record SearchMode(
     public static SearchMode AskAi(SearchModeTexts texts, string urlTemplate)
         => new("ask-ai", texts.Title, texts.Watermark, texts.ActionHint, urlTemplate);
 
+    public static SearchMode Wikipedia(SearchModeTexts texts, string urlTemplate)
+        => new("wikipedia", texts.Title, texts.Watermark, texts.ActionHint, urlTemplate);
+
     public static SearchMode Dictionary(SearchModeTexts texts)
         => new("dictionary", texts.Title, texts.Watermark, texts.ActionHint, UrlTemplate: null);
 }

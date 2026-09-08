@@ -65,4 +65,22 @@
     </Viewbox>
   </DataTemplate>
 
+
+  <!-- Wikipedia mode icon: single-color adaptation of the official “W Rounded Black”
+       mark (Wikimedia Commons: File:Wikipedia "W" Rounded Black.svg).
+       Public domain (simple letterform, PD-ineligible); subject to the Wikimedia visual
+       identity guidelines - the "W" belongs to the Wikipedia wordmark.
+       Colored per project mode-icon convention: black square -> TextSecondaryBrush,
+       white letterform -> transparent (reads as the surface behind the icon). -->
+  <DataTemplate x:Key="ModeIconTemplate-wikipedia">
+    <Viewbox Width="13" Height="13">
+      <Grid Width="24" Height="24">
+        <Rectangle Width="20.82" Height="20.82" RadiusX="3.9" RadiusY="3.9"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Fill="{DynamicResource TextSecondaryBrush}" />
+        <Path Data="M13.0407 6.0017L15.6785 6.0017C15.7796 6.1896 15.7796 6.4137 15.6785 6.6016C14.7534 6.7461 14.4282 7.4399 14.0091 8.2854L12.7155 10.822L14.8835 15.6279L14.9485 15.6279L18.1934 8.1626C18.5981 7.1797 18.562 6.6955 17.4635 6.5943C17.3623 6.4064 17.3623 6.1824 17.4635 5.9945L20.6433 5.9945C20.7445 6.1824 20.7445 6.4064 20.6433 6.5943C19.5304 6.7389 19.3352 7.4326 18.9739 8.2782L14.9485 17.5719C14.8257 17.8465 14.7245 17.9838 14.5438 17.9838C14.262 18.1211 14.2403 17.8393 14.1536 17.5719L11.8699 12.2891L9.3622 17.5719C9.261 17.8465 9.1382 17.9838 8.9575 17.9838C8.654 18.1211 8.6684 17.8393 8.5673 17.5719L4.8816 8.271C4.354 6.9774 4.3251 6.7027 3.3639 6.6088C3.2555 6.4209 3.2483 6.1896 3.3423 6.0017L6.9484 6.0017C7.0496 6.1896 7.0496 6.4137 6.9484 6.6016C5.8789 6.7244 5.8355 7.0135 6.2691 8.0614L9.4128 15.6134L9.4562 15.6134L11.3496 11.5375L9.9476 8.2637C9.3839 6.9701 9.2249 6.7172 8.5311 6.616C8.4299 6.4281 8.4299 6.2041 8.5311 6.0162L11.5953 6.0162C11.6965 6.2041 11.6965 6.4281 11.5953 6.616C10.916 6.7244 10.9521 7.0279 11.4219 8.0758L12.224 9.9187L12.2963 9.9982L13.2213 8.1553C13.7489 7.1074 13.8139 6.6955 13.084 6.5871C12.9828 6.4064 12.9684 6.1896 13.0551 6.009Z"
+              Fill="Transparent" />
+      </Grid>
+    </Viewbox>
+  </DataTemplate>
 </ResourceDictionary>

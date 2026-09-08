@@ -12,6 +12,8 @@ public sealed class AppStrings
 
     public required SearchModeTexts WebSearchMode { get; init; }
 
+    public required SearchModeTexts WikipediaMode { get; init; }
+
     public required SearchModeTexts AskAiMode { get; init; }
 
     public required SearchModeTexts DictionaryMode { get; init; }
@@ -53,6 +55,10 @@ public sealed class AppStrings
             "网页搜索",
             "输入关键词，按 Enter 搜索",
             "按 Enter 使用默认搜索引擎打开"),
+        WikipediaMode = new SearchModeTexts(
+            "维基百科",
+            "输入关键词，按 Enter 在维基百科搜索",
+            "按 Enter 用浏览器打开维基百科搜索结果"),
         AskAiMode = new SearchModeTexts(
             "问问大肥鱼",
             "输入问题，按 Enter 跳转到 DeepSeek 网页端",
@@ -158,6 +164,10 @@ public sealed class AppStrings
             "Web Search",
             "Type keywords and press Enter to search",
             "Press Enter to search with your default search engine"),
+        WikipediaMode = new SearchModeTexts(
+            "Wikipedia",
+            "Type keywords and press Enter to search Wikipedia",
+            "Press Enter to open Wikipedia results in your browser"),
         AskAiMode = new SearchModeTexts(
             "Ask DeepSeek",
             "Type a question and press Enter to open DeepSeek in your browser",
