@@ -235,8 +235,8 @@ public sealed class WindowsGlobalHotkeyService : IGlobalHotkeyService
 
         var windowHandle = CreateWindowEx(
             0,
-            WindowClassName,
-            WindowClassName,
+            _windowClassName,
+            _windowClassName,
             0,
             0, 0, 0, 0,
             new IntPtr(HwndMessage),
