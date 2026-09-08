@@ -94,7 +94,7 @@
       "EcdictFilePath": "支持 ECDICT 的 CSV 文件（.csv，如 ecdict.csv）。留空时使用用户数据目录或程序内置文件。",
       "ToggleVisibilityShortcut": "全局快捷键：搜索框隐藏时呼出，显示时隐藏。默认 Alt+Space；录制时按 Esc 可清除。",
       "CycleModeShortcut": "轻按切换下一个模式；长按呼出模式轮盘，松开确认。需为不带修饰键的单个按键。",
-      "HideOnEscape": "搜索框显示时按 Esc 隐藏；模式轮盘打开时 Esc 始终先取消轮盘。",
+      "HideOnEscape": "启用后，搜索框显示时按下 Esc 会将其隐藏到系统托盘。",
       "ExecuteShortcut": "网页类模式用浏览器打开结果；词典模式查看释义。",
       "SelectPreviousShortcut": "在词典候选或模式轮盘中向上移动选择。",
       "SelectNextShortcut": "在词典候选或模式轮盘中向下移动选择。"
