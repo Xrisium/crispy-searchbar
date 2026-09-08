@@ -31,7 +31,7 @@
     "browse": "浏览…",
     "clear": "清空",
     "savedStatus": "已保存到 settings.json",
-    "validationFailedStatus": "请先修正带错误提示的设置项。",
+    "validationFailedTemplate": "设置无效：{0} - {1}",
     "configFileLabel": "配置文件：",
     "openConfigFile": "打开配置文件",
     "saveFailedTemplate": "保存失败：{0}",

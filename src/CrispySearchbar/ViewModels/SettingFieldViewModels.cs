@@ -174,6 +174,8 @@ public sealed class ModeListItemViewModel : INotifyPropertyChanged
     private bool _enabled;
     private bool _canMoveUp;
     private bool _canMoveDown;
+    private bool _isDropPreviewTop;
+    private bool _isDropPreviewBottom;
 
     internal ModeListItemViewModel(
         ModeListSettingFieldViewModel owner,
@@ -198,7 +200,17 @@ public sealed class ModeListItemViewModel : INotifyPropertyChanged
     public bool IsEnabled
     {
         get => _enabled;
-        set => _owner.TrySetEnabled(this, value);
+        set
+        {
+            if (_enabled == value)
+            {
+                return;
+            }
+
+            _enabled = value;
+            OnPropertyChanged();
+            _owner.OnEnabledStateChanged();
+        }
     }
 
     public bool CanMoveUp
@@ -231,9 +243,45 @@ public sealed class ModeListItemViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>拖拽预览：在本行上边缘显示插入线（插到本行之前）。</summary>
+    public bool IsDropPreviewTop
+    {
+        get => _isDropPreviewTop;
+        private set
+        {
+            if (_isDropPreviewTop == value)
+            {
+                return;
+            }
+
+            _isDropPreviewTop = value;
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>拖拽预览：在本行下边缘显示插入线（插到本行之后）。</summary>
+    public bool IsDropPreviewBottom
+    {
+        get => _isDropPreviewBottom;
+        private set
+        {
+            if (_isDropPreviewBottom == value)
+            {
+                return;
+            }
+
+            _isDropPreviewBottom = value;
+            OnPropertyChanged();
+        }
+    }
+
     public void MoveUp() => _owner.MoveBy(this, -1);
 
     public void MoveDown() => _owner.MoveBy(this, 1);
+
+    public void MoveToTop() => _owner.MoveToBoundary(this, top: true);
+
+    public void MoveToBottom() => _owner.MoveToBoundary(this, top: false);
 
     internal void ApplyMoveState(bool canMoveUp, bool canMoveDown)
     {
@@ -241,19 +289,11 @@ public sealed class ModeListItemViewModel : INotifyPropertyChanged
         CanMoveDown = canMoveDown;
     }
 
-    internal void SetEnabledInternal(bool enabled)
+    internal void ApplyDropPreview(bool showTop, bool showBottom)
     {
-        if (_enabled == enabled)
-        {
-            return;
-        }
-
-        _enabled = enabled;
-        OnPropertyChanged(nameof(IsEnabled));
+        IsDropPreviewTop = showTop;
+        IsDropPreviewBottom = showBottom;
     }
-
-    internal void NotifyIsEnabledChanged()
-        => OnPropertyChanged(nameof(IsEnabled));
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -261,7 +301,7 @@ public sealed class ModeListItemViewModel : INotifyPropertyChanged
 
 /// <summary>
 /// ModeList 设置项：以一行可拖拽/可移动的模式列表编辑 <see cref="AppSettings.ModePreferences"/>。
-/// 至少保留一个启用模式；尝试关闭最后一个时显示内联错误且开关不翻转。
+/// 允许编辑时暂时全部关闭；0 个启用时显示内联错误并阻止保存，重新启用任意一个即清除。
 /// </summary>
 public sealed class ModeListSettingFieldViewModel : SettingFieldViewModel
 {
@@ -309,22 +349,15 @@ public sealed class ModeListSettingFieldViewModel : SettingFieldViewModel
             .Select(item => new ModePreference(item.Key, item.IsEnabled))
             .ToArray();
 
-    internal bool TrySetEnabled(ModeListItemViewModel item, bool enabled)
+    internal void OnEnabledStateChanged()
     {
-        if (enabled || Items.Count(candidate => candidate.IsEnabled) > 1)
+        if (Items.Any(candidate => candidate.IsEnabled))
         {
-            item.SetEnabledInternal(enabled);
-            if (enabled)
-            {
-                SetError(null);
-            }
-
-            return true;
+            SetError(null);
+            return;
         }
 
         SetError(Texts.ModeListAtLeastOneEnabledError);
-        item.NotifyIsEnabledChanged();
-        return false;
     }
 
     internal void MoveBy(ModeListItemViewModel item, int offset)
@@ -340,16 +373,61 @@ public sealed class ModeListSettingFieldViewModel : SettingFieldViewModel
         RefreshMoveState();
     }
 
-    internal void DropOnto(ModeListItemViewModel source, ModeListItemViewModel target)
+    internal void DropAt(ModeListItemViewModel source, int insertionIndex)
     {
         var sourceIndex = Items.IndexOf(source);
-        var targetIndex = Items.IndexOf(target);
-        if (sourceIndex < 0 || targetIndex < 0 || sourceIndex == targetIndex)
+        if (sourceIndex < 0)
         {
             return;
         }
 
-        Items.Move(sourceIndex, targetIndex);
+        insertionIndex = Math.Clamp(insertionIndex, 0, Items.Count);
+        var finalIndex = sourceIndex < insertionIndex
+            ? insertionIndex - 1
+            : insertionIndex;
+        if (finalIndex < 0 || finalIndex >= Items.Count || finalIndex == sourceIndex)
+        {
+            return;
+        }
+
+        Items.Move(sourceIndex, finalIndex);
+        RefreshMoveState();
+    }
+
+    /// <summary>
+    /// 拖拽预览槽位：0..Items.Count 表示插到对应行之前；null 隐藏所有预览线。
+    /// </summary>
+    internal void SetDropPreviewSlot(int? insertionIndex)
+    {
+        if (insertionIndex is null)
+        {
+            foreach (var item in Items)
+            {
+                item.ApplyDropPreview(showTop: false, showBottom: false);
+            }
+
+            return;
+        }
+
+        var slot = Math.Clamp(insertionIndex.Value, 0, Items.Count);
+        for (var index = 0; index < Items.Count; index++)
+        {
+            Items[index].ApplyDropPreview(
+                showTop: index == slot,
+                showBottom: index == Items.Count - 1 && slot == Items.Count);
+        }
+    }
+
+    internal void MoveToBoundary(ModeListItemViewModel item, bool top)
+    {
+        var oldIndex = Items.IndexOf(item);
+        var targetIndex = top ? 0 : Items.Count - 1;
+        if (oldIndex < 0 || oldIndex == targetIndex)
+        {
+            return;
+        }
+
+        Items.Move(oldIndex, targetIndex);
         RefreshMoveState();
     }
 

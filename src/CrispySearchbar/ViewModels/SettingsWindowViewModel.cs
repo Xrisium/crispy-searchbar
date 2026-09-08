@@ -82,6 +82,9 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
     /// <summary>保存成功并写盘后触发；App 据此即时应用。</summary>
     public event EventHandler<AppSettings>? Saved;
 
+    /// <summary>保存校验失败且已定位到具体字段后触发；窗口据此滚动到该行。</summary>
+    public event EventHandler<SettingFieldViewModel>? ValidationFailed;
+
     public ObservableCollection<SettingsSectionViewModel> Sections { get; } = [];
 
     public string WindowTitle => _texts.WindowTitle;
@@ -190,12 +193,10 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
     /// <summary>校验并保存到配置文件；成功时通知 App 即时应用。</summary>
     public bool TrySave()
     {
-        var hasFieldError = Sections
-            .SelectMany(section => section.Fields)
-            .Any(field => field.HasError);
-        if (hasFieldError)
+        var invalidField = FindFirstFieldWithError();
+        if (invalidField is not null)
         {
-            StatusText = _texts.ValidationFailedStatus;
+            ReportValidationFailure(invalidField.Value.Section, invalidField.Value.Field);
             return false;
         }
 
@@ -204,9 +205,12 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
             field.ApplyTo(_settings);
         }
 
-        if (AppSettingsValidator.Validate(_settings).Count > 0)
+        var validatorErrorField = FindFirstValidatorErrorField(_settings);
+        if (validatorErrorField is not null)
         {
-            StatusText = _texts.ValidationFailedStatus;
+            ReportValidationFailure(
+                validatorErrorField.Value.Section,
+                validatorErrorField.Value.Field);
             return false;
         }
 
@@ -224,6 +228,56 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         Saved?.Invoke(this, _settings);
         StatusText = _texts.SavedStatus;
         return true;
+    }
+
+    private (SettingsSectionViewModel Section, SettingFieldViewModel Field)? FindFirstFieldWithError()
+    {
+        foreach (var section in Sections)
+        {
+            foreach (var field in section.Fields)
+            {
+                if (field.HasError)
+                {
+                    return (section, field);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private (SettingsSectionViewModel Section, SettingFieldViewModel Field)? FindFirstValidatorErrorField(
+        AppSettings settings)
+    {
+        var errorProperties = AppSettingsValidator
+            .Validate(settings)
+            .Select(error => error.PropertyName)
+            .ToHashSet(StringComparer.Ordinal);
+        if (errorProperties.Count == 0)
+        {
+            return null;
+        }
+
+        foreach (var section in Sections)
+        {
+            foreach (var field in section.Fields)
+            {
+                if (errorProperties.Contains(field.Definition.PropertyName))
+                {
+                    return (section, field);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private void ReportValidationFailure(
+        SettingsSectionViewModel section,
+        SettingFieldViewModel field)
+    {
+        StatusText = _texts.FormatValidationFailed(section.Title, field.Label);
+        ValidationFailed?.Invoke(this, field);
     }
 
     private SettingFieldViewModel CreateSettingField(SettingDefinition definition)

@@ -18,7 +18,7 @@ public sealed class AppSettingsTexts
 
     public required string SavedStatus { get; init; }
 
-    public required string ValidationFailedStatus { get; init; }
+    public required string ValidationFailedTemplate { get; init; }
 
     public required string ConfigFileLabel { get; init; }
 
@@ -102,6 +102,9 @@ public sealed class AppSettingsTexts
 
     public string FormatSaveFailed(string? detail)
         => string.Format(SaveFailedTemplate, detail);
+
+    public string FormatValidationFailed(string sectionTitle, string fieldLabel)
+        => string.Format(ValidationFailedTemplate, sectionTitle, fieldLabel);
 
     public string FormatAboutVersion(string version)
         => string.Format(AboutVersionFormat, version);

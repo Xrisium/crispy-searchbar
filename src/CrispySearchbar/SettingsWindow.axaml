@@ -248,7 +248,8 @@
 
   <Window.DataTemplates>
     <DataTemplate DataType="{x:Type vm:ChoiceSettingFieldViewModel}">
-      <Border BorderBrush="{DynamicResource DividerBrush}"
+      <Border Loaded="OnSettingFieldLoaded"
+              BorderBrush="{DynamicResource DividerBrush}"
               BorderThickness="0,0,0,1"
               Padding="0,10">
         <Grid ColumnDefinitions="*,300">
@@ -287,7 +288,8 @@
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type vm:ToggleSettingFieldViewModel}">
-      <Border BorderBrush="{DynamicResource DividerBrush}"
+      <Border Loaded="OnSettingFieldLoaded"
+              BorderBrush="{DynamicResource DividerBrush}"
               BorderThickness="0,0,0,1"
               Padding="0,10">
         <Grid ColumnDefinitions="*,300">
@@ -316,7 +318,8 @@
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type vm:TextSettingFieldViewModel}">
-      <Border BorderBrush="{DynamicResource DividerBrush}"
+      <Border Loaded="OnSettingFieldLoaded"
+              BorderBrush="{DynamicResource DividerBrush}"
               BorderThickness="0,0,0,1"
               Padding="0,10">
         <Grid ColumnDefinitions="*,300">
@@ -345,7 +348,8 @@
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type vm:FilePathSettingFieldViewModel}">
-      <Border BorderBrush="{DynamicResource DividerBrush}"
+      <Border Loaded="OnSettingFieldLoaded"
+              BorderBrush="{DynamicResource DividerBrush}"
               BorderThickness="0,0,0,1"
               Padding="0,10">
         <Grid ColumnDefinitions="*,340">
@@ -385,7 +389,8 @@
     </DataTemplate>
 
     <DataTemplate DataType="{x:Type vm:ModeListSettingFieldViewModel}">
-      <Border BorderBrush="{DynamicResource DividerBrush}"
+      <Border Loaded="OnSettingFieldLoaded"
+              BorderBrush="{DynamicResource DividerBrush}"
               BorderThickness="0,0,0,1"
               Padding="0,10">
         <StackPanel Spacing="8">
@@ -413,13 +418,28 @@
             <ItemsControl ItemsSource="{Binding Items}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type vm:ModeListItemViewModel}">
-                  <Border DragDrop.AllowDrop="True"
-                          DragDrop.DragOver="OnModeRowDragOver"
-                          DragDrop.Drop="OnModeRowDrop"
+                  <Border Loaded="OnModeRowLoaded"
                           Padding="2,1"
                           CornerRadius="8">
-                    <Grid ColumnDefinitions="30,*,Auto,Auto,48"
-                          MinHeight="34">
+                    <Grid>
+                      <Border Height="2"
+                              Margin="-2,-1,-2,0"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Top"
+                              Background="{DynamicResource AccentBrush}"
+                              CornerRadius="1"
+                              IsHitTestVisible="False"
+                              IsVisible="{Binding IsDropPreviewTop}" />
+                      <Border Height="2"
+                              Margin="-2,0,-2,-1"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Bottom"
+                              Background="{DynamicResource AccentBrush}"
+                              CornerRadius="1"
+                              IsHitTestVisible="False"
+                              IsVisible="{Binding IsDropPreviewBottom}" />
+                      <Grid ColumnDefinitions="30,*,Auto,Auto,48"
+                            MinHeight="34">
                       <Border Grid.Column="0"
                               Classes="modeDragHandle"
                               Margin="2,2"
@@ -486,6 +506,7 @@
                               Margin="0,0,2,0"
                               IsEnabled="{Binding CanMoveUp}"
                               Click="OnModeMoveUpClicked"
+                              PointerPressed="OnModeMoveUpButtonPointerPressed"
                               automation:AutomationProperties.Name="{Binding Owner.ModeMoveUpToolTip}"
                               ToolTip.Tip="{Binding Owner.ModeMoveUpToolTip}">
                         <Viewbox Width="12" Height="12">
@@ -502,6 +523,7 @@
                               Classes="modeMoveButton"
                               IsEnabled="{Binding CanMoveDown}"
                               Click="OnModeMoveDownClicked"
+                              PointerPressed="OnModeMoveDownButtonPointerPressed"
                               automation:AutomationProperties.Name="{Binding Owner.ModeMoveDownToolTip}"
                               ToolTip.Tip="{Binding Owner.ModeMoveDownToolTip}">
                         <Viewbox Width="12" Height="12">
@@ -518,6 +540,7 @@
                                     IsChecked="{Binding IsEnabled, Mode=TwoWay}"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Center" />
+                      </Grid>
                     </Grid>
                   </Border>
                 </DataTemplate>
@@ -575,12 +598,17 @@
   </Window.DataTemplates>
 
   <Grid>
-  <Border Margin="10"
+  <Border x:Name="SettingsSurface"
+          Margin="10"
           Background="{DynamicResource SearchSurfaceBrush}"
           BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
           BorderThickness="1"
           CornerRadius="14"
-          BoxShadow="0 10 24 0 #33000000">
+          BoxShadow="0 10 24 0 #33000000"
+          DragDrop.AllowDrop="True"
+          DragDrop.DragOver="OnModeSurfaceDragOver"
+          DragDrop.DragLeave="OnModeSurfaceDragLeave"
+          DragDrop.Drop="OnModeSurfaceDrop">
     <DockPanel>
       <Border DockPanel.Dock="Top"
               Height="50"
@@ -644,10 +672,18 @@
                          ToolTip.Tip="{Binding ConfigFileOpenText}"
                          Tapped="OnConfigPathTapped" />
             </Grid>
-            <TextBlock Text="{Binding StatusText}"
+            <TextBlock x:Name="StatusTextBlock"
+                       Text="{Binding StatusText}"
                        FontSize="12"
                        Foreground="{DynamicResource TextSecondaryBrush}"
-                       TextTrimming="CharacterEllipsis" />
+                       TextTrimming="CharacterEllipsis">
+              <TextBlock.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Opacity"
+                                    Duration="0:0:0.18" />
+                </Transitions>
+              </TextBlock.Transitions>
+            </TextBlock>
           </StackPanel>
         </DockPanel>
       </Border>
