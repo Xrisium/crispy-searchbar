@@ -27,8 +27,7 @@ public sealed partial class SettingsWindow : Window
     private DispatcherTimer? _statusFadeTimer;
     private ModeListItemViewModel? _modeDragSource;
     private int _dragInsertionSlot;
-    private ModeListItemViewModel? _shiftClickItem;
-    private bool _shiftClickIsTop;
+    private bool _isShiftPressed;
 
     public SettingsWindow()
     {
@@ -307,42 +306,39 @@ public sealed partial class SettingsWindow : Window
     private void OnResetCancelledClicked(object? sender, RoutedEventArgs e)
         => ViewModel.HideResetConfirmation();
 
-    private void OnModeMoveUpButtonPointerPressed(
-        object? sender,
-        PointerPressedEventArgs e)
-        => TrackShiftMove(sender, e, isTop: true);
-
-    private void OnModeMoveDownButtonPointerPressed(
-        object? sender,
-        PointerPressedEventArgs e)
-        => TrackShiftMove(sender, e, isTop: false);
-
-    private void TrackShiftMove(
-        object? sender,
-        PointerEventArgs e,
-        bool isTop)
+    private void OnWindowKeyDown(object? sender, KeyEventArgs e)
     {
-        if (sender is not Control { DataContext: ModeListItemViewModel item })
+        if (e.Key is Key.LeftShift or Key.RightShift)
         {
-            return;
-        }
-
-        if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-        {
-            _shiftClickItem = item;
-            _shiftClickIsTop = isTop;
-        }
-        else
-        {
-            _shiftClickItem = null;
+            _isShiftPressed = true;
         }
     }
 
-    private void OnModeMoveUpClicked(object? sender, RoutedEventArgs e)
-        => HandleModeMoveClick(sender, isTop: true);
+    private void OnWindowKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (e.Key is Key.LeftShift or Key.RightShift)
+        {
+            _isShiftPressed = false;
+        }
+    }
 
-    private void OnModeMoveDownClicked(object? sender, RoutedEventArgs e)
-        => HandleModeMoveClick(sender, isTop: false);
+    private void OnWindowDeactivated(object? sender, EventArgs e)
+    {
+        _isShiftPressed = false;
+    }
+
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+        Deactivated += OnWindowDeactivated;
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        Deactivated -= OnWindowDeactivated;
+        _statusFadeTimer?.Stop();
+        base.OnClosed(e);
+    }
 
     private void HandleModeMoveClick(object? sender, bool isTop)
     {
@@ -351,9 +347,8 @@ public sealed partial class SettingsWindow : Window
             return;
         }
 
-        if (ReferenceEquals(_shiftClickItem, item) && _shiftClickIsTop == isTop)
+        if (_isShiftPressed)
         {
-            _shiftClickItem = null;
             if (isTop)
             {
                 item.MoveToTop();
@@ -376,6 +371,12 @@ public sealed partial class SettingsWindow : Window
         }
     }
 
+    private void OnModeMoveUpClicked(object? sender, RoutedEventArgs e)
+        => HandleModeMoveClick(sender, isTop: true);
+
+    private void OnModeMoveDownClicked(object? sender, RoutedEventArgs e)
+        => HandleModeMoveClick(sender, isTop: false);
+
     private async void OnModeDragHandlePointerPressed(
         object? sender,
         PointerPressedEventArgs e)
@@ -394,11 +395,7 @@ public sealed partial class SettingsWindow : Window
         var data = new DataTransfer();
         data.Add(DataTransferItem.CreateText(item.Key));
         await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
-        if (_modeDragSource is { } finishedSource)
-        {
-            finishedSource.Owner.SetDropPreviewSlot(null);
-        }
-
+        HideModeDropPreview();
         _modeDragSource = null;
     }
 
@@ -412,14 +409,9 @@ public sealed partial class SettingsWindow : Window
 
         var owner = _modeDragSource.Owner;
         _dragInsertionSlot = ComputeDropInsertionSlot(e, owner);
-        owner.SetDropPreviewSlot(_dragInsertionSlot);
+        ShowModeDropPreview(owner, _dragInsertionSlot);
         e.DragEffects = DragDropEffects.Move;
         e.Handled = true;
-    }
-
-    private void OnModeSurfaceDragLeave(object? sender, DragEventArgs e)
-    {
-        _modeDragSource?.Owner.SetDropPreviewSlot(null);
     }
 
     private void OnModeSurfaceDrop(object? sender, DragEventArgs e)
@@ -430,10 +422,77 @@ public sealed partial class SettingsWindow : Window
         }
 
         source.Owner.DropAt(source, _dragInsertionSlot);
-        source.Owner.SetDropPreviewSlot(null);
+        HideModeDropPreview();
         _modeDragSource = null;
         e.DragEffects = DragDropEffects.Move;
         e.Handled = true;
+    }
+
+    private void ShowModeDropPreview(
+        ModeListSettingFieldViewModel owner,
+        int insertionIndex)
+    {
+        var indicatorY = ComputeModeDropIndicatorY(owner, insertionIndex);
+        var firstRow = _modeRowControls.Values.FirstOrDefault();
+        if (firstRow is null)
+        {
+            ModeDropIndicator.IsVisible = false;
+            return;
+        }
+
+        var rowOrigin = firstRow.TranslatePoint(default, this);
+        var left = rowOrigin?.X - 2 ?? 0;
+        var right = Math.Max(0, Bounds.Width - left - firstRow.Bounds.Width + 2);
+        ModeDropIndicator.Margin = new Thickness(
+            Math.Max(0, left),
+            Math.Max(0, indicatorY - 1),
+            right,
+            0);
+        ModeDropIndicator.IsVisible = true;
+    }
+
+    private void HideModeDropPreview()
+        => ModeDropIndicator.IsVisible = false;
+
+    private double ComputeModeDropIndicatorY(
+        ModeListSettingFieldViewModel owner,
+        int insertionIndex)
+    {
+        var rows = new List<(double Top, double Bottom)>();
+        foreach (var item in owner.Items)
+        {
+            if (!_modeRowControls.TryGetValue(item, out var rowControl))
+            {
+                continue;
+            }
+
+            var origin = rowControl.TranslatePoint(default, this);
+            if (origin is null)
+            {
+                continue;
+            }
+
+            var top = origin.Value.Y;
+            rows.Add((top, top + rowControl.Bounds.Height));
+        }
+
+        if (rows.Count == 0)
+        {
+            return 0;
+        }
+
+        var slot = Math.Clamp(insertionIndex, 0, rows.Count);
+        if (slot == 0)
+        {
+            return rows[0].Top;
+        }
+
+        if (slot == rows.Count)
+        {
+            return rows[^1].Bottom;
+        }
+
+        return (rows[slot - 1].Bottom + rows[slot].Top) / 2;
     }
 
     private int ComputeDropInsertionSlot(

@@ -174,8 +174,6 @@ public sealed class ModeListItemViewModel : INotifyPropertyChanged
     private bool _enabled;
     private bool _canMoveUp;
     private bool _canMoveDown;
-    private bool _isDropPreviewTop;
-    private bool _isDropPreviewBottom;
 
     internal ModeListItemViewModel(
         ModeListSettingFieldViewModel owner,
@@ -243,38 +241,6 @@ public sealed class ModeListItemViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>拖拽预览：在本行上边缘显示插入线（插到本行之前）。</summary>
-    public bool IsDropPreviewTop
-    {
-        get => _isDropPreviewTop;
-        private set
-        {
-            if (_isDropPreviewTop == value)
-            {
-                return;
-            }
-
-            _isDropPreviewTop = value;
-            OnPropertyChanged();
-        }
-    }
-
-    /// <summary>拖拽预览：在本行下边缘显示插入线（插到本行之后）。</summary>
-    public bool IsDropPreviewBottom
-    {
-        get => _isDropPreviewBottom;
-        private set
-        {
-            if (_isDropPreviewBottom == value)
-            {
-                return;
-            }
-
-            _isDropPreviewBottom = value;
-            OnPropertyChanged();
-        }
-    }
-
     public void MoveUp() => _owner.MoveBy(this, -1);
 
     public void MoveDown() => _owner.MoveBy(this, 1);
@@ -287,12 +253,6 @@ public sealed class ModeListItemViewModel : INotifyPropertyChanged
     {
         CanMoveUp = canMoveUp;
         CanMoveDown = canMoveDown;
-    }
-
-    internal void ApplyDropPreview(bool showTop, bool showBottom)
-    {
-        IsDropPreviewTop = showTop;
-        IsDropPreviewBottom = showBottom;
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -392,30 +352,6 @@ public sealed class ModeListSettingFieldViewModel : SettingFieldViewModel
 
         Items.Move(sourceIndex, finalIndex);
         RefreshMoveState();
-    }
-
-    /// <summary>
-    /// 拖拽预览槽位：0..Items.Count 表示插到对应行之前；null 隐藏所有预览线。
-    /// </summary>
-    internal void SetDropPreviewSlot(int? insertionIndex)
-    {
-        if (insertionIndex is null)
-        {
-            foreach (var item in Items)
-            {
-                item.ApplyDropPreview(showTop: false, showBottom: false);
-            }
-
-            return;
-        }
-
-        var slot = Math.Clamp(insertionIndex.Value, 0, Items.Count);
-        for (var index = 0; index < Items.Count; index++)
-        {
-            Items[index].ApplyDropPreview(
-                showTop: index == slot,
-                showBottom: index == Items.Count - 1 && slot == Items.Count);
-        }
     }
 
     internal void MoveToBoundary(ModeListItemViewModel item, bool top)

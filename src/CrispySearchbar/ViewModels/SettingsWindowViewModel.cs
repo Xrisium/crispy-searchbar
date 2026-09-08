@@ -51,8 +51,6 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
 {
     private const string GitHubRepositoryUrl = "https://github.com/Xrisium/crispy-searchbar";
 
-    private const string ThirdPartyNoticesFileName = "THIRD_PARTY_NOTICES.md";
-
     private const string FallbackAppVersion = "0.1.0";
 
     private AppSettings _settings;
@@ -361,8 +359,8 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
                 openAsFile: false),
             new AboutLinkViewModel(
                 _texts.AboutThirdPartyNoticesLinkLabel,
-                Path.Combine(AppContext.BaseDirectory, ThirdPartyNoticesFileName),
-                openAsFile: true),
+                GitHubRepositoryUrl + "/blob/main/THIRD_PARTY_NOTICES.md",
+                openAsFile: false),
             new AboutActionViewModel(_texts.ResetConfigText, _texts.ResetConfigDescription),
         };
 
