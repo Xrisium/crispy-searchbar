@@ -29,6 +29,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string _dictionaryEmptyHint;
 
     private int _modeIndex;
+    private bool _isSearchBarVisible;
     private bool _isModeWheelOpen;
     private int _modeWheelSelectedIndex;
     private string _query = string.Empty;
@@ -171,7 +172,27 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public bool IsDictionaryPanelOpen => IsDictionaryMode && !IsDictionaryDetailOpen;
 
-    public bool IsDictionaryPopupOpen => IsDictionaryMode && !IsModeWheelOpen;
+    /// <summary>
+    /// 候选浮层属于搜索框层级：搜索框本身不可见时，任何候选/详情浮层都不允许打开。
+    /// </summary>
+    public bool IsDictionaryPopupOpen => IsSearchBarVisible && IsDictionaryMode && !IsModeWheelOpen;
+
+    /// <summary>搜索框窗口当前是否显示；由主窗口在显示/隐藏时同步。</summary>
+    public bool IsSearchBarVisible
+    {
+        get => _isSearchBarVisible;
+        private set
+        {
+            if (_isSearchBarVisible == value)
+            {
+                return;
+            }
+
+            _isSearchBarVisible = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsDictionaryPopupOpen));
+        }
+    }
 
     public bool IsDictionaryDetailOpen => DictionaryDetailHit is not null;
 
@@ -432,6 +453,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// <summary>窗口隐藏时按配置决定是否清空已输入内容。</summary>
     public void OnWindowHidden()
     {
+        IsSearchBarVisible = false;
         if (_clearQueryOnHide)
         {
             Query = string.Empty;
@@ -444,6 +466,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// <summary>窗口重新显示时刷新词典状态，避免残留详情或过期候选。</summary>
     public void OnWindowShown()
     {
+        IsSearchBarVisible = true;
         if (!IsDictionaryMode)
         {
             return;
