@@ -20,22 +20,15 @@ public class SearchEngineCatalogTests
     [Fact]
     public void DisplayNames_FollowConfiguredLanguage()
     {
-        Assert.Equal(
-            "百度",
-            SearchEngineCatalog.GetDisplayName(SearchEngineKind.Baidu, AppStrings.SimplifiedChinese));
-        Assert.Equal(
-            "必应",
-            SearchEngineCatalog.GetDisplayName(SearchEngineKind.Bing, AppStrings.SimplifiedChinese));
+        var chinese = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese);
+        var english = TranslationCatalog.Default.Resolve(AppLanguage.English);
 
-        Assert.Equal(
-            "Baidu",
-            SearchEngineCatalog.GetDisplayName(SearchEngineKind.Baidu, AppStrings.English));
-        Assert.Equal(
-            "Bing",
-            SearchEngineCatalog.GetDisplayName(SearchEngineKind.Bing, AppStrings.English));
-        Assert.Equal(
-            "Google",
-            SearchEngineCatalog.GetDisplayName(SearchEngineKind.Google, AppStrings.English));
+        Assert.Equal("百度", SearchEngineCatalog.GetDisplayName(SearchEngineKind.Baidu, chinese));
+        Assert.Equal("必应", SearchEngineCatalog.GetDisplayName(SearchEngineKind.Bing, chinese));
+
+        Assert.Equal("Baidu", SearchEngineCatalog.GetDisplayName(SearchEngineKind.Baidu, english));
+        Assert.Equal("Bing", SearchEngineCatalog.GetDisplayName(SearchEngineKind.Bing, english));
+        Assert.Equal("Google", SearchEngineCatalog.GetDisplayName(SearchEngineKind.Google, english));
     }
 
     [Fact]

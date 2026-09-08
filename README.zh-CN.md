@@ -11,7 +11,7 @@
 - 常驻界面是单个圆角胶囊搜索框；词典候选与释义详情按需出现在下方的浮层中。
 - `Alt+Space` 显示/隐藏搜索框；`Esc` 或点击其它窗口会隐藏它；应用常驻系统托盘，菜单包含“显示 / 隐藏搜索框”“设置”和“退出”。
 - 快速按 Tab 循环切换模式：网页搜索 → 维基百科 → 问问大肥鱼 → 词典；长按 Tab 会打开纵向模式选择器，松开 Tab 即完成切换（鼠标滚轮或 ↑/↓ 可移动高亮）。
-- 网页搜索、维基百科与问问大肥鱼使用网址模板在默认浏览器中打开结果（查询词会被 URL 编码并替换到 `{0}`）。维基百科模式在简体中文界面下使用 zh.wikipedia.org，否则使用 en.wikipedia.org，跟随界面语言。
+- 网页搜索、维基百科与问问大肥鱼使用网址模板在默认浏览器中打开结果（查询词会被 URL 编码并替换到 `{0}`）。维基百科模式的站点跟随当前翻译文件中的 `wikipediaLanguage` 元数据（例如 `zh-Hans` 使用 zh.wikipedia.org、`en` 使用 en.wikipedia.org）。
 - 词典模式使用 CC-CEDICT（汉 → 英）与 ECDICT（英 → 汉）进行离线查询：
   - 输入时实时提供候选词；
   - 英文查询不区分大小写，并忽略结尾标点；
@@ -60,7 +60,7 @@ dotnet test
 
 ```json
 {
-  "language": "zh-Hans",
+  "language": "system",
   "theme": "system",
   "searchEngine": "baidu",
   "clearQueryOnHide": true,
@@ -70,7 +70,7 @@ dotnet test
 }
 ```
 
-- `language`：`zh-Hans`（默认，简体中文）或 `en`（English）。不支持的值会回退到 `zh-Hans`。
+- `language`：`system`（默认，跟随 Windows 界面语言）或 `locales/` 中内置翻译对应的任意 BCP 47 代码（当前为 `zh-Hans` 与 `en`）。未知代码或系统语言无匹配时回退英文。
 - `theme`：`system`、`light` 或 `dark`。
 - `searchEngine`：`baidu`（默认）、`google` 或 `bing`。
 - `clearQueryOnHide`：`true`（默认）在搜索框隐藏时清空已输入内容；`false` 则保留。
@@ -78,7 +78,7 @@ dotnet test
 - `dictionaryFilePath`：可选的 CC-CEDICT（汉 → 英）UTF-8 文本文件绝对路径，通常为 `cedict_ts.u8`（`.u8`）；`null` 时依次使用用户数据目录与内置文件。
 - `ecdictFilePath`：可选的 ECDICT（英 → 汉）CSV 文件绝对路径，通常为 `ecdict.csv`（`.csv`）；`null` 时依次使用用户数据目录与内置文件。
 
-所有用户可见的界面文案都集中在 `src/CrispySearchbar.Core/Localization/`。每个受支持语言都有一个完整的 `AppStrings` 实例，并登记在 `AppLanguage.Supported` 中；新增语言时需要补充该实例、在 `AppLanguage.Supported` 中登记其代码，并在 `AppStrings.For` 中添加映射。
+界面翻译位于 `locales/*.json`（见 `locales/README.md`）。`en.json` 是完整回退基准：翻译文件可只提供部分词条，缺失或空值会回退英文。新增语言时复制 `en.json` 为 `{code}.json`、翻译词条并填写 `nativeName` 与 `wikipediaLanguage`，重新构建即可；应用自动发现该文件，无需修改任何代码。
 
 如果配置文件缺失或损坏，则使用默认值。
 
@@ -90,6 +90,7 @@ src/CrispySearchbar.Core/      与平台无关的核心（设置、模式、URL 
 tests/CrispySearchbar.Core.Tests/  核心逻辑单元测试
 licenses/                     集中存放的第三方许可证全文
 assets/icon/                  应用图标源 PNG 与多尺寸 ICO 素材
+locales/                      各语言界面翻译（见 locales/README.md）
 data/cc-cedict/               内置 CC-CEDICT 数据及其许可证/声明
 data/ecdict/                  内置 ECDICT 数据及其许可证/声明
 ```

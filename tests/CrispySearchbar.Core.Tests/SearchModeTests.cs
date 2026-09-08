@@ -10,7 +10,7 @@ public class SearchModeTests
     [Fact]
     public void AskAi_UsesLocalizedAskAiTexts()
     {
-        var strings = AppStrings.SimplifiedChinese;
+        var strings = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese);
         var mode = SearchMode.AskAi(
             strings.AskAiMode,
             "https://chat.deepseek.com/?q={0}");
@@ -25,7 +25,8 @@ public class SearchModeTests
     public void DefaultCatalog_KeepsDocumentedModeOrderAndChineseDisplayNames()
     {
         var settings = new AppSettings();
-        var modes = SearchModeCatalog.CreateDefault(settings, AppStrings.SimplifiedChinese);
+        var strings = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese);
+        var modes = SearchModeCatalog.CreateDefault(settings, strings);
 
         Assert.Equal(
             new[] { "web-search", "wikipedia", "ask-ai", "dictionary" },
@@ -40,7 +41,8 @@ public class SearchModeTests
     public void DefaultCatalog_UsesEnglishTextsWhenEnglishIsConfigured()
     {
         var settings = new AppSettings();
-        var modes = SearchModeCatalog.CreateDefault(settings, AppStrings.English);
+        var strings = TranslationCatalog.Default.Resolve(AppLanguage.English);
+        var modes = SearchModeCatalog.CreateDefault(settings, strings);
 
         Assert.Equal("Web Search", modes[0].Title);
         Assert.Equal("Wikipedia", modes[1].Title);
@@ -52,16 +54,18 @@ public class SearchModeTests
     }
 
     [Fact]
-    public void Wikipedia_ModeTargetsSiteLanguageFollowingUiLanguage()
+    public void Wikipedia_ModeTargetsSiteLanguageFromTranslationMetadata()
     {
         var settings = new AppSettings();
 
-        var chineseModes = SearchModeCatalog.CreateDefault(settings, AppStrings.SimplifiedChinese);
+        var chineseStrings = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese);
+        var chineseModes = SearchModeCatalog.CreateDefault(settings, chineseStrings);
         Assert.Equal(
             "https://zh.wikipedia.org/w/index.php?search={0}",
             chineseModes[1].UrlTemplate);
 
-        var englishModes = SearchModeCatalog.CreateDefault(settings, AppStrings.English);
+        var englishStrings = TranslationCatalog.Default.Resolve(AppLanguage.English);
+        var englishModes = SearchModeCatalog.CreateDefault(settings, englishStrings);
         Assert.Equal(
             "https://en.wikipedia.org/w/index.php?search={0}",
             englishModes[1].UrlTemplate);

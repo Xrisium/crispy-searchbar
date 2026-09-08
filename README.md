@@ -11,7 +11,7 @@ Current milestone: search shell with a functional dictionary mode.
 - The visible UI is a single rounded capsule search bar. Dictionary candidates and details appear in an on-demand popup below it.
 - `Alt+Space` shows/hides the search bar; `Esc` or clicking another window hides it; the app keeps running in the tray with “Show / Hide Search Bar”, “Settings” and “Exit” menu items.
 - Quick Tab cycles through modes: Web Search → Wikipedia → Ask DeepSeek → Dictionary; holding Tab opens the vertical mode picker and releasing Tab switches (mouse wheel or ↑/↓ moves the highlight).
-- Web Search, Wikipedia and Ask DeepSeek open the default browser using a URL template (the query is URL-encoded into `{0}`). The Wikipedia mode targets zh.wikipedia.org for the Simplified Chinese UI and en.wikipedia.org otherwise, following the interface language.
+- Web Search, Wikipedia and Ask DeepSeek open the default browser using a URL template (the query is URL-encoded into `{0}`). The Wikipedia site follows the `wikipediaLanguage` metadata of the active translation file (for example zh.wikipedia.org for `zh-Hans` and en.wikipedia.org for `en`).
 - Dictionary mode performs offline lookup against CC-CEDICT (Chinese → English) and ECDICT (English → Chinese):
   - real-time candidate suggestions as you type;
   - English queries are case-insensitive and ignore trailing punctuation;
@@ -60,7 +60,7 @@ Example file:
 
 ```json
 {
-  "language": "zh-Hans",
+  "language": "system",
   "theme": "system",
   "searchEngine": "baidu",
   "clearQueryOnHide": true,
@@ -70,7 +70,7 @@ Example file:
 }
 ```
 
-- `language`: `zh-Hans` (default, Simplified Chinese) or `en` (English). Unsupported values fall back to `zh-Hans`.
+- `language`: `system` (default; follows the Windows UI language) or any BCP 47 code with a bundled translation under `locales/` (currently `zh-Hans` and `en`). Unknown codes and system languages without a match fall back to English.
 - `theme`: `system`, `light` or `dark`.
 - `searchEngine`: `baidu` (default), `google` or `bing`.
 - `clearQueryOnHide`: `true` (default) clears the typed query whenever the search bar is hidden; `false` keeps it.
@@ -78,7 +78,7 @@ Example file:
 - `dictionaryFilePath`: optional absolute path to a CC-CEDICT (Chinese → English) UTF-8 text file, typically `cedict_ts.u8` (`.u8`); `null` uses the user data directory, then the bundled file.
 - `ecdictFilePath`: optional absolute path to an ECDICT (English → Chinese) CSV file, typically `ecdict.csv` (`.csv`); `null` uses the user data directory, then the bundled file.
 
-All user-visible UI text is centralized in `src/CrispySearchbar.Core/Localization/`. Each supported language has a complete `AppStrings` instance registered in `AppLanguage.Supported`; adding another language means adding that instance, registering its code in `AppLanguage.Supported`, and mapping it in `AppStrings.For`.
+UI translations live in `locales/*.json` (see `locales/README.md`). `en.json` is the complete fallback: translation files may be partial, and missing or empty keys fall back to English. To add a language, copy `en.json` to `{code}.json`, translate the strings, set `nativeName` and `wikipediaLanguage`, then rebuild; the app discovers the file automatically and no code changes are required.
 
 If the file is missing or corrupt, defaults are used.
 
@@ -90,6 +90,7 @@ src/CrispySearchbar.Core/      Platform-independent core (settings, modes, URL b
 tests/CrispySearchbar.Core.Tests/  Unit tests for core logic
 licenses/                     Centralized full texts of third-party licenses
 assets/icon/                  App icon master PNG and multi-size ICO source assets
+locales/                      Per-language UI translations (see locales/README.md)
 data/cc-cedict/                Bundled CC-CEDICT data with its own license/notice
 data/ecdict/                   Bundled ECDICT data with its own license/notice
 ```

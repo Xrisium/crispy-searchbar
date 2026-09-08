@@ -223,16 +223,37 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         return true;
     }
 
+    private SettingFieldViewModel CreateSettingField(SettingDefinition definition)
+    {
+        if (definition.PropertyName != nameof(AppSettings.Language))
+        {
+            return SettingFieldViewModelFactory.Create(definition, _texts);
+        }
+
+        var overrides = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            [AppLanguage.System] = _texts.GetOptionLabel(
+                nameof(AppSettings.Language),
+                AppLanguage.System),
+        };
+        foreach (var language in TranslationCatalog.Default.Languages)
+        {
+            overrides[language.Language] = language.NativeName;
+        }
+
+        return new ChoiceSettingFieldViewModel(definition, _texts, overrides);
+    }
+
     private void RebuildSections()
     {
         Sections.Clear();
-        var definitions = AppSettingsSchema.Discover();
+        var definitions = AppSettingsSchema.Discover(TranslationCatalog.Default.UiLanguageOptionCodes);
         foreach (var section in Enum.GetValues<SettingsSection>())
         {
             var fields = new List<SettingFieldViewModel>();
             foreach (var definition in definitions.Where(item => item.Section == section))
             {
-                var field = SettingFieldViewModelFactory.Create(definition, _texts);
+                var field = CreateSettingField(definition);
                 field.LoadFrom(_settings);
                 fields.Add(field);
             }

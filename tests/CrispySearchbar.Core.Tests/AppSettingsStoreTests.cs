@@ -21,7 +21,7 @@ public class AppSettingsStoreTests
         {
             var settings = AppSettingsStore.LoadOrDefault(dir);
 
-            Assert.Equal(AppLanguage.SimplifiedChinese, settings.Language);
+            Assert.Equal(AppLanguage.System, settings.Language);
             Assert.Equal(ThemePreference.System, settings.Theme);
             Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
@@ -107,7 +107,7 @@ public class AppSettingsStoreTests
 
             var settings = AppSettingsStore.LoadOrDefault(dir);
 
-            Assert.Equal(AppLanguage.SimplifiedChinese, settings.Language);
+            Assert.Equal(AppLanguage.System, settings.Language);
             Assert.Equal(ThemePreference.System, settings.Theme);
             Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);

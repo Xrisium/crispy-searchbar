@@ -34,7 +34,7 @@ public sealed partial class SettingsWindow : Window
         SectionHost.PointerWheelChanged += OnPagePointerWheelChanged;
 
         var settings = AppSettingsStore.LoadOrDefault();
-        var strings = AppStrings.For(settings.Language);
+        var strings = TranslationCatalog.Default.Resolve(settings.Language);
         var viewModel = new SettingsWindowViewModel(
             settings,
             strings.SettingsTexts,

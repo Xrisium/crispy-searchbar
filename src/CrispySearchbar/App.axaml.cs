@@ -32,7 +32,7 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             _settings = AppSettingsStore.LoadOrDefault();
-            _strings = AppStrings.For(_settings.Language);
+            _strings = TranslationCatalog.Default.Resolve(_settings.Language);
             ApplyTheme(_settings.Theme);
 
             var modes = SearchModeCatalog.CreateDefault(_settings, _strings);
@@ -83,7 +83,7 @@ public partial class App : Application
             || !SameNormalizedPath(_settings.EcdictFilePath, settings.EcdictFilePath);
 
         _settings = settings;
-        _strings = AppStrings.For(settings.Language);
+        _strings = TranslationCatalog.Default.Resolve(settings.Language);
         ApplyTheme(settings.Theme);
 
         if (dictionaryPathsChanged)

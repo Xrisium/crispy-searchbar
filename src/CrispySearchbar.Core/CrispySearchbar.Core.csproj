@@ -7,4 +7,12 @@
     <RootNamespace>CrispySearchbar.Core</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\locales\*.json" Link="locales\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CrispySearchbar.Core.Tests" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,99 @@
+{
+  "nativeName": "English",
+  "wikipediaLanguage": "en",
+  "webSearchMode": {
+    "title": "Web Search",
+    "watermark": "Type keywords and press Enter to search",
+    "actionHint": "Press Enter to search with your default search engine"
+  },
+  "wikipediaMode": {
+    "title": "Wikipedia",
+    "watermark": "Type keywords and press Enter to search Wikipedia",
+    "actionHint": "Press Enter to open Wikipedia results in your browser"
+  },
+  "askAiMode": {
+    "title": "Ask DeepSeek",
+    "watermark": "Type a question and press Enter to open DeepSeek in your browser",
+    "actionHint": "Press Enter to open DeepSeek in your browser"
+  },
+  "dictionaryMode": {
+    "title": "Dictionary",
+    "watermark": "Type an English word or Chinese term",
+    "actionHint": "Search as you type; press Enter to view definitions"
+  },
+  "trayToolTip": "Crispy Searchbar",
+  "showHideSearchBar": "Show / Hide Search Bar",
+  "openSettings": "Settings",
+  "exit": "Exit",
+  "settingsTexts": {
+    "windowTitle": "Settings",
+    "save": "Save",
+    "browse": "Browse…",
+    "clear": "Clear",
+    "savedStatus": "Saved to settings.json",
+    "validationFailedStatus": "Fix the settings marked with an error first.",
+    "configFileLabel": "Configuration file:",
+    "openConfigFile": "Open configuration file",
+    "saveFailedTemplate": "Failed to save: {0}",
+    "urlTemplateRequiredError": "Enter a URL template.",
+    "urlTemplatePlaceholderError": "The URL template must contain the {0} placeholder.",
+    "aboutIntro": "Crispy Searchbar — a tiny, modern global search bar for Windows.",
+    "aboutVersionFormat": "Current version: {0}",
+    "aboutLicenseLine": "Project code is open source under the MIT License.",
+    "aboutGitHubLinkLabel": "GitHub repository",
+    "aboutThirdPartyNoticesLinkLabel": "Third-party notices",
+    "resetConfigText": "Reset configuration file",
+    "resetConfigDescription": "Restores settings.json to defaults and applies it immediately.",
+    "resetConfirmTitle": "Reset configuration file?",
+    "resetConfirmMessage": "settings.json will be restored to defaults and applied immediately; unsaved changes will be lost.",
+    "resetConfirmAcceptText": "Reset",
+    "resetConfirmCancelText": "Cancel",
+    "resetDoneStatus": "Reset to default configuration.",
+    "sectionTitles": {
+      "General": "General",
+      "Appearance": "Appearance",
+      "Search": "Search",
+      "Dictionary": "Dictionary",
+      "About": "About"
+    },
+    "fieldLabels": {
+      "Language": "Interface language",
+      "Theme": "Theme",
+      "SearchEngine": "Default search engine",
+      "ClearQueryOnHide": "Clear query when hidden",
+      "AskAiUrlTemplate": "Ask DeepSeek URL template",
+      "DictionaryFilePath": "Chinese-English dictionary file",
+      "EcdictFilePath": "English-Chinese dictionary file"
+    },
+    "fieldDescriptions": {
+      "Language": "The UI language updates immediately after saving.",
+      "Theme": "Appearance of the search bar and the settings window.",
+      "SearchEngine": "Search engine used by Web Search mode.",
+      "ClearQueryOnHide": "Clear the typed query whenever the search bar hides.",
+      "AskAiUrlTemplate": "Must contain {0}; the query replaces this placeholder.",
+      "DictionaryFilePath": "Accepts a CC-CEDICT UTF-8 text file, typically cedict_ts.u8 (*.u8). Leave empty to use the user data directory or the bundled file.",
+      "EcdictFilePath": "Accepts an ECDICT CSV file, typically ecdict.csv (*.csv). Leave empty to use the user data directory or the bundled file."
+    },
+    "optionLabels": {
+      "Language.system": "System",
+      "Theme.System": "System",
+      "Theme.Light": "Light",
+      "Theme.Dark": "Dark",
+      "SearchEngine.Baidu": "Baidu",
+      "SearchEngine.Google": "Google",
+      "SearchEngine.Bing": "Bing"
+    },
+    "fileTypeFilterNames": {
+      "CcCedict": "CC-CEDICT text file",
+      "Ecdict": "ECDICT CSV file"
+    }
+  },
+  "dictionaryEmptyHint": "Type an English word or Chinese term; use ↑/↓ to select and press Enter to view the definition",
+  "dictionaryLoadingHint": "Loading dictionary data…",
+  "dictionaryDataSourceNotConfigured": "Dictionary data sources are not configured.",
+  "dictionaryNoResultsTemplate": "No entries found for “{0}”.",
+  "dictionaryLoadFailedTemplate": "Failed to load dictionary data: {0}",
+  "dictionaryReadFailedTemplate": "Failed to read {0} dictionary data: {1}",
+  "configuredDictionaryFileMissingTemplate": "The {0} dictionary file specified in settings.json does not exist: {1}",
+  "dictionaryDataFileNotFoundTemplate": "Could not find the {0} dictionary data file ({1}). You can place the file at: {2} or {3}. Download URL: {4}"
+}

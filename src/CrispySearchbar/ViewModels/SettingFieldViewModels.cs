@@ -73,15 +73,34 @@ public sealed class ChoiceSettingFieldViewModel : SettingFieldViewModel
 {
     private ChoiceOptionViewModel? _selectedOption;
 
-    public ChoiceSettingFieldViewModel(SettingDefinition definition, AppSettingsTexts texts)
+    public ChoiceSettingFieldViewModel(
+        SettingDefinition definition,
+        AppSettingsTexts texts,
+        IReadOnlyDictionary<string, string>? optionLabelOverrides = null)
         : base(definition, texts)
     {
         Options = definition.OptionValues
             .Where(value => value is not null)
             .Select(value => new ChoiceOptionViewModel(
                 value!,
-                texts.GetOptionLabel(definition.PropertyName, value)))
+                ResolveOptionLabel(definition, texts, value!, optionLabelOverrides)))
             .ToArray();
+    }
+
+    private static string ResolveOptionLabel(
+        SettingDefinition definition,
+        AppSettingsTexts texts,
+        object value,
+        IReadOnlyDictionary<string, string>? overrides)
+    {
+        if (overrides is not null
+            && value.ToString() is { } key
+            && overrides.TryGetValue(key, out var label))
+        {
+            return label;
+        }
+
+        return texts.GetOptionLabel(definition.PropertyName, value);
     }
 
     public IReadOnlyList<ChoiceOptionViewModel> Options { get; }

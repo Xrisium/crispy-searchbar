@@ -1,4 +1,5 @@
 using System.Reflection;
+using CrispySearchbar.Core.Localization;
 
 namespace CrispySearchbar.Core.Configuration;
 
@@ -39,7 +40,7 @@ public sealed class SettingDefinition
 
     public SettingValidation Validation { get; }
 
-    /// <summary>Choice 字段的候选值；枚举字段为枚举值，字符串字段来自 SettingValues。</summary>
+    /// <summary>Choice 字段的候选值；枚举字段为枚举值，字符串字段来自调用方语言目录。</summary>
     public IReadOnlyList<object?> OptionValues { get; }
 
     /// <summary>FilePath 字段在文件选择器中使用的类型名文案键；可为 null。</summary>
@@ -58,10 +59,20 @@ public sealed class SettingDefinition
 /// <summary>
 /// 反射 AppSettings 上带 SettingAttribute 的属性，生成设置界面的渲染数据源。
 /// 新增配置项只需注解属性；测试会强制每个公共可写属性都已注解。
+/// Language 的候选项来自 <paramref name="languageOptionValues"/>（由 TranslationCatalog 提供），
+/// 未提供时使用稳定的默认候选（system/zh-Hans/en）。
 /// </summary>
 public static class AppSettingsSchema
 {
-    public static IReadOnlyList<SettingDefinition> Discover()
+    private static readonly string[] DefaultLanguageOptionValues =
+    {
+        AppLanguage.System,
+        AppLanguage.SimplifiedChinese,
+        AppLanguage.English,
+    };
+
+    public static IReadOnlyList<SettingDefinition> Discover(
+        IReadOnlyCollection<string>? languageOptionValues = null)
     {
         var entries = new List<(SettingDefinition Definition, int Order)>();
 
@@ -79,7 +90,7 @@ public static class AppSettingsSchema
 
             ValidatePropertyType(property, setting);
             ValidateFileTypeMetadata(property, setting);
-            var optionValues = ResolveOptionValues(property, setting);
+            var optionValues = ResolveOptionValues(property, setting, languageOptionValues);
             entries.Add((
                 new SettingDefinition(
                     property,
@@ -103,11 +114,24 @@ public static class AppSettingsSchema
 
     private static IReadOnlyList<object?>? ResolveOptionValues(
         PropertyInfo property,
-        SettingAttribute setting)
+        SettingAttribute setting,
+        IReadOnlyCollection<string>? languageOptionValues)
     {
         if (setting.EditorKind != SettingEditorKind.Choice)
         {
             return null;
+        }
+
+        if (property.Name == nameof(AppSettings.Language))
+        {
+            var codes = languageOptionValues is { Count: > 0 }
+                ? languageOptionValues
+                : DefaultLanguageOptionValues;
+            return codes
+                .Where(code => !string.IsNullOrWhiteSpace(code))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Cast<object?>()
+                .ToArray();
         }
 
         if (property.PropertyType.IsEnum)

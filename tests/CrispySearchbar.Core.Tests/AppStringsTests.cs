@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.Json.Nodes;
 using CrispySearchbar.Core.Configuration;
 using CrispySearchbar.Core.Localization;
 using Xunit;
@@ -9,11 +11,13 @@ public class AppStringsTests
     [Theory]
     [InlineData(AppLanguage.SimplifiedChinese)]
     [InlineData(AppLanguage.English)]
-    public void ForSupportedLanguage_ReturnsCompleteTexts(string language)
+    public void BundledLanguages_ReturnCompleteTexts(string language)
     {
-        var strings = AppStrings.For(language);
+        var strings = TranslationCatalog.Default.Resolve(language);
 
         Assert.Equal(language, strings.Language);
+        Assert.False(string.IsNullOrWhiteSpace(strings.NativeName));
+        Assert.False(string.IsNullOrWhiteSpace(strings.WikipediaLanguageCode));
         Assert.False(string.IsNullOrWhiteSpace(strings.ShowHideSearchBar));
         Assert.False(string.IsNullOrWhiteSpace(strings.Exit));
         Assert.False(string.IsNullOrWhiteSpace(strings.TrayToolTip));
@@ -41,48 +45,131 @@ public class AppStringsTests
         Assert.Contains("{0}", strings.DictionaryDataFileNotFoundTemplate);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("fr")]
-    [InlineData("zh-CN")]
-    public void UnsupportedOrMissingLanguage_FallsBackToSimplifiedChinese(string? language)
+    [Fact]
+    public void SystemLanguage_FollowsUiCultureWithEnglishFallback()
     {
-        var strings = AppStrings.For(language);
+        var catalog = TranslationCatalog.Default;
 
-        Assert.Equal(AppLanguage.SimplifiedChinese, strings.Language);
-        Assert.Equal("网页搜索", strings.WebSearchMode.Title);
+        Assert.Equal(
+            AppLanguage.English,
+            catalog.Resolve(AppLanguage.System, new CultureInfo("en-US")).Language);
+        Assert.Equal(
+            AppLanguage.SimplifiedChinese,
+            catalog.Resolve(AppLanguage.System, new CultureInfo("zh-CN")).Language);
+        Assert.Equal(
+            AppLanguage.SimplifiedChinese,
+            catalog.Resolve(AppLanguage.System, new CultureInfo("zh-TW")).Language);
+        Assert.Equal(
+            AppLanguage.English,
+            catalog.Resolve(AppLanguage.System, new CultureInfo("fr-FR")).Language);
+        Assert.Equal(
+            AppLanguage.English,
+            catalog.Resolve(null, new CultureInfo("de-DE")).Language);
+    }
+
+    [Theory]
+    [InlineData("fr")]
+    [InlineData("unknown")]
+    [InlineData("zh-CN")]
+    public void UnsupportedConfiguredLanguage_FallsBackToEnglish(string language)
+    {
+        Assert.Equal(
+            AppLanguage.English,
+            TranslationCatalog.Default.Resolve(language).Language);
     }
 
     [Fact]
-    public void Normalize_IsCaseInsensitive()
+    public void Resolution_IsCaseInsensitive()
     {
-        Assert.Equal(AppLanguage.English, AppLanguage.Normalize("EN"));
-        Assert.Equal(AppLanguage.SimplifiedChinese, AppLanguage.Normalize("ZH-HANS"));
+        var catalog = TranslationCatalog.Default;
+
+        Assert.Equal(AppLanguage.English, catalog.Resolve("EN").Language);
+        Assert.Equal(AppLanguage.SimplifiedChinese, catalog.Resolve("ZH-HANS").Language);
+    }
+
+    [Fact]
+    public void PartialTranslation_FallsBackToEnglishForMissingKeys()
+    {
+        var sources = TranslationCatalog.ReadEmbeddedSources(
+            typeof(TranslationCatalog).Assembly);
+        var partial = JsonNode.Parse(sources[AppLanguage.English])!.AsObject();
+
+        partial["nativeName"] = "Deutsch";
+        partial["wikipediaLanguage"] = "de";
+        partial["dictionaryMode"]!["title"] = "Wörterbuch";
+        partial["dictionaryMode"]!["watermark"] = "Deutsches Wort eingeben";
+        partial.Remove("dictionaryLoadingHint");
+
+        sources["de"] = partial.ToJsonString();
+        var catalog = TranslationCatalog.Create(sources);
+        var german = catalog.Resolve("de");
+
+        Assert.Equal("de", german.Language);
+        Assert.Equal("Deutsch", german.NativeName);
+        Assert.Equal("de", german.WikipediaLanguageCode);
+        Assert.Equal("Wörterbuch", german.DictionaryMode.Title);
+        Assert.Equal(
+            "Loading dictionary data…",
+            german.DictionaryLoadingHint);
+    }
+
+    [Fact]
+    public void AddedTranslationFile_IsDiscoveredWithoutRegistration()
+    {
+        var sources = TranslationCatalog.ReadEmbeddedSources(
+            typeof(TranslationCatalog).Assembly);
+        var partial = JsonNode.Parse(sources[AppLanguage.English])!.AsObject();
+        partial["nativeName"] = "Deutsch";
+        partial["wikipediaLanguage"] = "de";
+
+        sources["de"] = partial.ToJsonString();
+        var catalog = TranslationCatalog.Create(sources);
+
+        Assert.Contains("de", catalog.LanguageCodes);
+        Assert.Equal("Deutsch", catalog.GetNativeName("de"));
+        Assert.Equal(
+            new[]
+            {
+                AppLanguage.System,
+                AppLanguage.English,
+                "de",
+                AppLanguage.SimplifiedChinese,
+            },
+            catalog.UiLanguageOptionCodes);
     }
 
     [Fact]
     public void FormatDictionaryNoResults_EmbedsQuery()
     {
-        var chinese = AppStrings.SimplifiedChinese.FormatDictionaryNoResults("apple");
+        var chinese = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese)
+            .FormatDictionaryNoResults("apple");
         Assert.Contains("apple", chinese);
 
-        var english = AppStrings.English.FormatDictionaryNoResults("apple");
+        var english = TranslationCatalog.Default.Resolve(AppLanguage.English)
+            .FormatDictionaryNoResults("apple");
         Assert.Contains("apple", english);
     }
 
     [Fact]
     public void SearchEngineDisplayNames_AreLocalized()
     {
-        Assert.Equal("百度", AppStrings.SimplifiedChinese.GetSearchEngineDisplayName(SearchEngineKind.Baidu));
-        Assert.Equal("Baidu", AppStrings.English.GetSearchEngineDisplayName(SearchEngineKind.Baidu));
+        var chinese = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese);
+        var english = TranslationCatalog.Default.Resolve(AppLanguage.English);
+
+        Assert.Equal("百度", chinese.GetSearchEngineDisplayName(SearchEngineKind.Baidu));
+        Assert.Equal("必应", chinese.GetSearchEngineDisplayName(SearchEngineKind.Bing));
+        Assert.Equal("Baidu", english.GetSearchEngineDisplayName(SearchEngineKind.Baidu));
+        Assert.Equal("Bing", english.GetSearchEngineDisplayName(SearchEngineKind.Bing));
+        Assert.Equal("Google", english.GetSearchEngineDisplayName(SearchEngineKind.Google));
     }
 
     [Fact]
-    public void SettingsTexts_CoverEverySchemaFieldAndOptionInBothLanguages()
+    public void SettingsTexts_CoverEverySchemaFieldAndKnownOptionInBundledLanguages()
     {
-        var chinese = AppStrings.SimplifiedChinese.SettingsTexts;
-        var english = AppStrings.English.SettingsTexts;
+        var chinese = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese)
+            .SettingsTexts;
+        var english = TranslationCatalog.Default.Resolve(AppLanguage.English)
+            .SettingsTexts;
 
         Assert.Equal(
             chinese.FieldLabels.Keys.OrderBy(key => key, StringComparer.Ordinal),
@@ -91,16 +178,18 @@ public class AppStringsTests
             chinese.FieldDescriptions.Keys.OrderBy(key => key, StringComparer.Ordinal),
             english.FieldDescriptions.Keys.OrderBy(key => key, StringComparer.Ordinal));
         Assert.Equal(
-            chinese.OptionLabels.Keys.OrderBy(key => key, StringComparer.Ordinal),
-            english.OptionLabels.Keys.OrderBy(key => key, StringComparer.Ordinal));
+            chinese.SectionTitles.Keys.OrderBy(key => key, StringComparer.Ordinal),
+            english.SectionTitles.Keys.OrderBy(key => key, StringComparer.Ordinal));
         Assert.Equal(
             chinese.FileTypeFilterNames.Keys.OrderBy(key => key, StringComparer.Ordinal),
             english.FileTypeFilterNames.Keys.OrderBy(key => key, StringComparer.Ordinal));
-        Assert.Equal(
-            chinese.SectionTitles.Keys.OrderBy(key => key, StringComparer.Ordinal),
-            english.SectionTitles.Keys.OrderBy(key => key, StringComparer.Ordinal));
 
-        foreach (var definition in AppSettingsSchema.Discover())
+        Assert.Equal("跟随系统", chinese.GetOptionLabel("Language", AppLanguage.System));
+        Assert.Equal("System", english.GetOptionLabel("Language", AppLanguage.System));
+
+        var languageOptions = TranslationCatalog.Default.UiLanguageOptionCodes;
+        var definitions = AppSettingsSchema.Discover(languageOptions);
+        foreach (var definition in definitions)
         {
             Assert.True(
                 chinese.FieldLabels.ContainsKey(definition.PropertyName),
@@ -114,6 +203,27 @@ public class AppStringsTests
             Assert.True(
                 english.FieldDescriptions.ContainsKey(definition.PropertyName),
                 $"缺少字段说明：{definition.PropertyName}");
+
+            if (definition.PropertyName == nameof(AppSettings.Language))
+            {
+                foreach (var option in definition.OptionValues)
+                {
+                    if (string.Equals(
+                            option?.ToString(),
+                            AppLanguage.System,
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    Assert.False(
+                        string.IsNullOrWhiteSpace(
+                            TranslationCatalog.Default.GetNativeName(option?.ToString() ?? string.Empty)),
+                        $"语言缺少 nativeName：{option}");
+                }
+
+                continue;
+            }
 
             foreach (var option in definition.OptionValues)
             {

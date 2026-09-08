@@ -6,12 +6,11 @@ namespace CrispySearchbar.Core.Configuration;
 public sealed class AppSettings
 {
     /// <summary>
-    /// 界面语言代码（BCP 47），当前支持 zh-Hans/en，默认 zh-Hans。
-    /// 未知值由 AppStrings.For 回退到默认简体中文。
+    /// 界面语言：system（默认，跟随系统）或 locales 中提供的 BCP 47 代码（如 zh-Hans、en）。
+    /// 未知值由 TranslationCatalog 回退英文。
     /// </summary>
     [Setting(SettingsSection.General, SettingEditorKind.Choice, Order = 0)]
-    [SettingValues(Values = new[] { AppLanguage.SimplifiedChinese, AppLanguage.English })]
-    public string Language { get; set; } = AppLanguage.SimplifiedChinese;
+    public string Language { get; set; } = AppLanguage.System;
 
     [Setting(SettingsSection.Appearance, SettingEditorKind.Choice, Order = 0)]
     public ThemePreference Theme { get; set; } = ThemePreference.System;

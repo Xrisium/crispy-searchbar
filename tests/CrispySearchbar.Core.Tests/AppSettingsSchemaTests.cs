@@ -27,7 +27,7 @@ public class AppSettingsSchemaTests
     }
 
     [Fact]
-    public void LanguageField_UsesSupportedValues()
+    public void LanguageField_DefaultValues_AreStable()
     {
         var language = AppSettingsSchema.Discover()
             .Single(definition => definition.PropertyName == nameof(AppSettings.Language));
@@ -35,8 +35,28 @@ public class AppSettingsSchemaTests
         Assert.Equal(SettingsSection.General, language.Section);
         Assert.Equal(SettingEditorKind.Choice, language.EditorKind);
         Assert.Equal(
-            AppLanguage.Supported.Cast<object>().OrderBy(value => value?.ToString()),
-            language.OptionValues.OrderBy(value => value?.ToString()));
+            new[]
+            {
+                AppLanguage.System,
+                AppLanguage.SimplifiedChinese,
+                AppLanguage.English,
+            },
+            language.OptionValues.Cast<string>());
+    }
+
+    [Fact]
+    public void LanguageField_UsesEmbeddedCatalogChoices()
+    {
+        var catalog = TranslationCatalog.Default;
+        var language = AppSettingsSchema.Discover(catalog.UiLanguageOptionCodes)
+            .Single(definition => definition.PropertyName == nameof(AppSettings.Language));
+
+        Assert.Equal(
+            catalog.UiLanguageOptionCodes,
+            language.OptionValues.Cast<string>());
+        Assert.Contains(AppLanguage.System, language.OptionValues);
+        Assert.Contains(AppLanguage.English, language.OptionValues);
+        Assert.Contains(AppLanguage.SimplifiedChinese, language.OptionValues);
     }
 
     [Fact]
