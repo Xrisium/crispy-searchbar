@@ -1,5 +1,11 @@
 Read this in other languages: [简体中文](README.md), **English**
 
+<br>
+<div align="center">
+  <img src="assets/icon/crispy-searchbar-1024x.png" width="20%">
+</div>
+<br>
+
 # Crispy Searchbar
 
 A lightweight, modern and fast global search bar for Windows. Built with C# and Avalonia UI, it is designed around fast response, low background resource usage, and clean separation between search modes.
@@ -8,9 +14,16 @@ This project has **no** intention of becoming an integrated or all-in-one search
 
 ## Features
 
+<br>
+<div align="center">
+  <img src="assets/preview.png" width="80%">
+</div>
+<br>
+
 - **Quick summon**: stays resident in the system tray; press the hotkey (default `Alt+Space`) to bring up the search bar instantly.
 - **Mode switching**: tap the mode key (default `Tab`) to switch to the next search mode while keeping your input; hold the mode key to open the mode wheel and switch with `↑` / `↓` or the mouse wheel.
 - **Customizable modes**: users can enable or disable any search mode at any time from the settings panel, and drag modes to reorder them in the switcher wheel.
+- **Follow System Theme**: Supports light/dark modes and can automatically switch according to the system theme.
 
 ## Supported search modes
 

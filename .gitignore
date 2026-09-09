@@ -403,3 +403,6 @@ FodyWeavers.xsd
 # Local-only agent development guidance (never published to the repository)
 .agents/
 /AGENTS.md
+
+# unnecessary assets
+assets/preview

@@ -1,5 +1,11 @@
 Read this in other languages: **简体中文**, [English](README.en-US.md)
 
+<br>
+<div align="center">
+  <img src="assets/icon/crispy-searchbar-1024x.png" width="20%">
+</div>
+<br>
+
 # 酥脆搜索（Crispy Searchbar）
 
 一款轻量、现代、快速的 Windows 全局搜索框。使用 C# 与 Avalonia UI 构建，以响应迅速、后台低占用、搜索模式分离为设计目标。
@@ -8,9 +14,16 @@ Read this in other languages: **简体中文**, [English](README.en-US.md)
 
 ## 功能特色
 
+<br>
+<div align="center">
+  <img src="assets/preview.png" width="80%">
+</div>
+<br>
+
 - **快速呼出**：常驻于系统托盘，按下快捷键（默认为 Alt + 空格键）即可呼出搜索框。
 - **模式切换**：短按模式切换键（默认为 Tab）快速切换到下一搜索模式（保留输入内容）；长按模式切换键呼出模式选择轮盘，并可以用 ↑、↓ 键或鼠标滚轮进行切换。
 - **模式自定义**：用户可随时在配置设置面板中启用或禁用任意搜索模式，并可对各个模式在切换轮盘中的位置进行拖拽排序。
+- **跟随系统主题**：支持浅色/深色模式，并可根据系统主题自动跟随切换。
 
 ## 支持搜索模式
 
