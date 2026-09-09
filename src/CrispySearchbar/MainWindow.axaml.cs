@@ -2,9 +2,11 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using System.ComponentModel;
 using CrispySearchbar.Core.Configuration;
 using CrispySearchbar.Core.Modes;
 using CrispySearchbar.Input;
+using CrispySearchbar.Platform;
 using CrispySearchbar.ViewModels;
 
 namespace CrispySearchbar;
@@ -22,6 +24,7 @@ public partial class MainWindow : Window
     private bool _modeWheelOpened;
     private bool _suppressModeKeyRelease;
     private DateTime _lastActivatedUtc = DateTime.MinValue;
+    private IGlobalMouseWheelService? _mouseWheelService;
 
     public MainWindow()
     {
@@ -45,6 +48,35 @@ public partial class MainWindow : Window
     private MainWindowViewModel ViewModel => (MainWindowViewModel)DataContext!;
 
     public void AllowClose() => _allowClose = true;
+
+    /// <summary>
+    /// 注入全局滚轮拦截服务；轮盘呼出/关闭时自动启停，确保光标在屏幕任意位置
+    /// 滚动都能移动轮盘高亮，且轮盘关闭后立即恢复各窗口的正常滚动。
+    /// </summary>
+    public void AttachModeWheelCapture(IGlobalMouseWheelService mouseWheelService)
+    {
+        ArgumentNullException.ThrowIfNull(mouseWheelService);
+
+        if (!ReferenceEquals(_mouseWheelService, mouseWheelService))
+        {
+            if (_mouseWheelService is not null)
+            {
+                _mouseWheelService.WheelDelta -= OnGlobalMouseWheelDelta;
+            }
+
+            _mouseWheelService = mouseWheelService;
+            _mouseWheelService.WheelDelta += OnGlobalMouseWheelDelta;
+        }
+
+        if (ViewModel is null)
+        {
+            return;
+        }
+
+        ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+        SetGlobalWheelCaptureActive(ViewModel.IsModeWheelOpen);
+    }
 
     /// <summary>设置保存后由 App 下发最新键位与 Esc 行为；未完成的长按状态一并取消。</summary>
     public void ApplyConfiguration(ShortcutCatalog shortcuts, bool hideOnEscape)
@@ -313,6 +345,43 @@ public partial class MainWindow : Window
             _modeWheelOpened = false;
             _suppressModeKeyRelease = _modeKeyDown;
             e.Handled = true;
+        }
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (string.Equals(
+                e.PropertyName,
+                nameof(MainWindowViewModel.IsModeWheelOpen),
+                StringComparison.Ordinal))
+        {
+            SetGlobalWheelCaptureActive(ViewModel.IsModeWheelOpen);
+        }
+    }
+
+    private void OnGlobalMouseWheelDelta(int delta)
+    {
+        if (ViewModel.IsModeWheelOpen)
+        {
+            ViewModel.MoveModeWheelSelection(delta > 0 ? -1 : 1);
+        }
+    }
+
+    private void SetGlobalWheelCaptureActive(bool active)
+    {
+        var service = _mouseWheelService;
+        if (service is null)
+        {
+            return;
+        }
+
+        if (active)
+        {
+            service.TryStart();
+        }
+        else
+        {
+            service.Stop();
         }
     }
 

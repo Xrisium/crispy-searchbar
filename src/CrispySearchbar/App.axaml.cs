@@ -23,6 +23,7 @@ public partial class App : Application
     private AppDictionaryResources? _dictionaryResources;
     private Task<DictionaryLoadResult>? _dictionaryLoadTask;
     private IGlobalHotkeyService? _hotkeyService;
+    private IGlobalMouseWheelService? _mouseWheelService;
     private TrayIconService? _trayIconService;
 
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
@@ -55,6 +56,8 @@ public partial class App : Application
                 loadDictionary: () => _dictionaryLoadTask);
             var mainWindow = new MainWindow { DataContext = _viewModel };
             _mainWindow = mainWindow;
+            _mouseWheelService = GlobalMouseWheelServiceFactory.Create();
+            mainWindow.AttachModeWheelCapture(_mouseWheelService);
             mainWindow.ApplyConfiguration(shortcuts, _settings.HideOnEscape);
 
             // 托盘常驻：没有窗口时也不退出，退出由托盘菜单显式触发。
@@ -208,6 +211,12 @@ public partial class App : Application
 
     private void ExitApplication()
     {
+        if (_mouseWheelService is not null)
+        {
+            _mouseWheelService.Dispose();
+            _mouseWheelService = null;
+        }
+
         if (_hotkeyService is not null)
         {
             _hotkeyService.Pressed -= ToggleSearchBar;
