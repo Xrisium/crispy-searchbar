@@ -125,7 +125,7 @@
               BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
               BorderThickness="1"
               CornerRadius="18"
-              BoxShadow="0 12 28 0 #38000000">
+              BoxShadow="0 0 0 0 Transparent">
         <Border CornerRadius="18" ClipToBounds="True">
         <Grid>
           <!-- 候选列表 / 空状态提示 -->
@@ -230,7 +230,7 @@
               BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
               BorderThickness="1"
               CornerRadius="12"
-              BoxShadow="0 12 28 0 #38000000"
+              BoxShadow="0 0 0 0 Transparent"
               PointerWheelChanged="OnModeWheelPointerWheelChanged">
         <Border CornerRadius="12" ClipToBounds="True">
         <ListBox x:Name="ModeWheelList"
