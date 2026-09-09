@@ -2,7 +2,7 @@ Read this in other languages: [简体中文](README.md), **English**
 
 <br>
 <div align="center">
-  <img src="assets/icon/crispy-searchbar-1024x.png" width="20%">
+  <img src="assets/icon/crispy-searchbar-256x.png" width="20%">
 </div>
 <br>
 
