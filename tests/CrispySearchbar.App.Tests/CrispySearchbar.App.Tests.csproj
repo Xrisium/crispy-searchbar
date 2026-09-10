@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>CrispySearchbar.App.Tests</RootNamespace>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- xunit.v3 自带 Microsoft Testing Platform 运行器，让 `dotnet test` 能直接发现并运行本项目的测试。 -->
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CrispySearchbar\CrispySearchbar.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 词典候选点击回归测试需要真实的 ECDICT 数据文件。 -->
+    <None Include="..\..\data\ecdict\ecdict.csv" Link="ecdict.csv" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+    <!-- Avalonia.Headless.XUnit 12.x 面向 xUnit v3；测试项目必须使用 v3 才能发现 [AvaloniaFact]。 -->
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
+    <PackageReference Include="Avalonia.Headless" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Headless.XUnit" Version="12.1.2" />
+  </ItemGroup>
+
+</Project>

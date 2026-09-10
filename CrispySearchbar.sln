@@ -8,6 +8,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrispySearchbar", "src\Cris
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrispySearchbar.Core.Tests", "tests\CrispySearchbar.Core.Tests\CrispySearchbar.Core.Tests.csproj", "{A5D8B6C3-7E40-4B2A-9F3C-6D1E8A0B4C33}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrispySearchbar.App.Tests", "tests\CrispySearchbar.App.Tests\CrispySearchbar.App.Tests.csproj", "{E08CD992-152E-4161-B460-7080D1F9A682}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{A5D8B6C3-7E40-4B2A-9F3C-6D1E8A0B4C33}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5D8B6C3-7E40-4B2A-9F3C-6D1E8A0B4C33}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5D8B6C3-7E40-4B2A-9F3C-6D1E8A0B4C33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E08CD992-152E-4161-B460-7080D1F9A682}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E08CD992-152E-4161-B460-7080D1F9A682}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E08CD992-152E-4161-B460-7080D1F9A682}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E08CD992-152E-4161-B460-7080D1F9A682}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

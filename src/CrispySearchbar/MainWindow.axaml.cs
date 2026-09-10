@@ -1,7 +1,9 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
 using System.ComponentModel;
 using CrispySearchbar.Core.Configuration;
 using CrispySearchbar.Core.Modes;
@@ -40,6 +42,14 @@ public partial class MainWindow : Window
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
         AddHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel);
         AddHandler(PointerPressedEvent, OnWindowPointerPressed, RoutingStrategies.Tunnel);
+        // 候选词条点击：挂在候选列表上并用 handledEventsToo。
+        // 浮层里的指针事件到达行模板（StackPanel）前已被上层标记为已处理，且行模板不在
+        // 路由事件路径上，因此 XAML 里订阅模板元素永远不会触发；这里在列表中统一处理。
+        DictionaryCandidatesList.AddHandler(
+            PointerReleasedEvent,
+            OnDictionaryCandidatePointerReleased,
+            RoutingStrategies.Bubble,
+            handledEventsToo: true);
         Closing += OnClosing;
         Activated += OnActivated;
         Deactivated += OnDeactivated;
@@ -152,10 +162,12 @@ public partial class MainWindow : Window
         Hide();
     }
 
-    private void OnDictionaryCandidatePointerPressed(object? sender, PointerPressedEventArgs e)
+    /// <summary>鼠标左键在候选行上释放时打开对应词条详情。</summary>
+    private void OnDictionaryCandidatePointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        if (sender is Control { DataContext: DictionaryCandidateViewModel candidate }
-            && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        if (e.InitialPressMouseButton == MouseButton.Left
+            && e.Source is Visual source
+            && source.FindAncestorOfType<ListBoxItem>() is { DataContext: DictionaryCandidateViewModel candidate })
         {
             ViewModel.OpenDictionaryCandidate(candidate);
             e.Handled = true;

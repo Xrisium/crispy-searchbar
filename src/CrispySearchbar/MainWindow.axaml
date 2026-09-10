@@ -138,7 +138,8 @@
                        TextWrapping="Wrap"
                        VerticalAlignment="Top" />
 
-            <ListBox ItemsSource="{Binding DictionaryCandidates}"
+            <ListBox x:Name="DictionaryCandidatesList"
+                     ItemsSource="{Binding DictionaryCandidates}"
                      IsVisible="{Binding HasDictionaryCandidates}"
                      SelectedIndex="{Binding DictionarySelectedIndex, Mode=TwoWay}"
                      Background="Transparent"
@@ -165,7 +166,7 @@
               </ListBox.Styles>
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:DictionaryCandidateViewModel">
-                  <StackPanel Spacing="2" PointerPressed="OnDictionaryCandidatePointerPressed">
+                  <StackPanel Spacing="2">
                     <TextBlock Text="{Binding HeadwordLine}"
                                FontSize="14"
                                FontWeight="600"
