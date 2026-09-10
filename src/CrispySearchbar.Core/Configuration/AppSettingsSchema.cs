@@ -160,6 +160,7 @@ public static class AppSettingsSchema
             SettingEditorKind.FilePath => type == typeof(string),
             SettingEditorKind.ModeList => type == typeof(ModePreference[]),
             SettingEditorKind.ShortcutKey => type == typeof(string),
+            SettingEditorKind.Offset => type == typeof(ScreenOffset),
             _ => false,
         };
 

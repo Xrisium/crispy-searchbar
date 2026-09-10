@@ -58,6 +58,9 @@
     "shortcutUnsetText": "No shortcut set",
     "shortcutResetAllText": "Reset all shortcuts to default",
     "shortcutGlobalConflictWarning": "Conflicts with another app\u2019s global shortcut and may behave unexpectedly.",
+    "searchBarPositionHorizontalLabel": "Horizontal X",
+    "searchBarPositionVerticalLabel": "Vertical Y",
+    "searchBarPositionResetText": "Restore default position",
     "sectionTitles": {
       "General": "General",
       "Appearance": "Appearance",
@@ -70,6 +73,7 @@
     "fieldLabels": {
       "Language": "Interface language",
       "Theme": "Theme",
+      "SearchBarOffset": "Search bar position",
       "SearchEngine": "Default search engine",
       "ClearQueryOnHide": "Clear query when hidden",
       "AskAiUrlTemplate": "Ask DeepSeek URL template",
@@ -86,6 +90,7 @@
     "fieldDescriptions": {
       "Language": "The UI language updates immediately after saving.",
       "Theme": "Appearance of the search bar and the settings window.",
+      "SearchBarOffset": "Offset from the center of the primary screen\u2019s work area, in DIP (equal to pixels at 100% scaling); 0 means centered, and positive values move right/down.",
       "SearchEngine": "Search engine used by Web Search mode.",
       "ClearQueryOnHide": "Clear the typed query whenever the search bar hides.",
       "AskAiUrlTemplate": "Must contain {0}; the query replaces this placeholder.",

@@ -10,6 +10,7 @@ using CrispySearchbar.Core.Modes;
 using CrispySearchbar.Input;
 using CrispySearchbar.Platform;
 using CrispySearchbar.ViewModels;
+using PopupPlacementMode = Avalonia.Controls.PlacementMode;
 
 namespace CrispySearchbar;
 
@@ -17,9 +18,12 @@ public partial class MainWindow : Window
 {
     private const int ModeWheelHoldDelayMs = 200;
     private const int DeactivationGraceMs = 250;
+    private const int OverlayGap = 10;
+    private const int ModeWheelHorizontalOffset = 220;
 
     private readonly DispatcherTimer _modeKeyHoldTimer;
     private ShortcutCatalog _shortcuts = ShortcutCatalog.Default;
+    private ScreenOffset _searchBarOffset = ScreenOffset.Default;
     private bool _allowClose;
     private bool _hideOnEscape = true;
     private bool _modeKeyDown;
@@ -89,7 +93,10 @@ public partial class MainWindow : Window
     }
 
     /// <summary>设置保存后由 App 下发最新键位与 Esc 行为；未完成的长按状态一并取消。</summary>
-    public void ApplyConfiguration(ShortcutCatalog shortcuts, bool hideOnEscape)
+    public void ApplyConfiguration(
+        ShortcutCatalog shortcuts,
+        bool hideOnEscape,
+        ScreenOffset searchBarOffset)
     {
         ArgumentNullException.ThrowIfNull(shortcuts);
 
@@ -99,7 +106,11 @@ public partial class MainWindow : Window
         }
 
         _hideOnEscape = hideOnEscape;
+        _searchBarOffset = searchBarOffset;
         CancelModeKeyHold();
+
+        // 位置改动立即生效：搜索框可见时当场移动，隐藏时下次呼出使用新位置。
+        ApplySearchBarPosition();
     }
 
     /// <summary>隐藏到托盘；应用保持运行，等待全局快捷键或托盘菜单唤回。</summary>
@@ -115,6 +126,10 @@ public partial class MainWindow : Window
     /// <summary>从托盘/全局快捷键唤出：显示、恢复、激活并聚焦输入框。</summary>
     public void ShowFromTray()
     {
+        // 先摆好位置再显示，避免启动瞬间出现在系统默认位置后跳动；
+        // 显示后再应用一次，覆盖平台窗口刚创建时可能忽略初始坐标的情况。
+        ApplySearchBarPosition();
+
         if (!IsVisible)
         {
             Show();
@@ -125,11 +140,55 @@ public partial class MainWindow : Window
             WindowState = WindowState.Normal;
         }
 
+        ApplySearchBarPosition();
         Activate();
         QueryBox.Focus();
         QueryBox.CaretIndex = QueryBox.Text?.Length ?? 0;
         ViewModel.OnWindowShown();
         DictionaryPopup.IsOpen = ViewModel.IsDictionaryPopupOpen;
+    }
+
+    /// <summary>
+    /// 把窗口摆到主显示器工作区：默认居中，叠加配置的 DIP 偏移，最后整体夹回工作区内。
+    /// 主显示器不可用（例如无头测试）时保持系统默认位置，行为与改动前一致。
+    /// </summary>
+    private void ApplySearchBarPosition()
+    {
+        if (Screens.Primary is not { } screen)
+        {
+            return;
+        }
+
+        var workArea = screen.WorkingArea;
+        var placement = SearchBarPlacement.Compute(
+            workArea.X,
+            workArea.Y,
+            workArea.Width,
+            workArea.Height,
+            Width,
+            Height,
+            screen.Scaling,
+            _searchBarOffset);
+
+        Position = new PixelPoint(placement.X, placement.Y);
+        ApplyOverlayDirection(placement.OverlaysAbove);
+    }
+
+    /// <summary>
+    /// 搜索框落在屏幕下半部时，词典候选浮层与模式轮盘改为向上弹出，避免被屏幕底边裁掉。
+    /// </summary>
+    private void ApplyOverlayDirection(bool overlaysAbove)
+    {
+        var placement = overlaysAbove
+            ? PopupPlacementMode.Top
+            : PopupPlacementMode.Bottom;
+        var verticalOffset = overlaysAbove ? -OverlayGap : OverlayGap;
+
+        DictionaryPopup.Placement = placement;
+        DictionaryPopup.VerticalOffset = verticalOffset;
+        ModeWheelPopup.Placement = placement;
+        ModeWheelPopup.VerticalOffset = verticalOffset;
+        ModeWheelPopup.HorizontalOffset = ModeWheelHorizontalOffset;
     }
 
     private void OnActivated(object? sender, EventArgs e) => _lastActivatedUtc = DateTime.UtcNow;

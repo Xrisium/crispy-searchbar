@@ -7,7 +7,7 @@
         x:DataType="vm:MainWindowViewModel"
         Width="660"
         Height="88"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="Manual"
         WindowDecorations="None"
         CanResize="False"
         ShowInTaskbar="False"

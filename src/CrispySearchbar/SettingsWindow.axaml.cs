@@ -407,6 +407,14 @@ public sealed partial class SettingsWindow : Window
     private void OnResetAllShortcutsClicked(object? sender, RoutedEventArgs e)
         => ViewModel.ResetAllShortcuts();
 
+    private void OnResetSearchBarPositionClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: OffsetSettingFieldViewModel field })
+        {
+            field.ResetToDefault();
+        }
+    }
+
     private void OnWindowPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         var field = _recordingShortcutField;

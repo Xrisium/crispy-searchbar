@@ -642,6 +642,98 @@ public sealed class ShortcutResetAllViewModel
     public string Text { get; }
 }
 
+/// <summary>
+/// 搜索框位置设置行：水平/垂直数字输入微调相对屏幕中央的偏移（DIP），
+/// 并提供“恢复默认位置”按钮（只重置当前面板，保存后写盘）。
+/// </summary>
+public sealed class OffsetSettingFieldViewModel : SettingFieldViewModel
+{
+    /// <summary>允许输入的偏移范围（DIP）；越界位置在定位阶段还会被夹回屏幕内。</summary>
+    public const int MinOffset = -5000;
+
+    public const int MaxOffset = 5000;
+
+    public const int OffsetStep = 10;
+
+    private int _x;
+    private int _y;
+
+    public OffsetSettingFieldViewModel(SettingDefinition definition, AppSettingsTexts texts)
+        : base(definition, texts)
+    {
+    }
+
+    public decimal Minimum => MinOffset;
+
+    public decimal Maximum => MaxOffset;
+
+    public decimal Increment => OffsetStep;
+
+    public string HorizontalLabel => Texts.SearchBarPositionHorizontalLabel;
+
+    public string VerticalLabel => Texts.SearchBarPositionVerticalLabel;
+
+    public string ResetText => Texts.SearchBarPositionResetText;
+
+    /// <summary>水平偏移（DIP），向右为正。</summary>
+    public decimal? X
+    {
+        get => _x;
+        set => SetAxis(value, ref _x, nameof(X));
+    }
+
+    /// <summary>垂直偏移（DIP），向下为正。</summary>
+    public decimal? Y
+    {
+        get => _y;
+        set => SetAxis(value, ref _y, nameof(Y));
+    }
+
+    public bool IsDefault => _x == 0 && _y == 0;
+
+    public void ResetToDefault()
+    {
+        SetAxis(0, ref _x, nameof(X));
+        SetAxis(0, ref _y, nameof(Y));
+    }
+
+    public override void LoadFrom(AppSettings settings)
+    {
+        var offset = Definition.GetValue(settings) is ScreenOffset current
+            ? current
+            : ScreenOffset.Default;
+        SetAxis(offset.X, ref _x, nameof(X));
+        SetAxis(offset.Y, ref _y, nameof(Y));
+    }
+
+    public override void ApplyTo(AppSettings settings)
+        => Definition.SetValue(settings, new ScreenOffset(_x, _y));
+
+    /// <summary>
+    /// 输入框清空（null）时保留上一次有效值并让控件回退；其余情况夹进允许范围并取整。
+    /// </summary>
+    private void SetAxis(decimal? value, ref int field, string propertyName)
+    {
+        if (value is null)
+        {
+            OnPropertyChanged(propertyName);
+            return;
+        }
+
+        var normalized = (int)Math.Round(
+            Math.Clamp(value.Value, MinOffset, MaxOffset),
+            MidpointRounding.AwayFromZero);
+        if (field == normalized)
+        {
+            return;
+        }
+
+        field = normalized;
+        OnPropertyChanged(propertyName);
+        OnPropertyChanged(nameof(IsDefault));
+    }
+}
+
 public static class SettingFieldViewModelFactory
 {
     public static SettingFieldViewModel Create(
@@ -655,6 +747,9 @@ public static class SettingFieldViewModelFactory
             SettingEditorKind.Text => new TextSettingFieldViewModel(definition, texts),
             SettingEditorKind.FilePath => new FilePathSettingFieldViewModel(definition, texts),
             SettingEditorKind.ShortcutKey => new ShortcutSettingFieldViewModel(
+                definition,
+                texts),
+            SettingEditorKind.Offset => new OffsetSettingFieldViewModel(
                 definition,
                 texts),
             SettingEditorKind.ModeList => new ModeListSettingFieldViewModel(

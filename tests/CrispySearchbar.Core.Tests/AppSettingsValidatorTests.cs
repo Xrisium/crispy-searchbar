@@ -78,4 +78,18 @@ public class AppSettingsValidatorTests
             AppSettingsValidator.AtLeastOneModeEnabledError,
             error.ErrorKey);
     }
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(320, -180)]
+    [InlineData(99999, -99999)]
+    public void Validate_SearchBarOffset_IsNeverRejected(int x, int y)
+    {
+        var settings = new AppSettings
+        {
+            SearchBarOffset = new ScreenOffset(x, y),
+        };
+
+        Assert.Empty(AppSettingsValidator.Validate(settings));
+    }
 }

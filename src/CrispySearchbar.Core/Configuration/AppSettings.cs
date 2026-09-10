@@ -15,6 +15,13 @@ public sealed class AppSettings
     [Setting(SettingsSection.Appearance, SettingEditorKind.Choice, Order = 0)]
     public ThemePreference Theme { get; set; } = ThemePreference.System;
 
+    /// <summary>
+    /// 搜索框相对主显示器工作区中央的偏移（DIP），(0, 0) 即默认居中；
+    /// 越界时定位阶段会把窗口夹回工作区内。
+    /// </summary>
+    [Setting(SettingsSection.Appearance, SettingEditorKind.Offset, Order = 1)]
+    public ScreenOffset SearchBarOffset { get; set; } = ScreenOffset.Default;
+
     /// <summary>网页搜索使用的默认搜索引擎，可选 baidu/google/bing，默认 baidu。</summary>
     [Setting(SettingsSection.Search, SettingEditorKind.Choice, Order = 0)]
     public SearchEngineKind SearchEngine { get; set; } = SearchEngineKind.Baidu;

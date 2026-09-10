@@ -85,11 +85,27 @@ public class AppSettingsSchemaTests
                 case SettingEditorKind.ShortcutKey:
                     Assert.Equal(typeof(string), definition.PropertyType);
                     break;
+                case SettingEditorKind.Offset:
+                    Assert.Equal(typeof(ScreenOffset), definition.PropertyType);
+                    break;
                 default:
                     Assert.Fail($"未知控件类型：{definition.EditorKind}");
                     break;
             }
         }
+    }
+
+    [Fact]
+    public void SearchBarOffsetField_IsAnAppearanceOffsetSetting()
+    {
+        var definition = AppSettingsSchema.Discover()
+            .Single(item => item.PropertyName == nameof(AppSettings.SearchBarOffset));
+
+        Assert.Equal(SettingsSection.Appearance, definition.Section);
+        Assert.Equal(SettingEditorKind.Offset, definition.EditorKind);
+        Assert.Equal(1, definition.Order);
+        Assert.Empty(definition.OptionValues);
+        Assert.Equal(ScreenOffset.Default, new AppSettings().SearchBarOffset);
     }
 
     [Fact]

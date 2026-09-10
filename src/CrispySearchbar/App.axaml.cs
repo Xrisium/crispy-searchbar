@@ -58,7 +58,10 @@ public partial class App : Application
             _mainWindow = mainWindow;
             _mouseWheelService = GlobalMouseWheelServiceFactory.Create();
             mainWindow.AttachModeWheelCapture(_mouseWheelService);
-            mainWindow.ApplyConfiguration(shortcuts, _settings.HideOnEscape);
+            mainWindow.ApplyConfiguration(
+                shortcuts,
+                _settings.HideOnEscape,
+                _settings.SearchBarOffset);
 
             // 托盘常驻：没有窗口时也不退出，退出由托盘菜单显式触发。
             desktop.MainWindow = mainWindow;
@@ -126,7 +129,10 @@ public partial class App : Application
             modes,
             clearQueryOnHide: settings.ClearQueryOnHide,
             dictionaryEmptyHint: dictionaryEmptyHint);
-        _mainWindow?.ApplyConfiguration(shortcuts, settings.HideOnEscape);
+        _mainWindow?.ApplyConfiguration(
+            shortcuts,
+            settings.HideOnEscape,
+            settings.SearchBarOffset);
         _trayIconService?.UpdateStrings(_strings);
     }
 

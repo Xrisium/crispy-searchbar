@@ -72,6 +72,12 @@ public sealed class AppSettingsTexts
 
     public required string ShortcutGlobalConflictWarning { get; init; }
 
+    public required string SearchBarPositionHorizontalLabel { get; init; }
+
+    public required string SearchBarPositionVerticalLabel { get; init; }
+
+    public required string SearchBarPositionResetText { get; init; }
+
     public required IReadOnlyDictionary<string, string> SectionTitles { get; init; }
 
     public required IReadOnlyDictionary<string, string> FieldLabels { get; init; }

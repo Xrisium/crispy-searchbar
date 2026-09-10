@@ -23,6 +23,7 @@ This project has **no** intention of becoming an integrated or all-in-one search
 - **Quick summon**: stays resident in the system tray; press the hotkey (default `Alt+Space`) to bring up the search bar instantly.
 - **Mode switching**: tap the mode key (default `Tab`) to switch to the next search mode while keeping your input; hold the mode key to open the mode wheel and switch with `↑` / `↓` or the mouse wheel.
 - **Customizable modes**: users can enable or disable any search mode at any time from the settings panel, and drag modes to reorder them in the switcher wheel.
+- **Adjustable position**: the search bar appears centered on the primary screen by default; you can nudge its position with a pixel offset in the settings panel, restore the default position in one click, and candidates plus the mode wheel flip upwards automatically when the bar sits near the bottom of the screen.
 - **Follow System Theme**: Supports light/dark modes and can automatically switch according to the system theme.
 
 ## Supported search modes

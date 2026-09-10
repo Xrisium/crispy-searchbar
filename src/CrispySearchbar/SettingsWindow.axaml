@@ -156,6 +156,30 @@
       <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
     </Style>
+    <Style Selector="NumericUpDown.offsetNumeric">
+      <Setter Property="MinHeight" Value="34" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Padding" Value="10,4" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="NumericUpDown.offsetNumeric:focus">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="NumericUpDown.offsetNumeric /template/ TextBox">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Padding" Value="2,0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="SelectionBrush" Value="{DynamicResource SelectionBrush}" />
+    </Style>
     <Style Selector="Button.closeButton">
       <Setter Property="Width" Value="32" />
       <Setter Property="Height" Value="32" />
@@ -392,6 +416,71 @@
                     Content="{Binding ResetText}"
                     IsVisible="{Binding !IsDefault}"
                     Click="OnShortcutResetClicked" />
+          </Grid>
+        </Grid>
+      </Border>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:OffsetSettingFieldViewModel}">
+      <Border Loaded="OnSettingFieldLoaded"
+              BorderBrush="{DynamicResource DividerBrush}"
+              BorderThickness="0,0,0,1"
+              Padding="0,10">
+        <Grid ColumnDefinitions="*,340">
+          <StackPanel Grid.Column="0" Margin="0,0,16,0" Spacing="2">
+            <TextBlock Text="{Binding Label}"
+                       FontSize="13"
+                       FontWeight="500"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Description}"
+                       IsVisible="{Binding HasDescription}"
+                       FontSize="12"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       TextWrapping="Wrap" />
+            <TextBlock Text="{Binding Error}"
+                       IsVisible="{Binding HasError}"
+                       FontSize="12"
+                       Foreground="{DynamicResource DangerBrush}"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+          <Grid Grid.Column="1"
+                ColumnDefinitions="*,*,Auto"
+                ColumnSpacing="6"
+                VerticalAlignment="Center">
+            <StackPanel Grid.Column="0" Spacing="3">
+              <TextBlock Text="{Binding HorizontalLabel}"
+                         FontSize="11"
+                         Foreground="{DynamicResource TextPlaceholderBrush}" />
+              <NumericUpDown Classes="offsetNumeric"
+                             Value="{Binding X, Mode=TwoWay}"
+                             Minimum="{Binding Minimum}"
+                             Maximum="{Binding Maximum}"
+                             Increment="{Binding Increment}"
+                             FormatString="0"
+                             ShowButtonSpinner="False"
+                             HorizontalAlignment="Stretch" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Spacing="3">
+              <TextBlock Text="{Binding VerticalLabel}"
+                         FontSize="11"
+                         Foreground="{DynamicResource TextPlaceholderBrush}" />
+              <NumericUpDown Classes="offsetNumeric"
+                             Value="{Binding Y, Mode=TwoWay}"
+                             Minimum="{Binding Minimum}"
+                             Maximum="{Binding Maximum}"
+                             Increment="{Binding Increment}"
+                             FormatString="0"
+                             ShowButtonSpinner="False"
+                             HorizontalAlignment="Stretch" />
+            </StackPanel>
+            <Button Grid.Column="2"
+                    Classes="secondary"
+                    Margin="0,0,0,1"
+                    VerticalAlignment="Bottom"
+                    Content="{Binding ResetText}"
+                    IsVisible="{Binding !IsDefault}"
+                    Click="OnResetSearchBarPositionClicked" />
           </Grid>
         </Grid>
       </Border>

@@ -52,9 +52,10 @@ public class AppSettingsStoreTests
             using var document = JsonDocument.Parse(json);
 
             var names = document.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
-            Assert.Equal(14, names.Length);
+            Assert.Equal(15, names.Length);
             Assert.Contains("language", names);
             Assert.Contains("theme", names);
+            Assert.Contains("searchBarOffset", names);
             Assert.Contains("searchEngine", names);
             Assert.Contains("clearQueryOnHide", names);
             Assert.Contains("askAiUrlTemplate", names);
@@ -97,6 +98,7 @@ public class AppSettingsStoreTests
                 ],
                 DictionaryFilePath = "C:\\dict\\cedict_1_0_ts_utf-8_mdbg.txt",
                 EcdictFilePath = "C:\\dict\\ecdict.csv",
+                SearchBarOffset = new ScreenOffset(160, -90),
             };
 
             AppSettingsStore.Save(expected, dir);
@@ -121,6 +123,34 @@ public class AppSettingsStoreTests
                 }));
             Assert.Equal("C:\\dict\\cedict_1_0_ts_utf-8_mdbg.txt", loaded.DictionaryFilePath);
             Assert.Equal("C:\\dict\\ecdict.csv", loaded.EcdictFilePath);
+            Assert.Equal(new ScreenOffset(160, -90), loaded.SearchBarOffset);
+        }
+        finally
+        {
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void LoadOrDefault_WithoutOffsetKey_UsesCenteredDefault()
+    {
+        var dir = CreateTempDirectory();
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllText(
+                Path.Combine(dir, AppSettingsStore.FileName),
+                """
+                {
+                  "theme": "dark"
+                }
+                """);
+
+            var settings = AppSettingsStore.LoadOrDefault(dir);
+
+            Assert.Equal(ThemePreference.Dark, settings.Theme);
+            Assert.Equal(ScreenOffset.Default, settings.SearchBarOffset);
+            Assert.True(settings.SearchBarOffset.IsDefault);
         }
         finally
         {
