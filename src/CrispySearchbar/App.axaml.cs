@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -25,6 +26,8 @@ public partial class App : Application
     private IGlobalHotkeyService? _hotkeyService;
     private IGlobalMouseWheelService? _mouseWheelService;
     private TrayIconService? _trayIconService;
+    private IStartupRegistrationService? _startupRegistrationService;
+    private IFullscreenAppDetector? _fullscreenAppDetector;
 
     public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
@@ -36,6 +39,13 @@ public partial class App : Application
             _strings = TranslationCatalog.Default.Resolve(_settings.Language);
             ApplyTheme(_settings.Theme);
 
+            _startupRegistrationService = StartupRegistrationServiceFactory.Create();
+            if (!_startupRegistrationService.TrySetEnabled(_settings.LaunchAtStartup))
+            {
+                Trace.TraceWarning("启动时同步开机自启设置失败。");
+            }
+
+            _fullscreenAppDetector = FullscreenAppDetectorFactory.Create();
             var shortcuts = ShortcutCatalog.Create(_settings);
             var modes = SearchModeCatalog.Create(_settings, _strings);
             // 启动即后台加载两套词典资源；仅在配置里的词典路径改变时重建加载任务。
@@ -68,7 +78,7 @@ public partial class App : Application
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
             _hotkeyService = GlobalHotkeyServiceFactory.Create();
-            _hotkeyService.Pressed += ToggleSearchBar;
+            _hotkeyService.Pressed += ToggleSearchBarFromHotkey;
             if (shortcuts.TryGetBinding(ShortcutAction.ToggleVisibility, out var initialGlobal))
             {
                 _hotkeyService.TryStart(initialGlobal);
@@ -76,12 +86,15 @@ public partial class App : Application
 
             _trayIconService = new TrayIconService(
                 _strings,
-                ToggleSearchBar,
+                ToggleSearchBarFromTray,
                 OpenSettingsWindow,
                 ExitApplication);
 
-            // 首次启动也直接显示并聚焦输入框。
-            mainWindow.ShowFromTray();
+            // 开机自启只驻留托盘；普通启动仍直接显示并聚焦输入框。
+            if (!IsAutostartLaunch())
+            {
+                mainWindow.ShowFromTray();
+            }
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -156,7 +169,8 @@ public partial class App : Application
                 && string.Equals(
                     _hotkeyService.CurrentBinding?.ToStorageString(),
                     candidate,
-                    StringComparison.OrdinalIgnoreCase));
+                    StringComparison.OrdinalIgnoreCase),
+            enabled => _startupRegistrationService?.TrySetEnabled(enabled) ?? true);
         window.SettingsSaved += OnSettingsSaved;
         window.Closed += (_, _) =>
         {
@@ -198,7 +212,22 @@ public partial class App : Application
         };
     }
 
-    private void ToggleSearchBar()
+    private static bool IsAutostartLaunch()
+        => Environment.GetCommandLineArgs()
+            .Skip(1)
+            .Any(argument => string.Equals(
+                argument,
+                StartupRegistrationCommand.AutostartArgument,
+                StringComparison.OrdinalIgnoreCase));
+
+    private void ToggleSearchBarFromHotkey()
+        => ToggleSearchBar(
+            suppressWhenFullscreen: _settings.SkipWhenFullscreenAppActive);
+
+    private void ToggleSearchBarFromTray()
+        => ToggleSearchBar(suppressWhenFullscreen: false);
+
+    private void ToggleSearchBar(bool suppressWhenFullscreen)
     {
         if (_mainWindow is null)
         {
@@ -208,11 +237,16 @@ public partial class App : Application
         if (_mainWindow.IsVisible && _mainWindow.WindowState != WindowState.Minimized)
         {
             _mainWindow.HideToTray();
+            return;
         }
-        else
+
+        if (suppressWhenFullscreen
+            && _fullscreenAppDetector?.IsFullscreenAppActive() == true)
         {
-            _mainWindow.ShowFromTray();
+            return;
         }
+
+        _mainWindow.ShowFromTray();
     }
 
     private void ExitApplication()
@@ -225,7 +259,7 @@ public partial class App : Application
 
         if (_hotkeyService is not null)
         {
-            _hotkeyService.Pressed -= ToggleSearchBar;
+            _hotkeyService.Pressed -= ToggleSearchBarFromHotkey;
             _hotkeyService.Dispose();
             _hotkeyService = null;
         }

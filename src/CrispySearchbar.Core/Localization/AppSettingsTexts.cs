@@ -26,6 +26,8 @@ public sealed class AppSettingsTexts
 
     public required string SaveFailedTemplate { get; init; }
 
+    public required string StartupRegistrationFailed { get; init; }
+
     public required string UrlTemplateRequiredError { get; init; }
 
     public required string UrlTemplatePlaceholderError { get; init; }

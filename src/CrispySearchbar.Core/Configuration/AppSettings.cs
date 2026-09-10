@@ -67,6 +67,17 @@ public sealed class AppSettings
     [Setting(SettingsSection.General, SettingEditorKind.Toggle, Order = 1)]
     public bool ClearQueryOnHide { get; set; } = true;
 
+    /// <summary>登录 Windows 后是否自动启动并静默驻留系统托盘，默认 false。</summary>
+    [Setting(SettingsSection.General, SettingEditorKind.Toggle, Order = 2)]
+    public bool LaunchAtStartup { get; set; }
+
+    /// <summary>
+    /// 全局快捷键呼出搜索框前，是否跳过当前前台的全屏应用，默认 true。
+    /// 托盘点击与手动启动不受该设置影响。
+    /// </summary>
+    [Setting(SettingsSection.General, SettingEditorKind.Toggle, Order = 3)]
+    public bool SkipWhenFullscreenAppActive { get; set; } = true;
+
     /// <summary>询问 DeepSeek 网页端地址模板，{0} 将被替换为 URL 编码后的查询词。</summary>
     [Setting(
         SettingsSection.Search,

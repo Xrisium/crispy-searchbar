@@ -36,13 +36,14 @@ public sealed partial class SettingsWindow : Window
 
     /// <summary>XAML/运行时创建入口；App 通常使用带占用探测委托的构造函数。</summary>
     public SettingsWindow()
-        : this(null, null)
+        : this(null, null, null)
     {
     }
 
     public SettingsWindow(
         Func<string, bool>? globalShortcutProbe,
-        Func<string, bool>? isCurrentGlobalShortcut)
+        Func<string, bool>? isCurrentGlobalShortcut,
+        Func<bool, bool>? startupRegistrationUpdater = null)
     {
         InitializeComponent();
 
@@ -61,7 +62,8 @@ public sealed partial class SettingsWindow : Window
             strings,
             AppSettingsStore.GetSettingsFilePath(),
             globalShortcutProbe,
-            isCurrentGlobalShortcut);
+            isCurrentGlobalShortcut,
+            startupRegistrationUpdater);
         viewModel.Saved += OnViewModelSaved;
         viewModel.PropertyChanged += OnViewModelPropertyChanged;
         viewModel.ValidationFailed += OnValidationFailed;

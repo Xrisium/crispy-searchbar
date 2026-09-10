@@ -59,7 +59,9 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
     private readonly string _configFilePath;
     private readonly Func<string, bool>? _globalShortcutProbe;
     private readonly Func<string, bool>? _isCurrentGlobalShortcut;
+    private readonly Func<bool, bool>? _startupRegistrationUpdater;
     private readonly Dictionary<string, bool> _globalConflictByProperty = new(StringComparer.Ordinal);
+    private bool _persistedLaunchAtStartup;
     private int _globalProbeVersion;
     private string? _statusText;
     private bool _isResetConfirmationVisible;
@@ -69,7 +71,8 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         AppStrings strings,
         string configFilePath,
         Func<string, bool>? globalShortcutProbe = null,
-        Func<string, bool>? isCurrentGlobalShortcut = null)
+        Func<string, bool>? isCurrentGlobalShortcut = null,
+        Func<bool, bool>? startupRegistrationUpdater = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(strings);
@@ -80,6 +83,8 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         _configFilePath = configFilePath;
         _globalShortcutProbe = globalShortcutProbe;
         _isCurrentGlobalShortcut = isCurrentGlobalShortcut;
+        _startupRegistrationUpdater = startupRegistrationUpdater;
+        _persistedLaunchAtStartup = settings.LaunchAtStartup;
         RebuildSections();
         RevalidateShortcuts();
     }
@@ -149,6 +154,7 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         ArgumentNullException.ThrowIfNull(strings);
 
         _settings = settings;
+        _persistedLaunchAtStartup = settings.LaunchAtStartup;
         _strings = strings;
         _texts = strings.SettingsTexts;
         _isResetConfirmationVisible = false;
@@ -178,19 +184,14 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
     /// <summary>把配置文件恢复为默认值并立即应用。</summary>
     public bool TryResetConfiguration()
     {
-        AppSettings defaults;
-        try
+        var defaults = new AppSettings();
+        if (!TryPersistSettings(defaults))
         {
-            defaults = new AppSettings();
-            AppSettingsStore.Save(defaults);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            StatusText = _texts.FormatSaveFailed(ex.Message);
             HideResetConfirmation();
             return false;
         }
 
+        _settings = defaults;
         Saved?.Invoke(this, defaults);
         StatusText = _texts.ResetDoneStatus;
         HideResetConfirmation();
@@ -215,19 +216,70 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
             field.ApplyTo(_settings);
         }
 
-        try
+        if (!TryPersistSettings(_settings))
         {
-            AppSettingsStore.Save(_settings);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            StatusText = _texts.FormatSaveFailed(ex.Message);
             return false;
         }
 
         Saved?.Invoke(this, _settings);
         StatusText = _texts.SavedStatus;
         return true;
+    }
+
+    /// <summary>
+    /// 先应用当前用户启动项，再写配置文件；任何一步失败都不进入“已保存”状态。
+    /// 配置文件写入失败时尽力把启动项回滚到旧状态。
+    /// </summary>
+    private bool TryPersistSettings(AppSettings candidate)
+    {
+        var previousLaunchAtStartup = _persistedLaunchAtStartup;
+        if (!TrySetStartupRegistration(candidate.LaunchAtStartup))
+        {
+            return false;
+        }
+
+        try
+        {
+            AppSettingsStore.Save(candidate);
+            _persistedLaunchAtStartup = candidate.LaunchAtStartup;
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            TrySetStartupRegistration(
+                previousLaunchAtStartup,
+                reportFailure: false);
+
+            StatusText = _texts.FormatSaveFailed(ex.Message);
+            return false;
+        }
+    }
+
+    private bool TrySetStartupRegistration(bool enabled, bool reportFailure = true)
+    {
+        if (_startupRegistrationUpdater is null)
+        {
+            return true;
+        }
+
+        try
+        {
+            if (_startupRegistrationUpdater(enabled))
+            {
+                return true;
+            }
+        }
+        catch
+        {
+            // 平台服务不应让设置面板崩溃；统一落为可重试的本地化错误。
+        }
+
+        if (reportFailure)
+        {
+            StatusText = _texts.StartupRegistrationFailed;
+        }
+
+        return false;
     }
 
     /// <summary>把快捷键区所有字段与 Esc 复选框重置为默认，只改当前面板不写盘。</summary>

@@ -109,6 +109,26 @@ public class AppSettingsSchemaTests
     }
 
     [Fact]
+    public void GeneralToggles_HaveExpectedDefaultsAndOrder()
+    {
+        var definitions = AppSettingsSchema.Discover();
+        var launchAtStartup = definitions.Single(
+            definition => definition.PropertyName == nameof(AppSettings.LaunchAtStartup));
+        var skipWhenFullscreen = definitions.Single(
+            definition => definition.PropertyName == nameof(AppSettings.SkipWhenFullscreenAppActive));
+
+        Assert.Equal(SettingsSection.General, launchAtStartup.Section);
+        Assert.Equal(SettingEditorKind.Toggle, launchAtStartup.EditorKind);
+        Assert.Equal(2, launchAtStartup.Order);
+        Assert.False(new AppSettings().LaunchAtStartup);
+
+        Assert.Equal(SettingsSection.General, skipWhenFullscreen.Section);
+        Assert.Equal(SettingEditorKind.Toggle, skipWhenFullscreen.EditorKind);
+        Assert.Equal(3, skipWhenFullscreen.Order);
+        Assert.True(new AppSettings().SkipWhenFullscreenAppActive);
+    }
+
+    [Fact]
     public void DiscoveredSections_AreKnownDisplayCategories()
     {
         var sections = AppSettingsSchema.Discover()

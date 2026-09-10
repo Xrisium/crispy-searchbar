@@ -26,6 +26,8 @@ public class AppSettingsStoreTests
             Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
             Assert.True(settings.ClearQueryOnHide);
+            Assert.False(settings.LaunchAtStartup);
+            Assert.True(settings.SkipWhenFullscreenAppActive);
             Assert.True(settings.HideOnEscape);
             Assert.Equal(
                 ModePreferenceDefaults.BuiltInOrder,
@@ -52,12 +54,14 @@ public class AppSettingsStoreTests
             using var document = JsonDocument.Parse(json);
 
             var names = document.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
-            Assert.Equal(15, names.Length);
+            Assert.Equal(17, names.Length);
             Assert.Contains("language", names);
             Assert.Contains("theme", names);
             Assert.Contains("searchBarOffset", names);
             Assert.Contains("searchEngine", names);
             Assert.Contains("clearQueryOnHide", names);
+            Assert.Contains("launchAtStartup", names);
+            Assert.Contains("skipWhenFullscreenAppActive", names);
             Assert.Contains("askAiUrlTemplate", names);
             Assert.Contains("modePreferences", names);
             Assert.Contains("dictionaryFilePath", names);
@@ -88,6 +92,8 @@ public class AppSettingsStoreTests
                 SearchEngine = SearchEngineKind.Google,
                 AskAiUrlTemplate = "https://chat.deepseek.com/?q={0}",
                 ClearQueryOnHide = false,
+                LaunchAtStartup = true,
+                SkipWhenFullscreenAppActive = false,
                 HideOnEscape = false,
                 ModePreferences =
                 [
@@ -109,6 +115,8 @@ public class AppSettingsStoreTests
             Assert.Equal(SearchEngineKind.Google, loaded.SearchEngine);
             Assert.Equal(expected.AskAiUrlTemplate, loaded.AskAiUrlTemplate);
             Assert.False(loaded.ClearQueryOnHide);
+            Assert.True(loaded.LaunchAtStartup);
+            Assert.False(loaded.SkipWhenFullscreenAppActive);
             Assert.False(loaded.HideOnEscape);
             Assert.Equal(
                 expected.ModePreferences.Select(preference => new
@@ -174,6 +182,8 @@ public class AppSettingsStoreTests
             Assert.Equal(SearchEngineKind.Baidu, settings.SearchEngine);
             Assert.Contains("{0}", settings.AskAiUrlTemplate);
             Assert.True(settings.ClearQueryOnHide);
+            Assert.False(settings.LaunchAtStartup);
+            Assert.True(settings.SkipWhenFullscreenAppActive);
             Assert.Equal(4, settings.ModePreferences.Length);
             Assert.Null(settings.DictionaryFilePath);
             Assert.Null(settings.EcdictFilePath);
