@@ -6,6 +6,7 @@ namespace CrispySearchbar.Dictionary;
 /// <summary>
 /// 解析并加载内置/用户词典资源：
 /// CC-CEDICT（汉→英）与 ECDICT（英→汉）各自独立加载，
+/// 配置路径为 StarDict .ifo 时改用 StarDict 词库（方向由槽位决定），
 /// 优先级均为 settings.json 指定路径 &gt; 用户数据目录 &gt; 程序目录。
 /// </summary>
 public sealed class AppDictionaryResources
@@ -15,6 +16,7 @@ public sealed class AppDictionaryResources
 
     private const string CedictDisplayName = "CC-CEDICT";
     private const string EcdictDisplayName = "ECDICT";
+    private const string StarDictDisplayName = "StarDict";
     private const string CedictDownloadUrl = "https://www.mdbg.net/chinese/dictionary?page=cedict";
     private const string EcdictDownloadUrl = "https://github.com/skywind3000/ECDICT";
 
@@ -79,15 +81,23 @@ public sealed class AppDictionaryResources
 
         try
         {
-            return (CedictIndexLoader.LoadFile(path), null);
+            var index = DictionaryFileFormatDetector.Detect(path) == DictionaryFileFormat.StarDict
+                ? StarDictDictionaryLoader.LoadChineseIndex(path)
+                : CedictIndexLoader.LoadFile(path);
+            return (index, null);
         }
         catch (FileNotFoundException ex)
         {
-            return (null, _strings.FormatDictionaryReadFailed(CedictDisplayName, ex.FileName));
+            return (null, _strings.FormatDictionaryReadFailed(
+                ResolveDisplayName(path, CedictDisplayName),
+                ex.FileName));
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
+            or ArgumentException or InvalidDataException)
         {
-            return (null, _strings.FormatDictionaryReadFailed(CedictDisplayName, ex.Message));
+            return (null, _strings.FormatDictionaryReadFailed(
+                ResolveDisplayName(path, CedictDisplayName),
+                ex.Message));
         }
     }
 
@@ -108,17 +118,31 @@ public sealed class AppDictionaryResources
 
         try
         {
-            return (EcdictIndexLoader.LoadFile(path), null);
+            var index = DictionaryFileFormatDetector.Detect(path) == DictionaryFileFormat.StarDict
+                ? StarDictDictionaryLoader.LoadEnglishIndex(path)
+                : EcdictIndexLoader.LoadFile(path);
+            return (index, null);
         }
         catch (FileNotFoundException ex)
         {
-            return (null, _strings.FormatDictionaryReadFailed(EcdictDisplayName, ex.FileName));
+            return (null, _strings.FormatDictionaryReadFailed(
+                ResolveDisplayName(path, EcdictDisplayName),
+                ex.FileName));
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
+            or ArgumentException or InvalidDataException)
         {
-            return (null, _strings.FormatDictionaryReadFailed(EcdictDisplayName, ex.Message));
+            return (null, _strings.FormatDictionaryReadFailed(
+                ResolveDisplayName(path, EcdictDisplayName),
+                ex.Message));
         }
     }
+
+    /// <summary>StarDict 词库用格式名做来源标识，避免与内置 CC-CEDICT/ECDICT 混淆。</summary>
+    private static string ResolveDisplayName(string path, string defaultDisplayName)
+        => DictionaryFileFormatDetector.Detect(path) == DictionaryFileFormat.StarDict
+            ? StarDictDisplayName
+            : defaultDisplayName;
 
     private static (string? Path, string? Message) ResolveDataFile(
         string? configuredPath,

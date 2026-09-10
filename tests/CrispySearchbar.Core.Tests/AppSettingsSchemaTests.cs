@@ -144,7 +144,9 @@ public class AppSettingsSchemaTests
 
         Assert.Equal(SettingFileFilterKeys.CcCedict, chineseToEnglish.FileTypeFilterKey);
         Assert.Contains("*.u8", chineseToEnglish.FileTypePatterns);
+        Assert.Contains("*.ifo", chineseToEnglish.FileTypePatterns);
         Assert.Equal(SettingFileFilterKeys.Ecdict, englishToChinese.FileTypeFilterKey);
         Assert.Contains("*.csv", englishToChinese.FileTypePatterns);
+        Assert.Contains("*.ifo", englishToChinese.FileTypePatterns);
     }
 }

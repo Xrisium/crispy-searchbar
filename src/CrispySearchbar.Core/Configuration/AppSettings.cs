@@ -69,24 +69,26 @@ public sealed class AppSettings
     public string AskAiUrlTemplate { get; set; } =
         "https://chat.deepseek.com/?q={0}";
     /// <summary>
-    /// CC-CEDICT（汉英）词典文件路径；留空时依次使用用户数据目录、程序目录中的 cedict_ts.u8。
+    /// 汉英词典文件路径：CC-CEDICT 文本（.u8）或 StarDict（.ifo，方向为汉→英）；
+    /// 留空时依次使用用户数据目录、程序目录中的 cedict_ts.u8。
     /// </summary>
     [Setting(
         SettingsSection.Dictionary,
         SettingEditorKind.FilePath,
         Order = 0,
         FileTypeFilterKey = SettingFileFilterKeys.CcCedict,
-        FileTypePatterns = new[] { "*.u8", "*" })]
+        FileTypePatterns = new[] { "*.ifo", "*.u8", "*" })]
     public string? DictionaryFilePath { get; set; }
 
     /// <summary>
-    /// ECDICT（英汉）词典文件路径；留空时依次使用用户数据目录、程序目录中的 ecdict.csv。
+    /// 英汉词典文件路径：ECDICT CSV（.csv）或 StarDict（.ifo，方向为英→汉）；
+    /// 留空时依次使用用户数据目录、程序目录中的 ecdict.csv。
     /// </summary>
     [Setting(
         SettingsSection.Dictionary,
         SettingEditorKind.FilePath,
         Order = 1,
         FileTypeFilterKey = SettingFileFilterKeys.Ecdict,
-        FileTypePatterns = new[] { "*.csv", "*" })]
+        FileTypePatterns = new[] { "*.ifo", "*.csv", "*" })]
     public string? EcdictFilePath { get; set; }
 }
