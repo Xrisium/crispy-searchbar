@@ -31,6 +31,12 @@ public abstract class SettingFieldViewModel : INotifyPropertyChanged
 
     public bool HasDescription => !string.IsNullOrWhiteSpace(Description);
 
+    /// <summary>本行开关控件“开”状态下的本地化标签（Avalonia ToggleSwitch 默认硬编码为 On）。</summary>
+    public string ToggleOnText => Texts.ToggleOnText;
+
+    /// <summary>本行开关控件“关”状态下的本地化标签（Avalonia ToggleSwitch 默认硬编码为 Off）。</summary>
+    public string ToggleOffText => Texts.ToggleOffText;
+
     public string? Error
     {
         get => _error;

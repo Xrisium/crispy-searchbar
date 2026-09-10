@@ -16,6 +16,12 @@ public sealed class AppSettingsTexts
 
     public required string Clear { get; init; }
 
+    /// <summary>设置面板内开关控件处于“开”时显示的标签文案。</summary>
+    public required string ToggleOnText { get; init; }
+
+    /// <summary>设置面板内开关控件处于“关”时显示的标签文案。</summary>
+    public required string ToggleOffText { get; init; }
+
     public required string SavedStatus { get; init; }
 
     public required string ValidationFailedTemplate { get; init; }

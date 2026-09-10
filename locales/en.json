@@ -30,6 +30,8 @@
     "save": "Save",
     "browse": "Browse…",
     "clear": "Clear",
+    "toggleOnText": "On",
+    "toggleOffText": "Off",
     "savedStatus": "Saved to settings.json",
     "validationFailedTemplate": "Invalid settings: {0} - {1}",
     "configFileLabel": "Configuration file:",

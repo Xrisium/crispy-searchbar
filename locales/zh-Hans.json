@@ -30,6 +30,8 @@
     "save": "保存",
     "browse": "浏览…",
     "clear": "清空",
+    "toggleOnText": "开",
+    "toggleOffText": "关",
     "savedStatus": "已保存到 settings.json",
     "validationFailedTemplate": "设置无效：{0} - {1}",
     "configFileLabel": "配置文件：",

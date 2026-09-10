@@ -164,6 +164,20 @@ public class AppStringsTests
     }
 
     [Fact]
+    public void SettingsToggleLabels_AreLocalized()
+    {
+        var chinese = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese)
+            .SettingsTexts;
+        var english = TranslationCatalog.Default.Resolve(AppLanguage.English)
+            .SettingsTexts;
+
+        Assert.Equal("开", chinese.ToggleOnText);
+        Assert.Equal("关", chinese.ToggleOffText);
+        Assert.Equal("On", english.ToggleOnText);
+        Assert.Equal("Off", english.ToggleOffText);
+    }
+
+    [Fact]
     public void SettingsTexts_CoverEverySchemaFieldAndKnownOptionInBundledLanguages()
     {
         var chinese = TranslationCatalog.Default.Resolve(AppLanguage.SimplifiedChinese)

@@ -278,6 +278,8 @@
           </StackPanel>
           <ToggleSwitch Grid.Column="1"
                         IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                        OnContent="{Binding ToggleOnText}"
+                        OffContent="{Binding ToggleOffText}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center" />
         </Grid>
@@ -501,7 +503,11 @@
                   <Border Loaded="OnModeRowLoaded"
                           Padding="2,1"
                           CornerRadius="8">
-                    <Grid ColumnDefinitions="30,*,Auto,Auto,48"
+                    <!--
+                        最后一列由内容决定宽度：本地化的开/关标签比固定的 48 DIP 更宽，
+                        写死列宽会把标签裁掉（规范见 .agents/DESIGN.md「设置窗口形态」）。
+                    -->
+                    <Grid ColumnDefinitions="30,*,Auto,Auto,Auto"
                           MinHeight="34">
                       <Border Grid.Column="0"
                               Classes="modeDragHandle"
@@ -599,6 +605,8 @@
                       </Button>
                       <ToggleSwitch Grid.Column="4"
                                     IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                    OnContent="{Binding Owner.ToggleOnText}"
+                                    OffContent="{Binding Owner.ToggleOffText}"
                                     HorizontalAlignment="Right"
                                     VerticalAlignment="Center" />
                     </Grid>
