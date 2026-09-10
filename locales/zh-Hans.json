@@ -90,7 +90,7 @@
     "fieldDescriptions": {
       "Language": "保存后立即切换界面语言。",
       "Theme": "设置搜索框与设置窗口的外观。",
-      "SearchBarOffset": "相对主显示器中央的偏移，单位为 DIP（100% 缩放下等于像素）；0 表示居中，向右/向下为正。",
+      "SearchBarOffset": "相对主显示器中央的偏移，单位为 DIP；0 表示居中，向右/向下为正。",
       "SearchEngine": "网页搜索模式使用的搜索引擎。",
       "ClearQueryOnHide": "搜索框隐藏后清空已输入内容。",
       "AskAiUrlTemplate": "需要包含 {0}，查询词会替换该占位符。",

@@ -2,10 +2,12 @@ using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using CrispySearchbar.Core.Configuration;
 using CrispySearchbar.Core.Localization;
 using CrispySearchbar.Input;
@@ -68,6 +70,11 @@ public sealed partial class SettingsWindow : Window
         // 捕获期间用隧道拦截，避免聚焦的按钮把 Space/Enter 当作点击。
         AddHandler(KeyDownEvent, OnWindowKeyDown, RoutingStrategies.Tunnel);
         AddHandler(PointerPressedEvent, OnWindowPointerPressed, RoutingStrategies.Tunnel);
+        // 点击面板空白/非交互区域时立即让输入框失焦。
+        AddHandler(
+            PointerPressedEvent,
+            OnWindowPointerPressedForBlur,
+            RoutingStrategies.Tunnel);
     }
 
     /// <summary>保存成功并写盘后触发，由 App 即时应用新配置。</summary>
@@ -332,11 +339,59 @@ public sealed partial class SettingsWindow : Window
             return;
         }
 
+        // Enter 提交并立即失焦：设置项逐字写回视图模型，这里只需要结束编辑态。
+        if (e.Key == Key.Enter
+            && e.KeyModifiers == KeyModifiers.None
+            && FocusManager?.GetFocusedElement() is TextBox)
+        {
+            FinishTextEditing();
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key is Key.LeftShift or Key.RightShift)
         {
             _isShiftPressed = true;
         }
     }
+
+    /// <summary>
+    /// 点击面板空白、标签或分区背景时结束输入：交互控件（按钮、下拉框、开关、列表）会自己接管焦点，
+    /// 因此只有落在非交互区域上的点击才手动把焦点移到焦点承载控件。
+    /// </summary>
+    private void OnWindowPointerPressedForBlur(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.Source is not Visual source || IsInteractiveSource(source))
+        {
+            return;
+        }
+
+        FinishTextEditing();
+    }
+
+    /// <summary>提交当前输入框编辑态：规范化数值文本，并把焦点移出输入框。</summary>
+    private void FinishTextEditing()
+    {
+        if (FocusManager?.GetFocusedElement() is Control { DataContext: OffsetSettingFieldViewModel field })
+        {
+            field.NormalizeText();
+        }
+
+        FocusSinkHost.Focus();
+    }
+
+    private bool IsInteractiveSource(Visual source)
+        => source
+            .GetSelfAndVisualAncestors()
+            .OfType<Control>()
+            .Any(control => control != this
+                && control is TextBox
+                    or ComboBox
+                    or Button
+                    or ToggleSwitch
+                    or ListBox
+                    or ListBoxItem
+                    or ScrollBar);
 
     private void HandleShortcutRecording(KeyEventArgs e)
     {
@@ -386,7 +441,7 @@ public sealed partial class SettingsWindow : Window
             field.BeginRecording();
             _recordingShortcutField = field;
             _recordingShortcutButton = button;
-            ShortcutCaptureFocusHost.Focus();
+            FocusSinkHost.Focus();
         }
     }
 

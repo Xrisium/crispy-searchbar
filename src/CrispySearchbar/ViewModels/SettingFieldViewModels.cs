@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using CrispySearchbar.Core.Configuration;
 using CrispySearchbar.Core.Localization;
@@ -643,8 +644,10 @@ public sealed class ShortcutResetAllViewModel
 }
 
 /// <summary>
-/// 搜索框位置设置行：水平/垂直数字输入微调相对屏幕中央的偏移（DIP），
+/// 搜索框位置设置行：水平/垂直偏移输入（DIP）微调相对主显示器中央的位置，
 /// 并提供“恢复默认位置”按钮（只重置当前面板，保存后写盘）。
+/// 输入框沿用设置面板统一的 <c>TextBox.settingsTextBox</c> 样式，
+/// 文本在输入过程中解析：非法或空文本保留上一次有效数值，失焦时把显示文本规范化。
 /// </summary>
 public sealed class OffsetSettingFieldViewModel : SettingFieldViewModel
 {
@@ -653,21 +656,17 @@ public sealed class OffsetSettingFieldViewModel : SettingFieldViewModel
 
     public const int MaxOffset = 5000;
 
-    public const int OffsetStep = 10;
+    private const string DefaultText = "0";
 
     private int _x;
     private int _y;
+    private string _xText = DefaultText;
+    private string _yText = DefaultText;
 
     public OffsetSettingFieldViewModel(SettingDefinition definition, AppSettingsTexts texts)
         : base(definition, texts)
     {
     }
-
-    public decimal Minimum => MinOffset;
-
-    public decimal Maximum => MaxOffset;
-
-    public decimal Increment => OffsetStep;
 
     public string HorizontalLabel => Texts.SearchBarPositionHorizontalLabel;
 
@@ -675,26 +674,39 @@ public sealed class OffsetSettingFieldViewModel : SettingFieldViewModel
 
     public string ResetText => Texts.SearchBarPositionResetText;
 
-    /// <summary>水平偏移（DIP），向右为正。</summary>
-    public decimal? X
+    /// <summary>水平偏移输入文本（DIP），向右为正。</summary>
+    public string XText
     {
-        get => _x;
-        set => SetAxis(value, ref _x, nameof(X));
+        get => _xText;
+        set => SetAxisText(value, ref _xText, ref _x, nameof(XText), nameof(X));
     }
 
-    /// <summary>垂直偏移（DIP），向下为正。</summary>
-    public decimal? Y
+    /// <summary>垂直偏移输入文本（DIP），向下为正。</summary>
+    public string YText
     {
-        get => _y;
-        set => SetAxis(value, ref _y, nameof(Y));
+        get => _yText;
+        set => SetAxisText(value, ref _yText, ref _y, nameof(YText), nameof(Y));
     }
+
+    /// <summary>当前生效的水平偏移，保存时写入配置。</summary>
+    public int X => _x;
+
+    /// <summary>当前生效的垂直偏移，保存时写入配置。</summary>
+    public int Y => _y;
 
     public bool IsDefault => _x == 0 && _y == 0;
 
     public void ResetToDefault()
     {
-        SetAxis(0, ref _x, nameof(X));
-        SetAxis(0, ref _y, nameof(Y));
+        SetAxisText(DefaultText, ref _xText, ref _x, nameof(XText), nameof(X));
+        SetAxisText(DefaultText, ref _yText, ref _y, nameof(YText), nameof(Y));
+    }
+
+    /// <summary>失焦（Enter 或点击面板其它位置）时把显示文本规范化为当前生效数值。</summary>
+    public void NormalizeText()
+    {
+        SetAxisText(ToText(_x), ref _xText, ref _x, nameof(XText), nameof(X));
+        SetAxisText(ToText(_y), ref _yText, ref _y, nameof(YText), nameof(Y));
     }
 
     public override void LoadFrom(AppSettings settings)
@@ -702,34 +714,51 @@ public sealed class OffsetSettingFieldViewModel : SettingFieldViewModel
         var offset = Definition.GetValue(settings) is ScreenOffset current
             ? current
             : ScreenOffset.Default;
-        SetAxis(offset.X, ref _x, nameof(X));
-        SetAxis(offset.Y, ref _y, nameof(Y));
+        SetAxisText(ToText(offset.X), ref _xText, ref _x, nameof(XText), nameof(X));
+        SetAxisText(ToText(offset.Y), ref _yText, ref _y, nameof(YText), nameof(Y));
     }
 
     public override void ApplyTo(AppSettings settings)
         => Definition.SetValue(settings, new ScreenOffset(_x, _y));
 
+    private static string ToText(int value)
+        => value.ToString(CultureInfo.InvariantCulture);
+
     /// <summary>
-    /// 输入框清空（null）时保留上一次有效值并让控件回退；其余情况夹进允许范围并取整。
+    /// 更新输入文本与对应数值：文本始终按用户输入展示，
+    /// 解析成功时夹进允许范围并作为当前生效值，解析失败（空、非数字）时保留上一次有效值。
     /// </summary>
-    private void SetAxis(decimal? value, ref int field, string propertyName)
+    private void SetAxisText(
+        string? text,
+        ref string textField,
+        ref int valueField,
+        string textPropertyName,
+        string valuePropertyName)
     {
-        if (value is null)
+        var normalized = text ?? string.Empty;
+        if (!string.Equals(textField, normalized, StringComparison.Ordinal))
         {
-            OnPropertyChanged(propertyName);
+            textField = normalized;
+            OnPropertyChanged(textPropertyName);
+        }
+
+        if (!int.TryParse(
+                normalized.Trim(),
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out var parsed))
+        {
             return;
         }
 
-        var normalized = (int)Math.Round(
-            Math.Clamp(value.Value, MinOffset, MaxOffset),
-            MidpointRounding.AwayFromZero);
-        if (field == normalized)
+        var clamped = Math.Clamp(parsed, MinOffset, MaxOffset);
+        if (valueField == clamped)
         {
             return;
         }
 
-        field = normalized;
-        OnPropertyChanged(propertyName);
+        valueField = clamped;
+        OnPropertyChanged(valuePropertyName);
         OnPropertyChanged(nameof(IsDefault));
     }
 }

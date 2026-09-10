@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <RootNamespace>CrispySearchbar.App.Tests</RootNamespace>
+    <RootNamespace>CrispySearchbar.Ui.Tests</RootNamespace>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <!-- xunit.v3 自带 Microsoft Testing Platform 运行器，让 `dotnet test` 能直接发现并运行本项目的测试。 -->
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>

@@ -23,6 +23,11 @@
   </Window.Resources>
 
   <Window.Styles>
+    <!--
+        settingsTextBox 是设置面板唯一的单行输入样式：文本、文件路径、网址模板、位置偏移等
+        所有输入框都必须复用它（规范见 .agents/DESIGN.md「设置面板输入控件规范」）；
+        禁止为单个设置项另写输入框样式，也不要改用自带方形焦点框的 NumericUpDown。
+    -->
     <Style Selector="TextBox.settingsTextBox">
       <Setter Property="MinHeight" Value="32" />
       <Setter Property="Padding" Value="10,5" />
@@ -94,6 +99,16 @@
     <Style Selector="Button.secondary:pointerover">
       <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
     </Style>
+    <Style Selector="Button.secondary:disabled">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPlaceholderBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+    </Style>
+    <Style Selector="Button.secondary:disabled /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPlaceholderBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+    </Style>
     <Style Selector="Button.modeMoveButton">
       <Setter Property="Width" Value="26" />
       <Setter Property="Height" Value="26" />
@@ -155,30 +170,6 @@
     <Style Selector="Button.shortcutCaptureButton:pointerover">
       <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-    </Style>
-    <Style Selector="NumericUpDown.offsetNumeric">
-      <Setter Property="MinHeight" Value="34" />
-      <Setter Property="FontSize" Value="13" />
-      <Setter Property="Padding" Value="10,4" />
-      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
-      <Setter Property="BorderThickness" Value="1" />
-      <Setter Property="CornerRadius" Value="8" />
-      <Setter Property="HorizontalContentAlignment" Value="Left" />
-      <Setter Property="VerticalContentAlignment" Value="Center" />
-    </Style>
-    <Style Selector="NumericUpDown.offsetNumeric:focus">
-      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-    </Style>
-    <Style Selector="NumericUpDown.offsetNumeric /template/ TextBox">
-      <Setter Property="FontSize" Value="13" />
-      <Setter Property="Padding" Value="2,0" />
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderThickness" Value="0" />
-      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
-      <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}" />
-      <Setter Property="SelectionBrush" Value="{DynamicResource SelectionBrush}" />
     </Style>
     <Style Selector="Button.closeButton">
       <Setter Property="Width" Value="32" />
@@ -452,34 +443,24 @@
               <TextBlock Text="{Binding HorizontalLabel}"
                          FontSize="11"
                          Foreground="{DynamicResource TextPlaceholderBrush}" />
-              <NumericUpDown Classes="offsetNumeric"
-                             Value="{Binding X, Mode=TwoWay}"
-                             Minimum="{Binding Minimum}"
-                             Maximum="{Binding Maximum}"
-                             Increment="{Binding Increment}"
-                             FormatString="0"
-                             ShowButtonSpinner="False"
-                             HorizontalAlignment="Stretch" />
+              <TextBox Classes="settingsTextBox"
+                       Text="{Binding XText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                       VerticalAlignment="Center" />
             </StackPanel>
             <StackPanel Grid.Column="1" Spacing="3">
               <TextBlock Text="{Binding VerticalLabel}"
                          FontSize="11"
                          Foreground="{DynamicResource TextPlaceholderBrush}" />
-              <NumericUpDown Classes="offsetNumeric"
-                             Value="{Binding Y, Mode=TwoWay}"
-                             Minimum="{Binding Minimum}"
-                             Maximum="{Binding Maximum}"
-                             Increment="{Binding Increment}"
-                             FormatString="0"
-                             ShowButtonSpinner="False"
-                             HorizontalAlignment="Stretch" />
+              <TextBox Classes="settingsTextBox"
+                       Text="{Binding YText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                       VerticalAlignment="Center" />
             </StackPanel>
             <Button Grid.Column="2"
                     Classes="secondary"
                     Margin="0,0,0,1"
                     VerticalAlignment="Bottom"
                     Content="{Binding ResetText}"
-                    IsVisible="{Binding !IsDefault}"
+                    IsEnabled="{Binding !IsDefault}"
                     Click="OnResetSearchBarPositionClicked" />
           </Grid>
         </Grid>
@@ -686,7 +667,8 @@
   </Window.DataTemplates>
 
   <Grid>
-    <Border x:Name="ShortcutCaptureFocusHost"
+    <!-- 1×1 的焦点承载控件：快捷键录制与“输入框失焦”都把手动焦点放到这里，避免焦点落到某个按钮上。 -->
+    <Border x:Name="FocusSinkHost"
             Width="1"
             Height="1"
             HorizontalAlignment="Left"

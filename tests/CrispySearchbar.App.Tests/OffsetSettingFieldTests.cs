@@ -1,11 +1,12 @@
+using System.Globalization;
 using CrispySearchbar.Core.Configuration;
 using CrispySearchbar.Core.Localization;
 using CrispySearchbar.ViewModels;
 using Xunit;
 
-namespace CrispySearchbar.App.Tests;
+namespace CrispySearchbar.Ui.Tests;
 
-/// <summary>搜索框位置设置行：读写、取整夹取与“恢复默认位置”。</summary>
+/// <summary>搜索框位置设置行：文本解析、夹取、失焦规范化与“恢复默认位置”。</summary>
 public class OffsetSettingFieldTests
 {
     [Fact]
@@ -15,22 +16,24 @@ public class OffsetSettingFieldTests
 
         field.LoadFrom(new AppSettings { SearchBarOffset = new ScreenOffset(160, -90) });
 
-        Assert.Equal(160m, field.X);
-        Assert.Equal(-90m, field.Y);
+        Assert.Equal("160", field.XText);
+        Assert.Equal("-90", field.YText);
+        Assert.Equal(160, field.X);
+        Assert.Equal(-90, field.Y);
         Assert.False(field.IsDefault);
     }
 
     [Fact]
-    public void ApplyTo_WritesRoundedWholeNumbers()
+    public void ApplyTo_WritesParsedWholeNumbers()
     {
         var field = CreateField();
-        field.X = 12.6m;
-        field.Y = -7.4m;
+        field.XText = " 12 ";
+        field.YText = "-7";
         var settings = new AppSettings();
 
         field.ApplyTo(settings);
 
-        Assert.Equal(new ScreenOffset(13, -7), settings.SearchBarOffset);
+        Assert.Equal(new ScreenOffset(12, -7), settings.SearchBarOffset);
     }
 
     [Fact]
@@ -41,8 +44,8 @@ public class OffsetSettingFieldTests
 
         field.ResetToDefault();
 
-        Assert.Equal(0m, field.X);
-        Assert.Equal(0m, field.Y);
+        Assert.Equal("0", field.XText);
+        Assert.Equal("0", field.YText);
         Assert.True(field.IsDefault);
 
         var settings = new AppSettings();
@@ -55,23 +58,36 @@ public class OffsetSettingFieldTests
     {
         var field = CreateField();
 
-        field.X = 9000m;
-        field.Y = -9000m;
+        field.XText = "9000";
+        field.YText = "-9000";
 
-        Assert.Equal((decimal)OffsetSettingFieldViewModel.MaxOffset, field.X);
-        Assert.Equal((decimal)OffsetSettingFieldViewModel.MinOffset, field.Y);
+        Assert.Equal(OffsetSettingFieldViewModel.MaxOffset, field.X);
+        Assert.Equal(OffsetSettingFieldViewModel.MinOffset, field.Y);
+
+        field.NormalizeText();
+        Assert.Equal(
+            OffsetSettingFieldViewModel.MaxOffset.ToString(CultureInfo.InvariantCulture),
+            field.XText);
+        Assert.Equal(
+            OffsetSettingFieldViewModel.MinOffset.ToString(CultureInfo.InvariantCulture),
+            field.YText);
     }
 
     [Fact]
-    public void ClearedInput_KeepsPreviousValue()
+    public void InvalidOrEmptyInput_KeepsPreviousValueUntilNormalized()
     {
         var field = CreateField();
-        field.X = 80m;
+        field.XText = "80";
 
-        field.X = null;
+        field.XText = string.Empty;
+        Assert.Equal(80, field.X);
 
-        Assert.Equal(80m, field.X);
-        Assert.False(field.IsDefault);
+        field.XText = "abc";
+        Assert.Equal(80, field.X);
+
+        field.NormalizeText();
+        Assert.Equal("80", field.XText);
+        Assert.Equal(80, field.X);
     }
 
     private static OffsetSettingFieldViewModel CreateField()
