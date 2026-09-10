@@ -1,11 +1,17 @@
 # CC-CEDICT — Data Notice
 
-Dataset name: CC-CEDICT (cedict_ts.u8)
-Obtained on: 2026-09-08
+Dataset name: CC-CEDICT (cedict_1_0_ts_utf-8_mdbg.txt)
+Obtained on: 2026-09-11
 Source: https://www.mdbg.net/chinese/dictionary?page=cedict
-Source file: cedict_1_0_ts_utf-8_mdbg.txt.gz (2026-09-07 release, 125,009 entries)
+Source file: cedict_1_0_ts_utf-8_mdbg.txt.gz
+  (2026-09-10 release, 125,049 entries)
 License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
 Full license text: https://creativecommons.org/licenses/by-sa/4.0/ (see LICENSE.txt)
+
+The bundled .txt file is the official MDBG download decompressed verbatim with
+gzip; no entries were added, removed or edited. MDBG publishes CC-CEDICT only
+as UTF-8 plain text (cedict_1_0_ts_utf-8_mdbg.txt.gz / .zip) — there is no
+official CSV or StarDict release.
 
 CC-CEDICT is a continuation of the CEDICT project started by Paul Denisowski
 and is maintained by MDBG. Any improvements or additions you make to this data

@@ -1,5 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
-data/cc-cedict/cedict_ts.u8 filter=lfs diff=lfs merge=lfs -text
+data/cc-cedict/cedict_1_0_ts_utf-8_mdbg.txt filter=lfs diff=lfs merge=lfs -text
 data/ecdict/ecdict.csv filter=lfs diff=lfs merge=lfs -text
 

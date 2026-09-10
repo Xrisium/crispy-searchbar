@@ -59,7 +59,7 @@
 
 | 数据 | 版本/获取 | 许可证 | 说明 |
 |---|---|---|---|
-| CC-CEDICT（`data/cc-cedict/cedict_ts.u8`） | 2026-09-07 release，125009 条 | [CC BY-SA 4.0](licenses/CC-BY-SA-4.0.txt) | 来源：MDBG（https://www.mdbg.net/chinese/dictionary?page=cedict）；数据目录内同时保留 `LICENSE.txt` 与 `NOTICE`，便于随数据单独分发。 |
+| CC-CEDICT（`data/cc-cedict/cedict_1_0_ts_utf-8_mdbg.txt`） | 2026-09-10 release，125049 条 | [CC BY-SA 4.0](licenses/CC-BY-SA-4.0.txt) | 来源：MDBG（https://www.mdbg.net/chinese/dictionary?page=cedict）；为官方 `cedict_1_0_ts_utf-8_mdbg.txt.gz` 解压后的原样文本（MDBG 不提供 CSV/StarDict 官方版）。数据目录内同时保留 `LICENSE.txt` 与 `NOTICE`，便于随数据单独分发。 |
 | ECDICT（`data/ecdict/ecdict.csv`） | 2026-09-08 upstream master，约 77 万条 | [MIT](licenses/MIT.txt) | 来源：https://github.com/skywind3000/ECDICT（Copyright (c) 2025 Linwei）；数据目录内保留 `LICENSE.txt` 与 `NOTICE`，便于随数据单独分发。 |
 
 ## 测试与开发依赖（不进发布产物）

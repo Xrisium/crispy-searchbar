@@ -18,7 +18,7 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\data\cc-cedict\cedict_ts.u8" Link="cedict_ts.u8" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\data\cc-cedict\cedict_1_0_ts_utf-8_mdbg.txt" Link="cedict_1_0_ts_utf-8_mdbg.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\cc-cedict\LICENSE.txt" Link="cc-cedict-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\cc-cedict\NOTICE" Link="cc-cedict-NOTICE.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\data\ecdict\ecdict.csv" Link="ecdict.csv" CopyToOutputDirectory="PreserveNewest" />
