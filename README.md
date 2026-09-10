@@ -49,8 +49,8 @@ tests/CrispySearchbar.Core.Tests/  核心逻辑单元测试
 licenses/                     集中存放的第三方许可证全文
 assets/icon/                  应用图标源 PNG 与多尺寸 ICO 素材
 locales/                      各语言界面翻译（见 locales/README.md）
-data/cc-cedict/               内置 CC-CEDICT 数据及其许可证/声明
-data/ecdict/                  内置 ECDICT 数据及其许可证/声明
+data/cc-cedict/               内置 CC-CEDICT 数据
+data/ecdict/                  内置 ECDICT 数据
 ```
 
 ## 许可证
@@ -59,4 +59,4 @@ data/ecdict/                  内置 ECDICT 数据及其许可证/声明
 
 第三方依赖与词典数据的许可证汇总见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)；
 
-全文集中存放于 `licenses/`，CC-CEDICT 与 ECDICT 还在各自数据目录中保留了 `LICENSE.txt`/`NOTICE`。
+许可证全文集中存放于 `licenses/`；CC-CEDICT 与 ECDICT 的来源、获取日期与署名声明也登记在 `THIRD_PARTY_NOTICES.md`，数据目录只保留数据文件本身。

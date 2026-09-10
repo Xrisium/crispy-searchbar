@@ -49,8 +49,8 @@ tests/CrispySearchbar.Core.Tests/  Unit tests for the core logic
 licenses/                      Centralized full texts of third-party licenses
 assets/icon/                   App icon source PNG and multi-size ICO assets
 locales/                       Per-language UI translations (see locales/README.md)
-data/cc-cedict/                Bundled CC-CEDICT data with its own license/notice
-data/ecdict/                   Bundled ECDICT data with its own license/notice
+data/cc-cedict/                Bundled CC-CEDICT data
+data/ecdict/                   Bundled ECDICT data
 ```
 
 ## License
@@ -59,4 +59,4 @@ The project code is licensed under the [MIT License](LICENSE).
 
 Third-party dependency and dictionary data licenses are summarized in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-Full texts are centralized under `licenses/`; CC-CEDICT and ECDICT additionally keep `LICENSE.txt`/`NOTICE` in their data directories.
+Full texts are centralized under `licenses/`; the source, retrieval date and attribution for CC-CEDICT and ECDICT are registered in `THIRD_PARTY_NOTICES.md`, and the data directories hold only the data files.

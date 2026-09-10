@@ -2,7 +2,7 @@
 
 本项目的代码使用 MIT License（见根目录 `LICENSE`）。下面的第三方依赖、组件与数据资产各自拥有独立许可证；使用或再分发本项目（含编译产物）时，须遵守这些许可证的条款。
 
-记录生成时间：2026-09-09。许可证信息读取自 NuGet 包元数据与数据发布页；升级依赖或更新数据后应重新核对并更新本文件。
+记录生成时间：2026-09-09；最近更新：2026-09-11（词典数据许可证改为集中管理）。许可证信息读取自 NuGet 包元数据与数据发布页；升级依赖或更新数据后应重新核对并更新本文件。
 
 ## 许可证原文集中管理
 
@@ -16,7 +16,7 @@
 | CC BY-SA 4.0 | [licenses/CC-BY-SA-4.0.txt](licenses/CC-BY-SA-4.0.txt) |
 | ISC | [licenses/ISC.txt](licenses/ISC.txt) |
 
-数据资产（词典、字体等）除在数据目录旁保留自己的 `LICENSE`/`NOTICE` 外，也应在下方“捆绑数据资产”表中登记，便于随资产单独分发。
+数据资产（词典、字体等）不再在数据目录旁保留 `LICENSE`/`NOTICE`：许可证全文统一放在 `licenses/`，各数据源的来源、获取日期与署名声明统一登记在本文件“捆绑数据资产”一节。单独再分发某个数据文件时，须一并提供本文件与 `licenses/` 下的许可证原文。
 
 ## 内置 UI 图标资源（随应用分发）
 
@@ -57,10 +57,26 @@
 
 ## 捆绑数据资产
 
-| 数据 | 版本/获取 | 许可证 | 说明 |
+数据目录只保留数据文件本身，不再旁挂 `LICENSE`/`NOTICE`；下表登记各数据源，随后给出各自的来源与署名声明。
+
+| 数据 | 文件 | 版本/获取 | 许可证 |
 |---|---|---|---|
-| CC-CEDICT（`data/cc-cedict/cedict_1_0_ts_utf-8_mdbg.txt`） | 2026-09-10 release，125049 条 | [CC BY-SA 4.0](licenses/CC-BY-SA-4.0.txt) | 来源：MDBG（https://www.mdbg.net/chinese/dictionary?page=cedict）；为官方 `cedict_1_0_ts_utf-8_mdbg.txt.gz` 解压后的原样文本（MDBG 不提供 CSV/StarDict 官方版）。数据目录内同时保留 `LICENSE.txt` 与 `NOTICE`，便于随数据单独分发。 |
-| ECDICT（`data/ecdict/ecdict.csv`） | 2026-09-08 upstream master，约 77 万条 | [MIT](licenses/MIT.txt) | 来源：https://github.com/skywind3000/ECDICT（Copyright (c) 2025 Linwei）；数据目录内保留 `LICENSE.txt` 与 `NOTICE`，便于随数据单独分发。 |
+| CC-CEDICT | `data/cc-cedict/cedict_1_0_ts_utf-8_mdbg.txt` | 2026-09-10 release，125049 条，获取于 2026-09-11 | [CC BY-SA 4.0](licenses/CC-BY-SA-4.0.txt) |
+| ECDICT | `data/ecdict/ecdict.csv` | 2026-09-08 upstream master，约 77 万条 | [MIT](licenses/MIT.txt) |
+
+### CC-CEDICT
+
+- 来源：MDBG（https://www.mdbg.net/chinese/dictionary?page=cedict）；官方发布文件为 `cedict_1_0_ts_utf-8_mdbg.txt.gz`（2026-09-10 release，125049 条）。
+- 捆绑的 `cedict_1_0_ts_utf-8_mdbg.txt` 为该官方文件用 gzip 解压后的原样文本，未增加、删除或修改任何词条；MDBG 只提供 UTF-8 纯文本，没有官方 CSV 或 StarDict 发布。
+- 许可：Creative Commons Attribution-ShareAlike 4.0 International（[licenses/CC-BY-SA-4.0.txt](licenses/CC-BY-SA-4.0.txt)）。
+- 署名：CC-CEDICT 是 Paul Denisowski 发起的 CEDICT 项目的延续，由 MDBG 维护。
+- Share-Alike：你对该数据所做的任何改进或增补，都必须以相同的许可证共享。项目代码为 MIT 许可，本数据文件保留其独立的 CC BY-SA 4.0 许可。
+
+### ECDICT
+
+- 来源：https://github.com/skywind3000/ECDICT ，下载地址 https://raw.githubusercontent.com/skywind3000/ECDICT/master/ecdict.csv ，获取于 2026-09-08。
+- 捆绑的 `ecdict.csv` 为上游仓库原样文件，未做修改；文件大小 65,933,428 字节，约 77 万条。
+- 许可：MIT License，Copyright (c) 2025 Linwei（[licenses/MIT.txt](licenses/MIT.txt)）。
 
 ## 测试与开发依赖（不进发布产物）
 
