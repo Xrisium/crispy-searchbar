@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Reflection;
 using System.Runtime.Versioning;
 using Microsoft.Win32;
 
@@ -10,6 +9,12 @@ public interface IStartupRegistrationService
 {
     /// <summary>创建或删除当前用户的启动项；成功返回 true。</summary>
     bool TrySetEnabled(bool enabled);
+
+    /// <summary>
+    /// 启动时的自愈检查：启用状态且注册项指向旧的 exe 路径（便携版被移动过）时改写为当前路径；
+    /// 禁用状态下删除注册项。成功返回 true。
+    /// </summary>
+    bool TryEnsureCurrentPath(bool enabled);
 }
 
 /// <summary>创建当前平台可用的自启注册服务（非 Windows 时为 no-op）。</summary>
@@ -61,7 +66,23 @@ public static class StartupRegistrationCommand
     public static string? BuildCurrent()
         => Build(
             Environment.ProcessPath ?? string.Empty,
-            Assembly.GetEntryAssembly()?.Location);
+            GetEntryAssemblyPath());
+
+    /// <summary>
+    /// 通过 dotnet 宿主启动（dotnet app.dll）时返回入口程序集路径，普通 exe 启动返回 null。
+    /// 不使用 <c>Assembly.Location</c>：单文件发布时它恒为空字符串，改从命令行首个参数取。
+    /// </summary>
+    private static string? GetEntryAssemblyPath()
+    {
+        var executable = Environment.ProcessPath ?? string.Empty;
+        if (!IsDotNetHost(executable))
+        {
+            return null;
+        }
+
+        var entry = Environment.GetCommandLineArgs().FirstOrDefault();
+        return string.IsNullOrWhiteSpace(entry) ? null : entry;
+    }
 
     private static bool IsDotNetHost(string executablePath)
         => string.Equals(
@@ -115,9 +136,51 @@ public sealed class WindowsStartupRegistrationService : IStartupRegistrationServ
             return false;
         }
     }
+
+    public bool TryEnsureCurrentPath(bool enabled)
+    {
+        // 禁用时仍需清理注册项（可能是旧版本或旧路径留下的），保持与设置一致。
+        if (!enabled)
+        {
+            return TrySetEnabled(false);
+        }
+
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: true);
+            if (key is null)
+            {
+                return false;
+            }
+
+            var command = StartupRegistrationCommand.BuildCurrent();
+            if (command is null)
+            {
+                return false;
+            }
+
+            if (string.Equals(
+                    key.GetValue(ValueName) as string,
+                    command,
+                    StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            key.SetValue(ValueName, command, RegistryValueKind.String);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceWarning("无法自愈开机自启路径：{0}", ex.Message);
+            return false;
+        }
+    }
 }
 
 internal sealed class NoopStartupRegistrationService : IStartupRegistrationService
 {
     public bool TrySetEnabled(bool enabled) => true;
+
+    public bool TryEnsureCurrentPath(bool enabled) => true;
 }

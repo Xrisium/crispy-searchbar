@@ -40,7 +40,8 @@ public partial class App : Application
             ApplyTheme(_settings.Theme);
 
             _startupRegistrationService = StartupRegistrationServiceFactory.Create();
-            if (!_startupRegistrationService.TrySetEnabled(_settings.LaunchAtStartup))
+            // 便携版可能被移动过：启用自启时自愈注册项路径，禁用时清理注册项。
+            if (!_startupRegistrationService.TryEnsureCurrentPath(_settings.LaunchAtStartup))
             {
                 Trace.TraceWarning("启动时同步开机自启设置失败。");
             }
