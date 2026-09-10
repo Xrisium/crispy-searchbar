@@ -53,3 +53,14 @@ public sealed class AboutActionViewModel
 
     public string Description { get; }
 }
+
+/// <summary>“关于”分类中打开内嵌第三方声明/许可证查看窗口的行。</summary>
+public sealed class AboutNoticesViewModel
+{
+    public AboutNoticesViewModel(string label)
+    {
+        Label = label;
+    }
+
+    public string Label { get; }
+}

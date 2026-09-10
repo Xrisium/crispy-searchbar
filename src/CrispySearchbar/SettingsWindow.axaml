@@ -655,6 +655,14 @@
       </Border>
     </DataTemplate>
 
+    <DataTemplate DataType="{x:Type vm:AboutNoticesViewModel}">
+      <Border Padding="0,7">
+        <TextBlock Text="{Binding Label}"
+                   Classes="aboutLink"
+                   Tapped="OnAboutNoticesTapped" />
+      </Border>
+    </DataTemplate>
+
     <DataTemplate DataType="{x:Type vm:AboutActionViewModel}">
       <Border Margin="0,6,0,0"
               BorderBrush="{DynamicResource DividerBrush}"

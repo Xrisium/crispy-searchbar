@@ -27,7 +27,9 @@ public sealed partial class SettingsWindow : Window
     private readonly Dictionary<SettingFieldViewModel, Control> _fieldControls = [];
     private readonly Dictionary<ModeListItemViewModel, Control> _modeRowControls = [];
     private readonly VectorTransition _scrollTransition;
+    private readonly AppStrings _strings;
     private DispatcherTimer? _statusFadeTimer;
+    private NoticesWindow? _noticesWindow;
     private ModeListItemViewModel? _modeDragSource;
     private int _dragInsertionSlot;
     private bool _isShiftPressed;
@@ -57,10 +59,11 @@ public sealed partial class SettingsWindow : Window
 
         var settings = AppSettingsStore.LoadOrDefault();
         var strings = TranslationCatalog.Default.Resolve(settings.Language);
+        _strings = strings;
         var viewModel = new SettingsWindowViewModel(
             settings,
             strings,
-            AppSettingsStore.GetSettingsFilePath(),
+            AppSettingsStore.GetEffectiveFilePath(),
             globalShortcutProbe,
             isCurrentGlobalShortcut,
             startupRegistrationUpdater);
@@ -319,6 +322,26 @@ public sealed partial class SettingsWindow : Window
                 BrowserLauncher.Open(link.Target);
             }
         }
+    }
+
+    /// <summary>打开内嵌第三方声明/许可证查看窗口；同一时间只保留一个实例。</summary>
+    private void OnAboutNoticesTapped(object? sender, TappedEventArgs e)
+    {
+        if (_noticesWindow is { } existing)
+        {
+            if (!existing.IsVisible)
+            {
+                existing.Show();
+            }
+
+            existing.Activate();
+            return;
+        }
+
+        var window = new NoticesWindow(_strings);
+        window.Closed += (_, _) => _noticesWindow = null;
+        _noticesWindow = window;
+        window.Show(this);
     }
 
     private void OnResetConfigClicked(object? sender, RoutedEventArgs e)

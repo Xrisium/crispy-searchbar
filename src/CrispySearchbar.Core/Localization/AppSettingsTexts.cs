@@ -48,6 +48,12 @@ public sealed class AppSettingsTexts
 
     public required string AboutThirdPartyNoticesLinkLabel { get; init; }
 
+    /// <summary>内嵌第三方声明/许可证查看窗口的标题。</summary>
+    public required string NoticesWindowTitle { get; init; }
+
+    /// <summary>查看窗口顶部的说明：声明与许可证随程序内嵌，离线可读。</summary>
+    public required string NoticesIntro { get; init; }
+
     public required string ResetConfigText { get; init; }
 
     public required string ResetConfigDescription { get; init; }

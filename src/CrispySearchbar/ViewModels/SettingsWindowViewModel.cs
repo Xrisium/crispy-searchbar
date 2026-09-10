@@ -536,10 +536,8 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
                 _texts.AboutGitHubLinkLabel,
                 GitHubRepositoryUrl,
                 openAsFile: false),
-            new AboutLinkViewModel(
-                _texts.AboutThirdPartyNoticesLinkLabel,
-                GitHubRepositoryUrl + "/blob/main/THIRD_PARTY_NOTICES.md",
-                openAsFile: false),
+            // 声明与许可证原文随程序内嵌，这里打开应用内查看窗口而不是跳转在线页面。
+            new AboutNoticesViewModel(_texts.AboutThirdPartyNoticesLinkLabel),
             new AboutActionViewModel(_texts.ResetConfigText, _texts.ResetConfigDescription),
         };
 
