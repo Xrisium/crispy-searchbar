@@ -90,8 +90,8 @@
       "ClearQueryOnHide": "搜索框隐藏后清空已输入内容。",
       "AskAiUrlTemplate": "需要包含 {0}，查询词会替换该占位符。",
       "ModePreferences": "选择参与模式切换的模式。拖拽行或使用上/下按钮调整顺序；至少保留一个启用模式。",
-      "DictionaryFilePath": "支持 CC-CEDICT 的 UTF-8 文本文件（.u8，如 cedict_ts.u8），或 StarDict 词库（.ifo，方向为汉 → 英）。选择 .ifo 时，需在其同目录放置同名的 .idx 与 .dict/.dict.dz。留空时使用用户数据目录或程序内置文件。",
-      "EcdictFilePath": "支持 ECDICT 的 CSV 文件（.csv，如 ecdict.csv），或 StarDict 词库（.ifo，方向为英 → 汉）。选择 .ifo 时，需在其同目录放置同名的 .idx 与 .dict/.dict.dz。留空时使用用户数据目录或程序内置文件。",
+      "DictionaryFilePath": "支持 .txt（CC-CEDICT 文本，或每行“词头 + 制表符 + 释义”的通用文本）、.csv、.gz/.zip 压缩文件，或 StarDict 词库（.ifo，方向为汉 → 英）。选择 .ifo 时，需在其同目录放置同名的 .idx 与 .dict/.dict.dz。留空时使用用户数据目录或程序内置文件。",
+      "EcdictFilePath": "支持 .txt（每行“词头 + 制表符 + 释义”的通用文本）、.csv（如 ecdict.csv）、.gz/.zip 压缩文件，或 StarDict 词库（.ifo，方向为英 → 汉）。选择 .ifo 时，需在其同目录放置同名的 .idx 与 .dict/.dict.dz。留空时使用用户数据目录或程序内置文件。",
       "ToggleVisibilityShortcut": "全局快捷键：搜索框隐藏时呼出，显示时隐藏。默认 Alt+Space；录制时按 Esc 可清除。",
       "CycleModeShortcut": "轻按切换下一个模式；长按呼出模式轮盘，松开确认。需为不带修饰键的单个按键。",
       "HideOnEscape": "启用后，搜索框显示时按下 Esc 会将其隐藏到系统托盘。",
@@ -109,8 +109,8 @@
       "SearchEngine.Bing": "必应"
     },
     "fileTypeFilterNames": {
-      "CcCedict": "CC-CEDICT / StarDict 词典文件",
-      "Ecdict": "ECDICT / StarDict 词典文件"
+      "CcCedict": "词典文件（.txt/.csv/.gz/.zip/StarDict）",
+      "Ecdict": "词典文件（.txt/.csv/.gz/.zip/StarDict）"
     },
     "validationMessages": {
       "ShortcutInvalid": "无法识别的快捷键。",

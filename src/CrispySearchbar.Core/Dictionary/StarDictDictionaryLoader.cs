@@ -17,44 +17,42 @@ public static class StarDictDictionaryLoader
     public static EcdictIndex LoadEnglishIndex(string ifoFilePath)
         => EcdictIndex.Build(BuildEnglishEntries(ifoFilePath));
 
-    /// <summary>汉英方向：词头同时作为简体与繁体，拼音取 y/t 字段。</summary>
-    public static IReadOnlyList<DictionaryEntry> BuildChineseEntries(string ifoFilePath)
+    /// <summary>把 StarDict 词条展开为方向无关记录（同义词各成一条），来源名取 .ifo 的 bookname。</summary>
+    public static IReadOnlyList<DictionaryRecord> BuildRecords(string ifoFilePath)
     {
         var (entries, sourceName) = LoadEntries(ifoFilePath);
-        var results = new List<DictionaryEntry>(entries.Count);
+        var records = new List<DictionaryRecord>(entries.Count);
         foreach (var entry in entries)
         {
-            var pinyin = entry.Pinyin ?? entry.Phonetic ?? string.Empty;
+            // 拼音优先取 y 字段，缺失时退回 t 字段（音标）。
+            var pinyin = entry.Pinyin ?? entry.Phonetic;
             foreach (var headword in entry.Headwords)
             {
-                results.Add(new DictionaryEntry(headword, headword, pinyin, entry.Definitions)
-                {
-                    Source = sourceName,
-                });
+                records.Add(new DictionaryRecord(
+                    headword,
+                    Traditional: null,
+                    pinyin,
+                    entry.Phonetic,
+                    entry.Definitions,
+                    Exchange: null,
+                    sourceName));
             }
         }
 
-        return results;
+        return records;
     }
+
+    /// <summary>汉英方向：词头同时作为简体与繁体，拼音取 y/t 字段。</summary>
+    public static IReadOnlyList<DictionaryEntry> BuildChineseEntries(string ifoFilePath)
+        => BuildRecords(ifoFilePath)
+            .Select(DictionaryRecordMapper.ToDictionaryEntry)
+            .ToList();
 
     /// <summary>英汉方向：音标取 t 字段，义项复用文本字段。</summary>
     public static IReadOnlyList<EcdictEntry> BuildEnglishEntries(string ifoFilePath)
-    {
-        var (entries, sourceName) = LoadEntries(ifoFilePath);
-        var results = new List<EcdictEntry>(entries.Count);
-        foreach (var entry in entries)
-        {
-            foreach (var headword in entry.Headwords)
-            {
-                results.Add(new EcdictEntry(headword, entry.Phonetic, entry.Definitions, Exchange: null)
-                {
-                    Source = sourceName,
-                });
-            }
-        }
-
-        return results;
-    }
+        => BuildRecords(ifoFilePath)
+            .Select(DictionaryRecordMapper.ToEcdictEntry)
+            .ToList();
 
     private static (List<StarDictEntry> Entries, string SourceName) LoadEntries(string ifoFilePath)
     {

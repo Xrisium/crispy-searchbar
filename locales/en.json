@@ -90,8 +90,8 @@
       "ClearQueryOnHide": "Clear the typed query whenever the search bar hides.",
       "AskAiUrlTemplate": "Must contain {0}; the query replaces this placeholder.",
       "ModePreferences": "Choose which modes appear in mode switching. Drag a row or use the up/down buttons to change the order; at least one mode must stay enabled.",
-      "DictionaryFilePath": "Accepts a CC-CEDICT UTF-8 text file, typically cedict_ts.u8 (*.u8), or a StarDict dictionary (*.ifo, Chinese to English). A StarDict .ifo needs its .idx and .dict/.dict.dz beside it with the same base name. Leave empty to use the user data directory or the bundled file.",
-      "EcdictFilePath": "Accepts an ECDICT CSV file, typically ecdict.csv (*.csv), or a StarDict dictionary (*.ifo, English to Chinese). A StarDict .ifo needs its .idx and .dict/.dict.dz beside it with the same base name. Leave empty to use the user data directory or the bundled file.",
+      "DictionaryFilePath": "Accepts .txt (CC-CEDICT text, or generic lines of \"headword + tab + definition\"), .csv, .gz/.zip archives, or a StarDict dictionary (*.ifo, Chinese to English). A StarDict .ifo needs its .idx and .dict/.dict.dz beside it with the same base name. Leave empty to use the user data directory or the bundled file.",
+      "EcdictFilePath": "Accepts .txt (generic lines of \"headword + tab + definition\"), .csv (such as ecdict.csv), .gz/.zip archives, or a StarDict dictionary (*.ifo, English to Chinese). A StarDict .ifo needs its .idx and .dict/.dict.dz beside it with the same base name. Leave empty to use the user data directory or the bundled file.",
       "ToggleVisibilityShortcut": "Global shortcut: shows the hidden search bar and hides it while visible. Default Alt+Space; press Esc while recording to clear it.",
       "CycleModeShortcut": "Tap to cycle modes; press and hold to open the mode wheel, then release to confirm. Must be a single key without modifiers.",
       "HideOnEscape": "When enabled, pressing Esc while the search bar is visible hides it to the tray.",
@@ -109,8 +109,8 @@
       "SearchEngine.Bing": "Bing"
     },
     "fileTypeFilterNames": {
-      "CcCedict": "CC-CEDICT / StarDict dictionary",
-      "Ecdict": "ECDICT / StarDict dictionary"
+      "CcCedict": "Dictionary file (.txt/.csv/.gz/.zip/StarDict)",
+      "Ecdict": "Dictionary file (.txt/.csv/.gz/.zip/StarDict)"
     },
     "validationMessages": {
       "ShortcutInvalid": "Unrecognized shortcut.",

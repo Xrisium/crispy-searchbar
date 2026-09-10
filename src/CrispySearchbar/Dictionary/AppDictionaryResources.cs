@@ -5,13 +5,12 @@ namespace CrispySearchbar.Dictionary;
 
 /// <summary>
 /// 解析并加载内置/用户词典资源：
-/// CC-CEDICT（汉→英）与 ECDICT（英→汉）各自独立加载，
-/// 配置路径为 StarDict .ifo 时改用 StarDict 词库（方向由槽位决定），
-/// 优先级均为 settings.json 指定路径 &gt; 用户数据目录 &gt; 程序目录。
+/// 汉英与英汉两个槽位支持同一组格式（.txt / .csv / .gz / .zip / StarDict .ifo），
+/// 方向由槽位决定；优先级均为 settings.json 指定路径 &gt; 用户数据目录 &gt; 程序目录。
 /// </summary>
 public sealed class AppDictionaryResources
 {
-    public const string CedictFileName = "cedict_ts.u8";
+    public const string CedictFileName = "cedict_1_0_ts_utf-8_mdbg.txt";
     public const string EcdictFileName = "ecdict.csv";
 
     private const string CedictDisplayName = "CC-CEDICT";
@@ -81,10 +80,7 @@ public sealed class AppDictionaryResources
 
         try
         {
-            var index = DictionaryFileFormatDetector.Detect(path) == DictionaryFileFormat.StarDict
-                ? StarDictDictionaryLoader.LoadChineseIndex(path)
-                : CedictIndexLoader.LoadFile(path);
-            return (index, null);
+            return (DictionarySourceLoader.LoadChineseIndex(path), null);
         }
         catch (FileNotFoundException ex)
         {
@@ -93,7 +89,7 @@ public sealed class AppDictionaryResources
                 ex.FileName));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
-            or ArgumentException or InvalidDataException)
+            or ArgumentException or InvalidDataException or NotSupportedException)
         {
             return (null, _strings.FormatDictionaryReadFailed(
                 ResolveDisplayName(path, CedictDisplayName),
@@ -118,10 +114,7 @@ public sealed class AppDictionaryResources
 
         try
         {
-            var index = DictionaryFileFormatDetector.Detect(path) == DictionaryFileFormat.StarDict
-                ? StarDictDictionaryLoader.LoadEnglishIndex(path)
-                : EcdictIndexLoader.LoadFile(path);
-            return (index, null);
+            return (DictionarySourceLoader.LoadEnglishIndex(path), null);
         }
         catch (FileNotFoundException ex)
         {
@@ -130,7 +123,7 @@ public sealed class AppDictionaryResources
                 ex.FileName));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
-            or ArgumentException or InvalidDataException)
+            or ArgumentException or InvalidDataException or NotSupportedException)
         {
             return (null, _strings.FormatDictionaryReadFailed(
                 ResolveDisplayName(path, EcdictDisplayName),

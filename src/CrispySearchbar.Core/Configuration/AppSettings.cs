@@ -69,19 +69,19 @@ public sealed class AppSettings
     public string AskAiUrlTemplate { get; set; } =
         "https://chat.deepseek.com/?q={0}";
     /// <summary>
-    /// 汉英词典文件路径：CC-CEDICT 文本（.u8）或 StarDict（.ifo，方向为汉→英）；
-    /// 留空时依次使用用户数据目录、程序目录中的 cedict_ts.u8。
+    /// 汉英词典文件路径：.txt（CC-CEDICT 文本或“词头+释义”行文本）、.csv、.gz/.zip 或 StarDict（.ifo）；
+    /// 留空时依次使用用户数据目录、程序目录中的内置 CC-CEDICT 文本。
     /// </summary>
     [Setting(
         SettingsSection.Dictionary,
         SettingEditorKind.FilePath,
         Order = 0,
         FileTypeFilterKey = SettingFileFilterKeys.CcCedict,
-        FileTypePatterns = new[] { "*.ifo", "*.u8", "*" })]
+        FileTypePatterns = new[] { "*.txt", "*.csv", "*.gz", "*.zip", "*.ifo", "*" })]
     public string? DictionaryFilePath { get; set; }
 
     /// <summary>
-    /// 英汉词典文件路径：ECDICT CSV（.csv）或 StarDict（.ifo，方向为英→汉）；
+    /// 英汉词典文件路径：.txt（“词头+释义”行文本）、.csv、.gz/.zip 或 StarDict（.ifo）；
     /// 留空时依次使用用户数据目录、程序目录中的 ecdict.csv。
     /// </summary>
     [Setting(
@@ -89,6 +89,6 @@ public sealed class AppSettings
         SettingEditorKind.FilePath,
         Order = 1,
         FileTypeFilterKey = SettingFileFilterKeys.Ecdict,
-        FileTypePatterns = new[] { "*.ifo", "*.csv", "*" })]
+        FileTypePatterns = new[] { "*.txt", "*.csv", "*.gz", "*.zip", "*.ifo", "*" })]
     public string? EcdictFilePath { get; set; }
 }

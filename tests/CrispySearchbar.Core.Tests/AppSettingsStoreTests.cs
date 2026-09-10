@@ -95,7 +95,7 @@ public class AppSettingsStoreTests
                     new ModePreference(ModePreferenceDefaults.AskAi, enabled: true),
                     new ModePreference(ModePreferenceDefaults.Dictionary, enabled: false),
                 ],
-                DictionaryFilePath = "C:\\dict\\cedict_ts.u8",
+                DictionaryFilePath = "C:\\dict\\cedict_1_0_ts_utf-8_mdbg.txt",
                 EcdictFilePath = "C:\\dict\\ecdict.csv",
             };
 
@@ -119,7 +119,7 @@ public class AppSettingsStoreTests
                     preference.Key,
                     preference.Enabled,
                 }));
-            Assert.Equal("C:\\dict\\cedict_ts.u8", loaded.DictionaryFilePath);
+            Assert.Equal("C:\\dict\\cedict_1_0_ts_utf-8_mdbg.txt", loaded.DictionaryFilePath);
             Assert.Equal("C:\\dict\\ecdict.csv", loaded.EcdictFilePath);
         }
         finally

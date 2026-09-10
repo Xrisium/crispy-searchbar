@@ -143,10 +143,21 @@ public class AppSettingsSchemaTests
             definition => definition.PropertyName == nameof(AppSettings.EcdictFilePath));
 
         Assert.Equal(SettingFileFilterKeys.CcCedict, chineseToEnglish.FileTypeFilterKey);
-        Assert.Contains("*.u8", chineseToEnglish.FileTypePatterns);
+        Assert.Contains("*.txt", chineseToEnglish.FileTypePatterns);
+        Assert.Contains("*.csv", chineseToEnglish.FileTypePatterns);
+        Assert.Contains("*.gz", chineseToEnglish.FileTypePatterns);
+        Assert.Contains("*.zip", chineseToEnglish.FileTypePatterns);
         Assert.Contains("*.ifo", chineseToEnglish.FileTypePatterns);
         Assert.Equal(SettingFileFilterKeys.Ecdict, englishToChinese.FileTypeFilterKey);
+        Assert.Contains("*.txt", englishToChinese.FileTypePatterns);
         Assert.Contains("*.csv", englishToChinese.FileTypePatterns);
+        Assert.Contains("*.gz", englishToChinese.FileTypePatterns);
+        Assert.Contains("*.zip", englishToChinese.FileTypePatterns);
         Assert.Contains("*.ifo", englishToChinese.FileTypePatterns);
+
+        // 两个方向的格式支持完全对称。
+        Assert.Equal(
+            chineseToEnglish.FileTypePatterns.OrderBy(pattern => pattern, StringComparer.Ordinal),
+            englishToChinese.FileTypePatterns.OrderBy(pattern => pattern, StringComparer.Ordinal));
     }
 }

@@ -10,7 +10,7 @@ public class CedictIndexLoaderTests
     {
         var directory = Path.Combine(Path.GetTempPath(), "crispy-searchbar-dict-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
-        var path = Path.Combine(directory, "cedict_ts.u8");
+        var path = Path.Combine(directory, "cedict_1_0_ts_utf-8_mdbg.txt");
         try
         {
             File.WriteAllLines(path, new[]
