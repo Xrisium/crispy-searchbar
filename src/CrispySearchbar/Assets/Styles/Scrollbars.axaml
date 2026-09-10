@@ -1,0 +1,80 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--
+    统一的纤细圆角滚动条（见 .agents/DESIGN.md「滚动条规范」）。
+    设置面板与搜索框候选框共用此模板；不得为单个窗口另写一套滚动条样式。
+  -->
+  <Style Selector="Thumb.slimScrollThumb">
+    <Setter Property="Opacity" Value="0.55" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+      </Transitions>
+    </Setter>
+  </Style>
+  <Style Selector="Thumb.slimScrollThumb:pointerover">
+    <Setter Property="Opacity" Value="0.9" />
+  </Style>
+  <Style Selector="Thumb.slimScrollThumb:pressed">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <Style Selector="ScrollBar:vertical">
+    <Setter Property="Width" Value="10" />
+    <Setter Property="MinWidth" Value="10" />
+    <Setter Property="MaxWidth" Value="10" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ScrollBar">
+        <Grid>
+          <Border x:Name="ScrollTrackBackground"
+                  Margin="2,4"
+                  Background="{DynamicResource DividerBrush}"
+                  CornerRadius="3"
+                  Opacity="0">
+            <Border.Transitions>
+              <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.12" />
+              </Transitions>
+            </Border.Transitions>
+          </Border>
+          <Track x:Name="PART_Track"
+                 Minimum="{TemplateBinding Minimum}"
+                 Maximum="{TemplateBinding Maximum}"
+                 Value="{TemplateBinding Value, Mode=TwoWay}"
+                 DeferThumbDrag="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
+                 ViewportSize="{TemplateBinding ViewportSize}"
+                 IsDirectionReversed="True"
+                 Orientation="Vertical">
+            <Track.DecreaseButton>
+              <RepeatButton Name="PART_PageUpButton"
+                            Focusable="False"
+                            Background="Transparent"
+                            Opacity="0" />
+            </Track.DecreaseButton>
+            <Track.IncreaseButton>
+              <RepeatButton Name="PART_PageDownButton"
+                            Focusable="False"
+                            Background="Transparent"
+                            Opacity="0" />
+            </Track.IncreaseButton>
+            <Thumb MinHeight="28"
+                   Width="6"
+                   HorizontalAlignment="Center"
+                   Classes="slimScrollThumb">
+              <Thumb.Template>
+                <ControlTemplate TargetType="Thumb">
+                  <Border Background="{DynamicResource TextSecondaryBrush}"
+                          CornerRadius="3"
+                          Opacity="{TemplateBinding Opacity}" />
+                </ControlTemplate>
+              </Thumb.Template>
+            </Thumb>
+          </Track>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+  <Style Selector="ScrollBar:vertical:pointerover /template/ Border#ScrollTrackBackground">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+</Styles>

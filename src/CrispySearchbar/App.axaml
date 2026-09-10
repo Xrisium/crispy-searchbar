@@ -4,6 +4,7 @@
              RequestedThemeVariant="Default">
   <Application.Styles>
     <FluentTheme />
+    <StyleInclude Source="avares://CrispySearchbar/Assets/Styles/Scrollbars.axaml" />
     <!-- Popup 使用独立原生顶层窗口；根层必须透明，否则圆角浮层四角会露出方形底色。 -->
     <Style Selector="PopupRoot">
       <Setter Property="Background" Value="Transparent" />
