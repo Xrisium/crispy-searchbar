@@ -9,6 +9,12 @@
 
   <ItemGroup>
     <EmbeddedResource Include="..\..\locales\*.json" Link="locales\%(Filename)%(Extension)" />
+    <!-- 内置词典数据：gzip 文本随程序集分发，单文件发布时无需任何外附数据文件。 -->
+    <EmbeddedResource Include="..\..\data\cc-cedict\cedict_1_0_ts_utf-8_mdbg.txt.gz" LogicalName="CrispySearchbar.Core.Data.cedict_1_0_ts_utf-8_mdbg.txt.gz" />
+    <EmbeddedResource Include="..\..\data\ecdict\ecdict.csv.gz" LogicalName="CrispySearchbar.Core.Data.ecdict.csv.gz" />
+    <!-- 第三方声明与许可证全文：内嵌后可离线查看，发布目录不再散落这些文件。 -->
+    <EmbeddedResource Include="..\..\THIRD_PARTY_NOTICES.md" LogicalName="CrispySearchbar.Notices.THIRD_PARTY_NOTICES.md" />
+    <EmbeddedResource Include="..\..\licenses\*.txt" LogicalName="CrispySearchbar.Notices.%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>

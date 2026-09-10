@@ -43,10 +43,8 @@ public sealed class DictionaryCandidateClickTests
     {
         TestStyles.Ensure();
         var strings = TranslationCatalog.Default.Resolve(AppLanguage.English);
-        var dataPath = Path.Combine(AppContext.BaseDirectory, AppDictionaryResources.EcdictFileName);
-        Assert.True(File.Exists(dataPath), $"测试需要 ECDICT 数据文件：{dataPath}");
 
-        var index = await Task.Run(() => EcdictIndexLoader.LoadFile(dataPath));
+        var index = await Task.Run(LoadBundledEcdictIndex);
         var viewModel = new MainWindowViewModel(
             strings,
             [SearchMode.Dictionary(strings.DictionaryMode)],
@@ -69,6 +67,17 @@ public sealed class DictionaryCandidateClickTests
         Assert.True(viewModel.DictionaryCandidates.Count > 0, $"查询“{query}”应产生候选。");
         await PumpAsync();
         return (window, viewModel);
+    }
+
+    /// <summary>候选点击需要真实的 ECDICT 数据：直接读随程序集内嵌的 gzip 数据，不依赖任何外部文件。</summary>
+    private static EcdictIndex LoadBundledEcdictIndex()
+    {
+        using var stream = BundledDictionaryResources.TryOpenEcdict()
+            ?? throw new InvalidOperationException("测试需要内嵌 ECDICT 数据。");
+        return DictionarySourceLoader.LoadEnglishIndex(
+            stream,
+            BundledDictionaryResources.Ecdict.Format,
+            BundledDictionaryResources.Ecdict.SourceName);
     }
 
     private static async Task PumpAsync()

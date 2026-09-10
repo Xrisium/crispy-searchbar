@@ -14,17 +14,28 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
   </PropertyGroup>
 
-    <ItemGroup>
+  <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\data\cc-cedict\cedict_1_0_ts_utf-8_mdbg.txt" Link="cedict_1_0_ts_utf-8_mdbg.txt" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\data\ecdict\ecdict.csv" Link="ecdict.csv" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\licenses\**" Link="licenses\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\THIRD_PARTY_NOTICES.md" Link="THIRD_PARTY_NOTICES.md" CopyToOutputDirectory="PreserveNewest" />
 
-  </ItemGroup>
+  <!-- 单文件发布产物只保留 exe：SkiaSharp/HarfBuzz 的原生 .pdb 由 NuGet 原生资产带入，必须显式剔除。 -->
+  <Target Name="ExcludePdbFromSingleFilePublish"
+          AfterTargets="ComputeFilesToPublish"
+          Condition="'$(PublishSingleFile)' == 'true'">
+    <ItemGroup>
+      <_PublishPdb Include="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.pdb'" />
+      <ResolvedFileToPublish Remove="@(_PublishPdb)" />
+    </ItemGroup>
+  </Target>
 
+  <Target Name="CleanPublishDirectoryPdbs"
+          AfterTargets="Publish"
+          Condition="'$(PublishSingleFile)' == 'true'">
+    <ItemGroup>
+      <_PublishedPdb Include="$(PublishDir)**\*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(_PublishedPdb)" />
+  </Target>
 
   <ItemGroup>
     <ProjectReference Include="..\CrispySearchbar.Core\CrispySearchbar.Core.csproj" />

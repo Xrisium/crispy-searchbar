@@ -33,12 +33,28 @@ This project has **no** intention of becoming an integrated or all-in-one search
 - **Web search**: search your input with the preconfigured search engine in the default browser. Supports [Baidu](https://www.baidu.com), [Google](https://www.google.com/) and [Bing](https://www.bing.com/).
 - **Wikipedia**: look up your input on [Wikipedia](https://en.wikipedia.org/); the Wikipedia language follows the UI language automatically.
 - **Ask DeepSeek**: ask your question in the [DeepSeek web app](https://chat.deepseek.com/) using the default browser. Requires a DeepSeek account and signing in beforehand in the browser.
-- **Dictionary**: English–Chinese and Chinese–English word lookup with real-time candidates as you type. Lookups run offline using [CC-CEDICT](https://www.mdbg.net/chinese/dictionary?page=cedict) (Chinese → English) and [ECDICT](https://github.com/skywind3000/ECDICT) (English → Chinese). The offline dictionaries are installed together with Crispy Searchbar, so no separate download is needed. Both directions accept the same set of custom dictionary files: `.txt` (CC-CEDICT text, or generic lines of "headword + tab + definition"), `.csv`, `.gz`/`.zip` archives, and [StarDict](https://en.wikipedia.org/wiki/StarDict) dictionaries (`.ifo`, with `.idx` and `.dict`/`.dict.dz` of the same base name beside it). The direction comes from which setting you point at — Chinese–English or English–Chinese. The current version does not support additional languages yet.
+- **Dictionary**: English–Chinese and Chinese–English word lookup with real-time candidates as you type. Lookups run offline using [CC-CEDICT](https://www.mdbg.net/chinese/dictionary?page=cedict) (Chinese → English) and [ECDICT](https://github.com/skywind3000/ECDICT) (English → Chinese). The offline dictionaries ship with the app itself (embedded inside the executable in the single-file build), so no separate download and no extra data files are needed. Both directions accept the same set of custom dictionary files: `.txt` (CC-CEDICT text, or generic lines of "headword + tab + definition"), `.csv`, `.gz`/`.zip` archives, and [StarDict](https://en.wikipedia.org/wiki/StarDict) dictionaries (`.ifo`, with `.idx` and `.dict`/`.dict.dz` of the same base name beside it). The direction comes from which setting you point at — Chinese–English or English–Chinese. The current version does not support additional languages yet.
 
 ## Requirements
 
 - Windows 10 x64
 - .NET SDK 10
+
+## Portable single-file build
+
+```powershell
+pwsh ./scripts/publish-portable.ps1
+```
+
+The script builds a **self-contained win-x64 single executable** (about 73 MB) with the `PortableWinX64` publish profile and writes it to `artifacts/crispy-searchbar-{version}-win-x64.exe`, printing its size and SHA-256. The artifact:
+
+- needs no .NET runtime installed — copy it anywhere and double-click.
+- contains no files besides the executable itself: both bundled dictionaries (gzip) and the third-party notices/license texts are embedded in the app.
+- creates only `settings.json` next to the executable on first run; if that directory is not writable (for example under `Program Files` or on read-only media) the configuration falls back to `%LOCALAPPDATA%\CrispySearchbar\settings.json`, and the settings window shows the path actually in use.
+- repairs the launch-at-sign-in registry entry automatically on the next start after the executable is moved.
+- still extracts native Skia/HarfBuzz/Angle libraries into `%TEMP%\.net\CrispySearchbar\…` on first run (the system temp directory, not the app directory) — an inherent limitation of single-file Avalonia apps on Windows.
+
+Use the normal `dotnet build` / `dotnet run` flow for development; the two do not interfere.
 
 ## Repository layout
 
@@ -49,8 +65,9 @@ tests/CrispySearchbar.Core.Tests/  Unit tests for the core logic
 licenses/                      Centralized full texts of third-party licenses
 assets/icon/                   App icon source PNG and multi-size ICO assets
 locales/                       Per-language UI translations (see locales/README.md)
-data/cc-cedict/                Bundled CC-CEDICT data
-data/ecdict/                   Bundled ECDICT data
+data/cc-cedict/                Bundled CC-CEDICT data (gzip, embedded into the app as a resource)
+data/ecdict/                   Bundled ECDICT data (gzip, embedded into the app as a resource)
+scripts/publish-portable.ps1   Portable single-file publish script
 ```
 
 ## License

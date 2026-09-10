@@ -46,4 +46,57 @@ public static class DictionarySourceLoader
                 EcdictSourceName)
             : DictionaryLineParser.Parse(source.Reader, CcCedictSourceName, source.SourceName);
     }
+
+    /// <summary>
+    /// 从 gzip 流（内置词典的嵌入资源）加载：格式与来源名由调用方给出，
+    /// 解析链路与文件入口完全一致。
+    /// </summary>
+    public static CedictIndex LoadChineseIndex(
+        Stream gzipStream,
+        DictionaryFileFormat format,
+        string sourceName)
+        => CedictIndex.Build(LoadChineseEntries(gzipStream, format, sourceName));
+
+    /// <summary>从 gzip 流（内置词典的嵌入资源）加载英 → 汉索引。</summary>
+    public static EcdictIndex LoadEnglishIndex(
+        Stream gzipStream,
+        DictionaryFileFormat format,
+        string sourceName)
+        => EcdictIndex.Build(LoadEnglishEntries(gzipStream, format, sourceName));
+
+    /// <summary>从 gzip 流加载汉英词条。</summary>
+    public static IReadOnlyList<DictionaryEntry> LoadChineseEntries(
+        Stream gzipStream,
+        DictionaryFileFormat format,
+        string sourceName)
+        => LoadRecords(gzipStream, format, sourceName)
+            .Select(DictionaryRecordMapper.ToDictionaryEntry)
+            .ToList();
+
+    /// <summary>从 gzip 流加载英汉词条。</summary>
+    public static IReadOnlyList<EcdictEntry> LoadEnglishEntries(
+        Stream gzipStream,
+        DictionaryFileFormat format,
+        string sourceName)
+        => LoadRecords(gzipStream, format, sourceName)
+            .Select(DictionaryRecordMapper.ToEcdictEntry)
+            .ToList();
+
+    /// <summary>从 gzip 流加载方向无关的词条记录。</summary>
+    public static IReadOnlyList<DictionaryRecord> LoadRecords(
+        Stream gzipStream,
+        DictionaryFileFormat format,
+        string sourceName)
+    {
+        ArgumentNullException.ThrowIfNull(gzipStream);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceName);
+
+        using var source = DictionaryTextSource.OpenGzip(gzipStream, format, sourceName);
+        return source.Format == DictionaryFileFormat.Csv
+            ? DictionaryCsvParser.Parse(
+                source.Reader,
+                CcCedictSourceName,
+                EcdictSourceName)
+            : DictionaryLineParser.Parse(source.Reader, CcCedictSourceName, source.SourceName);
+    }
 }

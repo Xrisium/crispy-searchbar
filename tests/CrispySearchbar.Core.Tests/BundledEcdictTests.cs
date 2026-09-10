@@ -8,13 +8,7 @@ public class BundledEcdictTests
     [Fact]
     public void BundledEcdict_LoadsAndAnswersEnglishQueries()
     {
-        var dataPath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory,
-            "..", "..", "..", "..", "..",
-            "data", "ecdict", "ecdict.csv"));
-        Assert.True(File.Exists(dataPath), $"Bundled ECDICT not found at {dataPath}");
-
-        var index = EcdictIndexLoader.LoadFile(dataPath);
+        var index = LoadBundledIndex();
 
         Assert.True(index.Count >= 700_000, $"Expected full ECDICT, got {index.Count} entries.");
 
@@ -27,5 +21,17 @@ public class BundledEcdictTests
 
         Assert.Equal("apple", index.Search("APPLE")[0].Word);
         Assert.Equal("search", index.Search("search")[0].Word);
+        Assert.Equal("ECDICT", index.Search("apple")[0].Source);
+    }
+
+    /// <summary>内置 ECDICT 随程序集内嵌（gzip 资源），测试不得依赖任何外部数据文件。</summary>
+    internal static EcdictIndex LoadBundledIndex()
+    {
+        using var stream = BundledDictionaryResources.TryOpenEcdict()
+            ?? throw new InvalidOperationException("Bundled ECDICT resource is missing.");
+        return DictionarySourceLoader.LoadEnglishIndex(
+            stream,
+            BundledDictionaryResources.Ecdict.Format,
+            BundledDictionaryResources.Ecdict.SourceName);
     }
 }

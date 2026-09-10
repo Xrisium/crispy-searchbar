@@ -71,6 +71,26 @@ public sealed class DictionaryTextSource : IDisposable
             owner: null);
     }
 
+    /// <summary>
+    /// 从已打开的 gzip 流读取（例如内置词典的嵌入资源）；格式与来源名由调用方给出。
+    /// 释放本实例会连带释放传入的流。
+    /// </summary>
+    public static DictionaryTextSource OpenGzip(
+        Stream gzipStream,
+        DictionaryFileFormat format,
+        string sourceName)
+    {
+        ArgumentNullException.ThrowIfNull(gzipStream);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceName);
+
+        var gzip = new GZipStream(gzipStream, CompressionMode.Decompress);
+        return new DictionaryTextSource(
+            new StreamReader(gzip, Encoding.UTF8, detectEncodingFromByteOrderMarks: true),
+            format,
+            sourceName,
+            owner: null);
+    }
+
     public void Dispose()
     {
         // 先释放读取器（连带其底层流），再释放压缩包句柄。

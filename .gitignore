@@ -190,6 +190,9 @@ publish/
 *.pubxml
 *.publishproj
 
+# 便携单文件发布配置不含任何机密，需要随仓库共享（上面的 *.pubxml 默认忽略它）。
+!src/CrispySearchbar/Properties/PublishProfiles/*.pubxml
+
 # Microsoft Azure Web App publish settings. Comment the next line if you want to
 # checkin your Azure Web App publish settings, but sensitive information contained
 # in these scripts will be unencrypted

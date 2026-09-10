@@ -2,7 +2,7 @@
 
 本项目的代码使用 MIT License（见根目录 `LICENSE`）。下面的第三方依赖、组件与数据资产各自拥有独立许可证；使用或再分发本项目（含编译产物）时，须遵守这些许可证的条款。
 
-记录生成时间：2026-09-09；最近更新：2026-09-11（词典数据许可证改为集中管理）。许可证信息读取自 NuGet 包元数据与数据发布页；升级依赖或更新数据后应重新核对并更新本文件。
+记录生成时间：2026-09-09；最近更新：2026-09-11（词典数据改为 `.gz` 并随程序内嵌，声明与许可证全文也内嵌进可执行文件）。许可证信息读取自 NuGet 包元数据与数据发布页；升级依赖或更新数据后应重新核对并更新本文件。
 
 ## 许可证原文集中管理
 
@@ -17,6 +17,8 @@
 | ISC | [licenses/ISC.txt](licenses/ISC.txt) |
 
 数据资产（词典、字体等）不再在数据目录旁保留 `LICENSE`/`NOTICE`：许可证全文统一放在 `licenses/`，各数据源的来源、获取日期与署名声明统一登记在本文件“捆绑数据资产”一节。单独再分发某个数据文件时，须一并提供本文件与 `licenses/` 下的许可证原文。
+
+本文件与 `licenses/` 下的许可证原文都会作为嵌入资源编进可执行文件（`CrispySearchbar.Core` 程序集），运行时可从设置窗口「关于 → 第三方许可声明」离线查看。发布物因此只有一个 exe，不需要在程序目录旁附带 `THIRD_PARTY_NOTICES.md` 或 `licenses/`。
 
 ## 内置 UI 图标资源（随应用分发）
 
@@ -61,13 +63,16 @@
 
 | 数据 | 文件 | 版本/获取 | 许可证 |
 |---|---|---|---|
-| CC-CEDICT | `data/cc-cedict/cedict_1_0_ts_utf-8_mdbg.txt` | 2026-09-10 release，125049 条，获取于 2026-09-11 | [CC BY-SA 4.0](licenses/CC-BY-SA-4.0.txt) |
-| ECDICT | `data/ecdict/ecdict.csv` | 2026-09-08 upstream master，约 77 万条 | [MIT](licenses/MIT.txt) |
+| CC-CEDICT | `data/cc-cedict/cedict_1_0_ts_utf-8_mdbg.txt.gz` | 2026-09-10 release，125049 条，获取于 2026-09-11 | [CC BY-SA 4.0](licenses/CC-BY-SA-4.0.txt) |
+| ECDICT | `data/ecdict/ecdict.csv.gz` | 2026-09-08 upstream master，约 77 万条 | [MIT](licenses/MIT.txt) |
+
+两个 `.gz` 文件都以嵌入资源形式随 `CrispySearchbar.Core` 程序集分发，运行时在后台流式解压建索引；发布产物（单文件 exe）不含任何词典数据文件。
 
 ### CC-CEDICT
 
-- 来源：MDBG（https://www.mdbg.net/chinese/dictionary?page=cedict）；官方发布文件为 `cedict_1_0_ts_utf-8_mdbg.txt.gz`（2026-09-10 release，125049 条）。
-- 捆绑的 `cedict_1_0_ts_utf-8_mdbg.txt` 为该官方文件用 gzip 解压后的原样文本，未增加、删除或修改任何词条；MDBG 只提供 UTF-8 纯文本，没有官方 CSV 或 StarDict 发布。
+- 来源：MDBG（https://www.mdbg.net/chinese/dictionary?page=cedict）；官方下载地址 https://www.mdbg.net/chinese/export/cedict/cedict_1_0_ts_utf-8_mdbg.txt.gz （2026-09-10 release，125049 条，获取于 2026-09-11）。
+- 捆绑的 `cedict_1_0_ts_utf-8_mdbg.txt.gz` 就是 MDBG 官方发布的原始压缩文件（3,973,948 字节，SHA-256 `295e19b95046ef61f593c45d5c7d18149b2efd3774176cf77190f12df8e59511`），未做任何改动：解压后与之前捆绑的纯文本逐字节一致（9,847,348 字节，SHA-256 `c767bbd8270c1144cf9b82a5c572df0025c08b74065088ba9a18e421068b6e01`）。
+- MDBG 只提供 UTF-8 纯文本（压缩发布），没有官方 CSV 或 StarDict 版本。
 - 许可：Creative Commons Attribution-ShareAlike 4.0 International（[licenses/CC-BY-SA-4.0.txt](licenses/CC-BY-SA-4.0.txt)）。
 - 署名：CC-CEDICT 是 Paul Denisowski 发起的 CEDICT 项目的延续，由 MDBG 维护。
 - Share-Alike：你对该数据所做的任何改进或增补，都必须以相同的许可证共享。项目代码为 MIT 许可，本数据文件保留其独立的 CC BY-SA 4.0 许可。
@@ -75,7 +80,7 @@
 ### ECDICT
 
 - 来源：https://github.com/skywind3000/ECDICT ，下载地址 https://raw.githubusercontent.com/skywind3000/ECDICT/master/ecdict.csv ，获取于 2026-09-08。
-- 捆绑的 `ecdict.csv` 为上游仓库原样文件，未做修改；文件大小 65,933,428 字节，约 77 万条。
+- 捆绑的 `ecdict.csv.gz` 是上游 `ecdict.csv`（65,933,428 字节，约 77 万条）原样内容的 gzip 重新压缩：词条内容未增加、删除或修改，仅改变分发容器以适应内嵌。文件大小 23,076,755 字节，SHA-256 `0d2fa6ea5ba75890de56231c2d9790e001d6d5a8795a0aacb6ba138ece6da1ce`；解压后即上游文件本身。
 - 许可：MIT License，Copyright (c) 2025 Linwei（[licenses/MIT.txt](licenses/MIT.txt)）。
 
 ## 测试与开发依赖（不进发布产物）
@@ -98,6 +103,6 @@
 ## 说明
 
 - 许可证文本以各包自身携带的许可证文件、SPDX 官方文本或官方项目仓库为准；本目录中的 `licenses/` 文件与 NuGet 包缓存/上游仓库中的原文应保持一致。
-- 正式发布二进制时，发布流程应把根目录 `THIRD_PARTY_NOTICES.md` 与 `licenses/` 下的许可证全文随产物一并提供。
+- 正式发布二进制时，`THIRD_PARTY_NOTICES.md` 与 `licenses/` 下的许可证全文已内嵌在可执行文件内，用户可从设置窗口「关于 → 第三方许可声明」离线查看；若单独再分发词典数据文件，仍须一并提供本文件与对应许可证原文。
 - 后续引入任何新的第三方包、字体、图标或词典数据时，先确认其许可证与再分发条款，再按本文件“许可证原文集中管理”一节的约定补充原文并更新表格。
 

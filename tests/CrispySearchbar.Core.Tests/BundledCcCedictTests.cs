@@ -5,18 +5,10 @@ namespace CrispySearchbar.Core.Tests;
 
 public class BundledCcCedictTests
 {
-    private static string BundledDataPath => Path.GetFullPath(Path.Combine(
-        AppContext.BaseDirectory,
-        "..", "..", "..", "..", "..",
-        "data", "cc-cedict", "cedict_1_0_ts_utf-8_mdbg.txt"));
-
     [Fact]
     public void BundledCcCedict_LoadsAndAnswersChineseQueries()
     {
-        var dataPath = BundledDataPath;
-        Assert.True(File.Exists(dataPath), $"Bundled CC-CEDICT not found at {dataPath}");
-
-        var index = CedictIndexLoader.LoadFile(dataPath);
+        var index = LoadBundledIndex();
 
         Assert.True(index.Count >= 124_000, $"Expected full CC-CEDICT, got {index.Count} entries.");
         Assert.Equal("苹果", index.Search("苹果")[0].Simplified);
@@ -32,14 +24,22 @@ public class BundledCcCedictTests
     [Fact]
     public void BundledCcCedict_LoadsThroughUnifiedSourceLoader()
     {
-        var dataPath = BundledDataPath;
-        Assert.True(File.Exists(dataPath), $"Bundled CC-CEDICT not found at {dataPath}");
-
-        var index = DictionarySourceLoader.LoadChineseIndex(dataPath);
+        var index = LoadBundledIndex();
 
         Assert.True(index.Count >= 124_000, $"Expected full CC-CEDICT, got {index.Count} entries.");
         var entry = index.Search("苹果")[0];
         Assert.Equal("苹果", entry.Simplified);
         Assert.Equal("CC-CEDICT", entry.Source);
+    }
+
+    /// <summary>内置 CC-CEDICT 随程序集内嵌（gzip 资源），测试不得依赖任何外部数据文件。</summary>
+    private static CedictIndex LoadBundledIndex()
+    {
+        using var stream = BundledDictionaryResources.TryOpenCcCedict()
+            ?? throw new InvalidOperationException("Bundled CC-CEDICT resource is missing.");
+        return DictionarySourceLoader.LoadChineseIndex(
+            stream,
+            BundledDictionaryResources.CcCedict.Format,
+            BundledDictionaryResources.CcCedict.SourceName);
     }
 }
