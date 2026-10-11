@@ -2,6 +2,11 @@ namespace CrispySearchbar.Core.Localization;
 
 public sealed class EmojiTexts
 {
+    public required string RecentTab { get; init; }
+    public required string SearchResultsTab { get; init; }
+    public required string NoRecent { get; init; }
+    public required string GridHint { get; init; }
+    public required IReadOnlyDictionary<string, string> Categories { get; init; }
     public required string Loading
     {
         get; init;

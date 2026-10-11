@@ -231,10 +231,41 @@
       <Border Width="640" CornerRadius="18" BorderThickness="1" Padding="8"
               Background="{DynamicResource SearchSurfaceBrush}" BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
               PointerPressed="OnDictionaryPopupPointerPressed">
-        <Grid RowDefinitions="Auto,Auto,Auto,Auto">
-          <TextBlock Text="{Binding Emoji.Status}" IsVisible="{Binding Emoji.HasStatus}" Margin="12,6" FontSize="12" TextWrapping="Wrap"
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+          <ListBox x:Name="EmojiCategoriesList" ItemsSource="{Binding Emoji.Categories}"
+                   SelectedItem="{Binding Emoji.SelectedCategory, Mode=TwoWay}"
+                   IsVisible="{Binding Emoji.ShowCategories}" Background="Transparent" BorderThickness="0"
+                   Padding="0,2,0,8" Focusable="False" SelectionChanged="OnEmojiSelectionChanged"
+                   PointerWheelChanged="OnEmojiCategoryPointerWheelChanged"
+                   ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+            <ListBox.ItemsPanel>
+              <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.Styles>
+              <Style Selector="ListBoxItem">
+                <Setter Property="Padding" Value="9,7" />
+                <Setter Property="Margin" Value="1,0" />
+                <Setter Property="CornerRadius" Value="9" />
+                <Setter Property="Focusable" Value="False" />
+              </Style>
+              <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+                <Setter Property="CornerRadius" Value="9" />
+              </Style>
+              <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+                <Setter Property="CornerRadius" Value="9" />
+              </Style>
+            </ListBox.Styles>
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:EmojiCategoryViewModel">
+                <TextBlock Text="{Binding Title}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <TextBlock Grid.Row="1" Text="{Binding Emoji.Status}" IsVisible="{Binding Emoji.HasStatus}" Margin="12,6" FontSize="12" TextWrapping="Wrap"
                      Foreground="{DynamicResource TextSecondaryBrush}" />
-          <ListBox x:Name="EmojiCandidatesList" Grid.Row="1" MaxHeight="330" Padding="0"
+          <ListBox x:Name="EmojiCandidatesList" Grid.Row="2" MaxHeight="330" Padding="0" IsVisible="{Binding !Emoji.IsGrid}"
                    ItemsSource="{Binding Emoji.Candidates}" SelectedIndex="{Binding Emoji.SelectedIndex, Mode=TwoWay}"
                    Background="Transparent" BorderThickness="0" Focusable="False"
                    SelectionChanged="OnEmojiSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -266,13 +297,47 @@
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
-          <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="8,4" IsVisible="{Binding Emoji.HasCandidates}">
+          <ListBox x:Name="EmojiGridList" Grid.Row="2" Height="250" Padding="6,0" IsVisible="{Binding Emoji.IsGrid}"
+                   ItemsSource="{Binding Emoji.Candidates}" SelectedIndex="{Binding Emoji.SelectedIndex, Mode=TwoWay}"
+                   Background="Transparent" BorderThickness="0" Focusable="False"
+                   SelectionChanged="OnEmojiSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemsPanel>
+              <ItemsPanelTemplate><WrapPanel Width="600" HorizontalAlignment="Left" /></ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.Styles>
+              <Style Selector="ListBoxItem">
+                <Setter Property="Width" Value="50" />
+                <Setter Property="Height" Value="50" />
+                <Setter Property="Padding" Value="9" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="CornerRadius" Value="10" />
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+              </Style>
+              <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+                <Setter Property="CornerRadius" Value="10" />
+              </Style>
+              <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+                <Setter Property="CornerRadius" Value="10" />
+              </Style>
+            </ListBox.Styles>
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:EmojiCandidateViewModel">
+                <Image Source="{Binding Image}" Width="32" Height="32" ToolTip.Tip="{Binding Title}"
+                       AutomationProperties.Name="{Binding Title}" />
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+          <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8" Margin="8,4" IsVisible="{Binding Emoji.HasCandidates}">
             <Button Content="{Binding Emoji.VariantsText}" IsVisible="{Binding Emoji.CanShowVariants}" Click="OnEmojiVariantsClick" Focusable="False"
                     Background="{DynamicResource HoverBrush}" Foreground="{DynamicResource TextSecondaryBrush}" CornerRadius="8" FontSize="12" />
             <Button Content="{Binding Emoji.CopyText}" Click="OnEmojiCopyClick" Focusable="False"
                     Background="{DynamicResource HoverBrush}" Foreground="{DynamicResource TextSecondaryBrush}" CornerRadius="8" FontSize="12" />
           </StackPanel>
-          <TextBlock Grid.Row="3" Text="{Binding Emoji.Hint}" Margin="12,4" FontSize="11" TextWrapping="Wrap"
+          <TextBlock Grid.Row="4" Text="{Binding Emoji.Hint}" Margin="12,4" FontSize="11" TextWrapping="Wrap"
                      Foreground="{DynamicResource TextPlaceholderBrush}" />
         </Grid>
       </Border>

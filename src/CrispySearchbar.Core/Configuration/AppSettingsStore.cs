@@ -83,6 +83,11 @@ public static class AppSettingsStore
                 needsSave = true;
             }
             needsSave |= ShortcutNormalizer.Normalize(settings);
+            if (!Enum.IsDefined(settings.EmojiCandidateStyle))
+            {
+                settings.EmojiCandidateStyle = EmojiCandidateStyle.List;
+                needsSave = true;
+            }
             if (!Enum.IsDefined(settings.EmojiDefaultSkinTone))
             {
                 settings.EmojiDefaultSkinTone = EmojiSkinTone.Neutral;

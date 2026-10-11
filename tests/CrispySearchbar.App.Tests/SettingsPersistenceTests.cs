@@ -8,6 +8,26 @@ namespace CrispySearchbar.Ui.Tests;
 public sealed class SettingsPersistenceTests
 {
     [Fact]
+    public void EmojiStyleChoiceSavesAndResetRestoresList()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "crispy-emoji-settings-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var vm = new SettingsWindowViewModel(new AppSettings(),
+                TranslationCatalog.Default.Resolve("zh-Hans"), AppSettingsStore.GetSettingsFilePath(directory));
+            var field = Assert.IsType<ChoiceSettingFieldViewModel>(vm.Sections.SelectMany(s => s.Fields)
+                .Single(f => f.Definition.PropertyName == nameof(AppSettings.EmojiCandidateStyle)));
+            Assert.Equal(EmojiCandidateStyle.List, field.SelectedOption!.Value);
+            field.SelectedOption = field.Options.Single(o => Equals(o.Value, EmojiCandidateStyle.Grid));
+            Assert.True(vm.TrySave());
+            Assert.Equal(EmojiCandidateStyle.Grid, AppSettingsStore.LoadOrDefault(directory).EmojiCandidateStyle);
+            Assert.True(vm.TryResetConfiguration());
+            Assert.Equal(EmojiCandidateStyle.List, AppSettingsStore.LoadOrDefault(directory).EmojiCandidateStyle);
+        }
+        finally { if (Directory.Exists(directory)) Directory.Delete(directory, true); }
+    }
+
+    [Fact]
     public void SavingAndResettingOnlyWriteTheDisplayedConfigurationFile()
     {
         var root = Path.Combine(Path.GetTempPath(), "crispy-settings-ui-" + Guid.NewGuid().ToString("N"));

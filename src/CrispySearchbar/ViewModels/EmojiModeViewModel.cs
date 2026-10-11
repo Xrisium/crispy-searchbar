@@ -10,7 +10,29 @@ using CrispySearchbar.Emoji;
 namespace CrispySearchbar.ViewModels;
 
 public sealed record EmojiCandidateViewModel(EmojiEntry Entry, string Title, string Subtitle,
-    Bitmap Image, bool HasVariants);
+    Func<Bitmap> LoadImage, bool HasVariants)
+{
+    private Bitmap? _image;
+    public Bitmap Image => _image ??= LoadImage();
+}
+
+public sealed class EmojiCategoryViewModel(string key, string title) : INotifyPropertyChanged
+{
+    private string _title = title;
+    public string Key { get; } = key;
+    public string Title
+    {
+        get => _title;
+        set
+        {
+            if (_title == value)
+                return;
+            _title = value;
+            PropertyChanged?.Invoke(this, new(nameof(Title)));
+        }
+    }
+    public event PropertyChangedEventHandler? PropertyChanged;
+}
 
 public sealed class EmojiModeViewModel : INotifyPropertyChanged, IDisposable
 {
@@ -28,6 +50,12 @@ public sealed class EmojiModeViewModel : INotifyPropertyChanged, IDisposable
     private int _selectedIndex;
     private EmojiCandidateViewModel? _variantParent;
     private EmojiCandidateViewModel[] _normalCandidates = [];
+    private EmojiIndex? _index;
+    private IReadOnlyList<EmojiMatch> _matches = [];
+    private int _selectedCategoryIndex;
+    private bool _selectInitialCategory = true;
+    private bool HasQuery => !string.IsNullOrWhiteSpace(_query);
+    public const int GridColumns = 12;
 
     public EmojiModeViewModel(AppStrings strings, AppSettings settings, Task<EmojiIndex> indexTask,
         EmojiHistoryStore history, EmojiImageCache images)
@@ -41,6 +69,33 @@ public sealed class EmojiModeViewModel : INotifyPropertyChanged, IDisposable
 
     public event PropertyChangedEventHandler? PropertyChanged;
     public ObservableCollection<EmojiCandidateViewModel> Candidates { get; } = [];
+    public IReadOnlyList<EmojiCategoryViewModel> Categories { get; private set; } = [];
+    public bool IsGrid => _settings.EmojiCandidateStyle == EmojiCandidateStyle.Grid;
+    public bool ShowCategories => IsGrid && !_variants;
+    public EmojiCategoryViewModel? SelectedCategory
+    {
+        get => Categories.ElementAtOrDefault(_selectedCategoryIndex);
+        set
+        {
+            if (value is not null)
+                SelectedCategoryIndex = Categories.ToList().IndexOf(value);
+        }
+    }
+    public int SelectedCategoryIndex
+    {
+        get => _selectedCategoryIndex;
+        set
+        {
+            if (value < 0 || value >= Categories.Count || value == _selectedCategoryIndex)
+                return;
+            _selectedCategoryIndex = value;
+            _selectInitialCategory = false;
+            Changed();
+            Changed(nameof(SelectedCategory));
+            if (_search is null)
+                FilterCandidates();
+        }
+    }
     public int SelectedIndex
     {
         get => _selectedIndex; set
@@ -64,17 +119,25 @@ public sealed class EmojiModeViewModel : INotifyPropertyChanged, IDisposable
         }
     }
     public bool HasStatus => !string.IsNullOrWhiteSpace(Status);
-    public string Hint => ShortcutTextFormatter.Format(_strings.Emoji.Hint, ShortcutCatalog.Create(_settings), _strings.SettingsTexts.ShortcutUnsetText);
+    public string Hint => ShortcutTextFormatter.Format(IsGrid ? _strings.Emoji.GridHint : _strings.Emoji.Hint,
+        ShortcutCatalog.Create(_settings), _strings.SettingsTexts.ShortcutUnsetText);
     public string VariantsText => _strings.Emoji.Variants;
     public string CopyText => _strings.Emoji.Copy;
     public bool HasCandidates => Candidates.Count > 0;
     public void ApplyConfiguration(AppStrings strings, AppSettings settings)
     {
+        if (IsGrid != (settings.EmojiCandidateStyle == EmojiCandidateStyle.Grid))
+        {
+            _selectedCategoryIndex = 0;
+            _selectInitialCategory = true;
+        }
         _strings = strings;
         _settings = settings;
         Changed(nameof(Hint));
         Changed(nameof(VariantsText));
         Changed(nameof(CopyText));
+        Changed(nameof(IsGrid));
+        Changed(nameof(ShowCategories));
         if (_active)
             _ = SearchAsync();
     }
@@ -85,11 +148,18 @@ public sealed class EmojiModeViewModel : INotifyPropertyChanged, IDisposable
             return;
         _query = query;
         _active = active;
+        _selectedCategoryIndex = 0;
+        _selectInitialCategory = true;
+        Changed(nameof(SelectedCategoryIndex));
+        Changed(nameof(SelectedCategory));
         _search?.Cancel();
         _version++;
         _variants = false;
+        _normalCandidates = [];
+        _variantParent = null;
         Changed(nameof(IsChoosingVariant));
         Changed(nameof(CanShowVariants));
+        Changed(nameof(ShowCategories));
         if (active)
             _ = SearchAsync();
         else
@@ -110,13 +180,32 @@ public sealed class EmojiModeViewModel : INotifyPropertyChanged, IDisposable
             var query = _query;
             var usage = _history.Snapshot();
             var tone = _settings.EmojiDefaultSkinTone;
-            var matches = await Task.Run(() => index.Search(query, usage, tone, cancellationToken: cts.Token), cts.Token);
+            var grid = IsGrid;
+            var matches = await Task.Run(() => grid && string.IsNullOrWhiteSpace(query)
+                ? index.Entries.DistinctBy(e => e.VariantGroup).Select(e => new EmojiMatch(index.ApplySkinTone(e, tone), "", 0, 0)).ToArray()
+                : index.Search(query, usage, tone, maxResults: grid ? int.MaxValue : 12, cancellationToken: cts.Token), cts.Token);
             if (version != _version || !_active)
                 return;
-            Replace(matches.Select(m => CreateCandidate(index, m.Entry, m.MatchedTerm)));
+            _index = index;
+            _matches = matches;
             _variants = false;
             Changed(nameof(IsChoosingVariant));
-            Status = Candidates.Count == 0 ? _strings.Emoji.NoResults : string.IsNullOrWhiteSpace(query) ? _strings.Emoji.Recent : "";
+            Changed(nameof(ShowCategories));
+            if (Categories.Count == 0)
+            {
+                Categories = new[] { new EmojiCategoryViewModel("", "") }
+                    .Concat(index.Entries.Select(e => e.Group).Distinct().Select(key => new EmojiCategoryViewModel(key, ""))).ToArray();
+                Changed(nameof(Categories));
+            }
+            foreach (var category in Categories)
+                category.Title = category.Key.Length == 0 ? HasQuery ? _strings.Emoji.SearchResultsTab : _strings.Emoji.RecentTab
+                    : _strings.Emoji.Categories.GetValueOrDefault(category.Key, category.Key);
+            if (_selectInitialCategory)
+                _selectedCategoryIndex = grid && !HasQuery && usage.Count == 0 ? 1 : 0;
+            _selectInitialCategory = false;
+            Changed(nameof(SelectedCategoryIndex));
+            Changed(nameof(SelectedCategory));
+            FilterCandidates();
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) { if (version == _version) Status = string.Format(_strings.Emoji.LoadFailed, ex.Message); }
@@ -131,7 +220,30 @@ public sealed class EmojiModeViewModel : INotifyPropertyChanged, IDisposable
         if (!string.IsNullOrWhiteSpace(matchedTerm) && !title.Contains(matchedTerm, StringComparison.OrdinalIgnoreCase)
             && !subtitle.Contains(matchedTerm, StringComparison.OrdinalIgnoreCase))
             subtitle += " · " + matchedTerm;
-        return new(entry, title, subtitle, _images.Get(entry.Image), index.GetVariants(entry).Count > 1);
+        return new(entry, title, subtitle, () => _images.Get(entry.Image), index.GetVariants(entry).Count > 1);
+    }
+
+    private void FilterCandidates()
+    {
+        if (_index is null || !_active)
+            return;
+        IEnumerable<EmojiMatch> matches = _matches;
+        if (IsGrid)
+        {
+            if (_selectedCategoryIndex > 0)
+                matches = matches.Where(m => m.Entry.Group == Categories[_selectedCategoryIndex].Key);
+            else if (!HasQuery)
+            {
+                var bySequence = _index.Entries.ToDictionary(e => e.Sequence);
+                matches = _history.Snapshot().OrderByDescending(u => u.LastUsed)
+                    .Where(u => bySequence.ContainsKey(u.Sequence))
+                    .Select(u => new EmojiMatch(bySequence[u.Sequence], "", 0, 0));
+            }
+        }
+        Replace(matches.Select(m => CreateCandidate(_index, m.Entry, m.MatchedTerm)));
+        Status = Candidates.Count == 0
+            ? IsGrid && !HasQuery && _selectedCategoryIndex == 0 ? _strings.Emoji.NoRecent : _strings.Emoji.NoResults
+            : !IsGrid && !HasQuery ? _strings.Emoji.Recent : "";
     }
 
     private void Replace(IEnumerable<EmojiCandidateViewModel> candidates)
@@ -143,7 +255,26 @@ public sealed class EmojiModeViewModel : INotifyPropertyChanged, IDisposable
         Changed(nameof(HasCandidates));
     }
 
-    public void MoveSelection(int delta) => SelectedIndex = Math.Clamp(SelectedIndex + delta, 0, Math.Max(0, Candidates.Count - 1));
+    public void MoveSelection(int delta) => SelectedIndex = Candidates.Count == 0 ? -1
+        : Math.Clamp(SelectedIndex + delta, 0, Candidates.Count - 1);
+    public void MoveVertical(int direction)
+    {
+        if (!IsGrid)
+        {
+            MoveSelection(direction);
+            return;
+        }
+        if (SelectedIndex < 0 || Candidates.Count == 0)
+            return;
+        var row = SelectedIndex / GridColumns + direction;
+        if (row >= 0 && row <= (Candidates.Count - 1) / GridColumns)
+            SelectedIndex = Math.Min(SelectedIndex + direction * GridColumns, Candidates.Count - 1);
+    }
+    public void MoveCategory(int direction)
+    {
+        if (ShowCategories && Categories.Count > 0)
+            SelectedCategoryIndex = (SelectedCategoryIndex + direction + Categories.Count) % Categories.Count;
+    }
     public void OpenVariants()
     {
         if (!CanShowVariants || !_indexTask.IsCompletedSuccessfully || Selected is not { } selected)
@@ -156,6 +287,7 @@ public sealed class EmojiModeViewModel : INotifyPropertyChanged, IDisposable
         Status = _strings.Emoji.Variants;
         Changed(nameof(IsChoosingVariant));
         Changed(nameof(CanShowVariants));
+        Changed(nameof(ShowCategories));
     }
     public bool CommitVariant()
     {
@@ -169,6 +301,7 @@ public sealed class EmojiModeViewModel : INotifyPropertyChanged, IDisposable
         Status = "";
         Changed(nameof(IsChoosingVariant));
         Changed(nameof(CanShowVariants));
+        Changed(nameof(ShowCategories));
         return true;
     }
     public bool CancelVariants()
@@ -182,6 +315,7 @@ public sealed class EmojiModeViewModel : INotifyPropertyChanged, IDisposable
         Status = "";
         Changed(nameof(IsChoosingVariant));
         Changed(nameof(CanShowVariants));
+        Changed(nameof(ShowCategories));
         return true;
     }
     public Task RecordAsync(string sequence) => _history.RecordAsync(sequence);

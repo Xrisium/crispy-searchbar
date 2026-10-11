@@ -97,7 +97,8 @@
       "EmojiVariantsShortcut": "Emoji variants shortcut",
       "CopyEmojiShortcut": "Copy Emoji shortcut",
       "EmojiKeepOpenAfterInsert": "Keep Emoji panel open after inserting",
-      "EmojiDefaultSkinTone": "Default Emoji skin tone"
+      "EmojiDefaultSkinTone": "Default Emoji skin tone",
+      "EmojiCandidateStyle": "Emoji candidate style"
     },
     "fieldDescriptions": {
       "Language": "The UI language updates immediately after saving.",
@@ -121,7 +122,8 @@
       "EmojiVariantsShortcut": "Opens variants for the selected Emoji; Enter confirms and Esc returns.",
       "CopyEmojiShortcut": "Copies the selected Emoji and keeps the panel open; Ctrl+C still copies query text.",
       "EmojiKeepOpenAfterInsert": "Returns to the search bar after inserting, preserving the query and selection.",
-      "EmojiDefaultSkinTone": "Applies to supported Emoji; individual variants remain selectable."
+      "EmojiDefaultSkinTone": "Applies to supported Emoji; individual variants remain selectable.",
+      "EmojiCandidateStyle": "List shows names and descriptions; grid browses all Emoji by category and focuses search results when typing."
     },
     "optionLabels": {
       "Language.system": "System",
@@ -136,7 +138,9 @@
       "EmojiDefaultSkinTone.MediumLight": "Medium light",
       "EmojiDefaultSkinTone.Medium": "Medium",
       "EmojiDefaultSkinTone.MediumDark": "Medium dark",
-      "EmojiDefaultSkinTone.Dark": "Dark"
+      "EmojiDefaultSkinTone.Dark": "Dark",
+      "EmojiCandidateStyle.List": "List",
+      "EmojiCandidateStyle.Grid": "Grid"
     },
     "fileTypeFilterNames": {
       "CcCedict": "Dictionary file (.txt/.csv/.gz/.zip/StarDict)",
@@ -173,7 +177,22 @@
     "copied": "Emoji copied",
     "inputFailed": "Could not insert into the original window. Copy the Emoji and paste it manually.",
     "loadFailed": "Could not load Emoji data: {0}",
-    "hotkeyFailed": "Emoji shortcut unavailable. Use Tab to switch to Emoji mode."
+    "hotkeyFailed": "Emoji shortcut unavailable. Use Tab to switch to Emoji mode.",
+    "recentTab": "Recent",
+    "searchResultsTab": "Results",
+    "noRecent": "No recent Emoji yet. Choose a category to browse.",
+    "gridHint": "←/→ · {previous}/{next} select · Alt+←/→ category · {execute} insert · {variants} variants · {copyEmoji} copy",
+    "categories": {
+      "Smileys & Emotion": "Smileys",
+      "People & Body": "People",
+      "Animals & Nature": "Nature",
+      "Food & Drink": "Food",
+      "Travel & Places": "Travel",
+      "Activities": "Activity",
+      "Objects": "Objects",
+      "Symbols": "Symbols",
+      "Flags": "Flags"
+    }
   },
   "configurationWarning": "Settings migration or saving failed. Original files were preserved. Open settings for details: "
 }

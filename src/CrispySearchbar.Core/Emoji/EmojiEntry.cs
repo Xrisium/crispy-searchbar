@@ -2,6 +2,7 @@ namespace CrispySearchbar.Core.Emoji;
 
 public sealed record EmojiEntry
 {
+    public string Group { get; init; } = "";
     public required string Sequence
     {
         get; init;

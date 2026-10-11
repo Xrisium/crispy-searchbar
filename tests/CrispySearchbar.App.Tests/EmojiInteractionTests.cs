@@ -48,10 +48,10 @@ public sealed class EmojiInteractionTests
             get;
         }
         public FakeInput Input { get; } = new();
-        public Fixture(bool keepOpen = false)
+        public Fixture(bool keepOpen = false, EmojiCandidateStyle style = EmojiCandidateStyle.List)
         {
             TestStyles.Ensure();
-            var settings = new AppSettings { EmojiKeepOpenAfterInsert = keepOpen };
+            var settings = new AppSettings { EmojiKeepOpenAfterInsert = keepOpen, EmojiCandidateStyle = style };
             var strings = TranslationCatalog.Default.Resolve("zh-Hans");
             Emoji = new(strings, settings, Index, new EmojiHistoryStore(DirectoryPath), new EmojiImageCache());
             Main = new(strings, [SearchMode.Emoji(strings.EmojiMode), SearchMode.WebSearch(strings.WebSearchMode, "https://example.com?q={0}")], _ => { }, emoji: Emoji);
@@ -77,6 +77,176 @@ public sealed class EmojiInteractionTests
         await Task.Delay(30);
         await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Loaded);
         Assert.NotEmpty(f.Emoji.Candidates);
+    }
+
+    private static async Task SearchFinished(Fixture f, string query)
+    {
+        f.Main.Query = query;
+        var loading = TranslationCatalog.Default.Resolve("zh-Hans").Emoji.Loading;
+        for (var i = 0; i < 500 && f.Emoji.Status == loading; i++)
+            await Task.Delay(10);
+        Assert.NotEqual(loading, f.Emoji.Status);
+        await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Loaded);
+    }
+
+    [AvaloniaFact]
+    public async Task GridBrowsesEveryCategoryWithoutTruncatingAndKeepsInputFocused()
+    {
+        using var f = new Fixture(style: EmojiCandidateStyle.Grid);
+        await SearchFinished(f, "");
+        Assert.True(f.Emoji.IsGrid);
+        Assert.Equal(10, f.Emoji.Categories.Count);
+        Assert.Equal("最近使用", f.Emoji.Categories[0].Title);
+        Assert.Equal(1, f.Emoji.SelectedCategoryIndex);
+        Assert.Equal(1, f.Window.FindControl<ListBox>("EmojiCategoriesList")!.SelectedIndex);
+        var index = await Index;
+        var browsed = new HashSet<string>();
+        for (var i = 1; i < f.Emoji.Categories.Count; i++)
+        {
+            f.Emoji.SelectedCategoryIndex = i;
+            Assert.All(f.Emoji.Candidates, c => Assert.Equal(f.Emoji.Categories[i].Key, c.Entry.Group));
+            browsed.UnionWith(f.Emoji.Candidates.Select(c => c.Entry.VariantGroup));
+        }
+        Assert.Equal(index.Entries.Select(e => e.VariantGroup).Distinct().Order(), browsed.Order());
+        Assert.True(f.Window.FindControl<TextBox>("QueryBox")!.IsFocused);
+        Assert.True(f.Window.FindControl<ListBox>("EmojiGridList")!.IsVisible);
+        Assert.False(f.Window.FindControl<ListBox>("EmojiCandidatesList")!.IsVisible);
+    }
+
+    [AvaloniaFact]
+    public async Task TypingFocusesAllResultsAndCategoriesFilterTheCompleteSearch()
+    {
+        using var f = new Fixture(style: EmojiCandidateStyle.Grid);
+        await SearchFinished(f, "");
+        f.Emoji.SelectedCategoryIndex = 3;
+        await SearchFinished(f, "heart");
+        Assert.Equal("搜索结果", f.Emoji.Categories[0].Title);
+        Assert.Equal(0, f.Emoji.SelectedCategoryIndex);
+        Assert.Equal(0, f.Window.FindControl<ListBox>("EmojiCategoriesList")!.SelectedIndex);
+        var expected = (await Index).Search("heart", maxResults: int.MaxValue).Select(m => m.Entry.Sequence).ToArray();
+        Assert.True(expected.Length > 12);
+        Assert.Equal(expected, f.Emoji.Candidates.Select(c => c.Entry.Sequence));
+        var union = new HashSet<string>();
+        for (var i = 1; i < f.Emoji.Categories.Count; i++)
+        {
+            f.Emoji.SelectedCategoryIndex = i;
+            Assert.All(f.Emoji.Candidates, c => Assert.Equal(f.Emoji.Categories[i].Key, c.Entry.Group));
+            union.UnionWith(f.Emoji.Candidates.Select(c => c.Entry.Sequence));
+        }
+        Assert.Equal(expected.Order(), union.Order());
+        await SearchFinished(f, "fire");
+        Assert.Equal(0, f.Emoji.SelectedCategoryIndex);
+        Assert.Equal(0, f.Window.FindControl<ListBox>("EmojiCategoriesList")!.SelectedIndex);
+        await SearchFinished(f, "zzzzzzzzzzzzzzzzzz");
+        Assert.Empty(f.Emoji.Candidates);
+        Assert.True(f.Emoji.HasStatus);
+    }
+
+    [AvaloniaFact]
+    public async Task RecentContainsActualHistoryAndClearQueryRestoresRecentTab()
+    {
+        using var f = new Fixture(style: EmojiCandidateStyle.Grid);
+        await SearchFinished(f, "");
+        f.Emoji.SelectedCategoryIndex = 0;
+        Assert.Empty(f.Emoji.Candidates);
+        Assert.Equal(TranslationCatalog.Default.Resolve("zh-Hans").Emoji.NoRecent, f.Emoji.Status);
+        await f.Emoji.RecordAsync("👍🏿");
+        await f.Emoji.RecordAsync("☕");
+        await SearchFinished(f, "heart");
+        await SearchFinished(f, " ");
+        Assert.Equal("最近使用", f.Emoji.Categories[0].Title);
+        Assert.Equal(0, f.Emoji.SelectedCategoryIndex);
+        Assert.Equal(new[] { "☕", "👍🏿" }, f.Emoji.Candidates.Select(c => c.Entry.Sequence));
+    }
+
+    [AvaloniaFact]
+    public async Task GridKeyboardMovesByRowAndSwitchesTabsAndPreservesVariants()
+    {
+        using var f = new Fixture(style: EmojiCandidateStyle.Grid);
+        await SearchFinished(f, "smile");
+        f.Emoji.SelectedIndex = 5;
+        f.Window.KeyPress(Key.Up, RawInputModifiers.None, PhysicalKey.ArrowUp, "");
+        Assert.Equal(5, f.Emoji.SelectedIndex);
+        f.Emoji.SelectedIndex = 0;
+        f.Window.KeyPress(Key.Down, RawInputModifiers.None, PhysicalKey.ArrowDown, "");
+        Assert.Equal(EmojiModeViewModel.GridColumns, f.Emoji.SelectedIndex);
+        f.Window.KeyPress(Key.Right, RawInputModifiers.None, PhysicalKey.ArrowRight, "");
+        Assert.Equal(EmojiModeViewModel.GridColumns + 1, f.Emoji.SelectedIndex);
+        f.Window.KeyPress(Key.Left, RawInputModifiers.Alt, PhysicalKey.ArrowLeft, "");
+        Assert.Equal(f.Emoji.Categories.Count - 1, f.Emoji.SelectedCategoryIndex);
+        Assert.True(f.Window.FindControl<TextBox>("QueryBox")!.IsFocused);
+        await SearchFinished(f, "dianzan");
+        f.Emoji.OpenVariants();
+        Assert.False(f.Emoji.ShowCategories);
+        f.Emoji.SelectedIndex = 5;
+        Assert.True(f.Emoji.CommitVariant());
+        Assert.True(f.Emoji.ShowCategories);
+        Assert.Equal("👍🏿", f.Emoji.Selected!.Entry.Sequence);
+        Assert.Equal(0, f.Emoji.SelectedCategoryIndex);
+    }
+
+    [AvaloniaFact]
+    public async Task StyleCanSwitchLiveAndGridClickUsesExistingInputPath()
+    {
+        using var f = new Fixture();
+        await SearchFinished(f, "heart");
+        Assert.Equal(12, f.Emoji.Candidates.Count);
+        var strings = TranslationCatalog.Default.Resolve("zh-Hans");
+        f.Emoji.ApplyConfiguration(strings, new AppSettings { EmojiCandidateStyle = EmojiCandidateStyle.Grid });
+        await SearchFinished(f, "heart");
+        Assert.True(f.Emoji.Candidates.Count > 12);
+        f.Window.Height = 600;
+        f.Window.FindControl<Popup>("EmojiPopup")!.Placement = PlacementMode.Bottom;
+        await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Loaded);
+        var list = f.Window.FindControl<ListBox>("EmojiGridList")!;
+        var container = (Control)list.ContainerFromIndex(1)!;
+        Assert.NotNull(container);
+        var expected = f.Emoji.Candidates[1].Entry.Sequence;
+        var point = container.TranslatePoint(new Point(25, 25), f.Window)!.Value;
+        f.Window.MouseDown(point, MouseButton.Left);
+        f.Window.MouseUp(point, MouseButton.Left);
+        for (var i = 0; i < 100 && f.Window.IsEmojiInputBusy; i++)
+            await Task.Delay(10);
+        Assert.Equal(expected, Assert.Single(f.Input.Sent));
+    }
+
+    [AvaloniaFact]
+    public async Task ClickingCategoryFiltersGridAndReturnsFocusToQuery()
+    {
+        using var f = new Fixture(style: EmojiCandidateStyle.Grid);
+        await SearchFinished(f, "");
+        f.Window.Height = 600;
+        f.Window.FindControl<Popup>("EmojiPopup")!.Placement = PlacementMode.Bottom;
+        await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Loaded);
+        var tabs = f.Window.FindControl<ListBox>("EmojiCategoriesList")!;
+        var tab = (Control)tabs.ContainerFromIndex(3)!;
+        var point = tab.TranslatePoint(new Point(15, 15), f.Window)!.Value;
+        f.Window.MouseDown(point, MouseButton.Left);
+        f.Window.MouseUp(point, MouseButton.Left);
+        await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Input);
+        Assert.Equal(3, tabs.SelectedIndex);
+        Assert.Equal(3, f.Emoji.SelectedCategoryIndex);
+        Assert.All(f.Emoji.Candidates, c => Assert.Equal("Animals & Nature", c.Entry.Group));
+        Assert.True(f.Window.FindControl<TextBox>("QueryBox")!.IsFocused);
+        Assert.Empty(f.Input.Sent);
+    }
+
+    [AvaloniaFact]
+    public async Task SwitchingStylesWithNoQueryOpensBrowseAndRestoresList()
+    {
+        using var f = new Fixture();
+        await SearchFinished(f, "");
+        var strings = TranslationCatalog.Default.Resolve("zh-Hans");
+        f.Emoji.ApplyConfiguration(strings, new AppSettings { EmojiCandidateStyle = EmojiCandidateStyle.Grid });
+        await SearchFinished(f, "");
+        Assert.Equal(1, f.Emoji.SelectedCategoryIndex);
+        Assert.True(f.Emoji.Candidates.Count > 12);
+        f.Emoji.ApplyConfiguration(strings, new AppSettings());
+        await SearchFinished(f, "");
+        Assert.False(f.Emoji.IsGrid);
+        Assert.Equal(12, f.Emoji.Candidates.Count);
+        Assert.True(f.Window.FindControl<ListBox>("EmojiCandidatesList")!.IsVisible);
+        Assert.False(f.Window.FindControl<ListBox>("EmojiCategoriesList")!.IsVisible);
     }
 
     [AvaloniaFact]

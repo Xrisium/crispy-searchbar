@@ -53,6 +53,9 @@ public sealed class AppSettings
     [Setting(SettingsSection.Search, SettingEditorKind.Choice, Order = 3)]
     public EmojiSkinTone EmojiDefaultSkinTone { get; set; } = EmojiSkinTone.Neutral;
 
+    [Setting(SettingsSection.Appearance, SettingEditorKind.Choice, Order = 2)]
+    public EmojiCandidateStyle EmojiCandidateStyle { get; set; } = EmojiCandidateStyle.List;
+
     /// <summary>轻按切换下一模式、长按呼出模式轮盘的单键，默认 Tab。</summary>
     [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 1)]
     public string CycleModeShortcut { get; set; } =

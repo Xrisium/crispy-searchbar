@@ -37,6 +37,8 @@ This project has **no** intention of becoming an integrated or all-in-one search
 
 ### Emoji mode
 
+Choose List (default) or Grid under Settings → Appearance → Emoji candidate style. Grid browses all Emoji in nine categories plus Recent. Typing turns Recent into Results and selects it automatically; other categories show only matching results. With no history, the grid opens Smileys. Use ←/→ to move between Emoji, ↑/↓ to move by row, and Alt+←/→ to switch categories.
+
 Press **Win+.** or switch modes with Tab. Search in English, Chinese, full pinyin or initials (for example `smile`, `weixiao`, `wx`, `dianzan`, `dz`), with limited typo tolerance. Select with ↑/↓ and insert with Enter or a click. Enable “Keep Emoji panel open after inserting” for repeated input.
 
 - `Alt+↓` opens skin-tone variants; Enter confirms and Esc returns. The default tone is configurable.

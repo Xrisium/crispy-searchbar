@@ -97,7 +97,8 @@
       "EmojiVariantsShortcut": "选择 Emoji 肤色",
       "CopyEmojiShortcut": "复制 Emoji",
       "EmojiKeepOpenAfterInsert": "输入 Emoji 后保持面板",
-      "EmojiDefaultSkinTone": "默认 Emoji 肤色"
+      "EmojiDefaultSkinTone": "默认 Emoji 肤色",
+      "EmojiCandidateStyle": "Emoji 候选样式"
     },
     "fieldDescriptions": {
       "Language": "保存后立即切换界面语言。",
@@ -121,7 +122,8 @@
       "EmojiVariantsShortcut": "打开当前候选的肤色列表；Enter 确认，Esc 返回。",
       "CopyEmojiShortcut": "复制当前 Emoji，保留面板；普通 Ctrl+C 仍复制输入框文本。",
       "EmojiKeepOpenAfterInsert": "输入后回到搜索框，保留查询和选中项，便于连续输入。",
-      "EmojiDefaultSkinTone": "仅应用于支持该肤色的 Emoji；也可逐个选择变体。"
+      "EmojiDefaultSkinTone": "仅应用于支持该肤色的 Emoji；也可逐个选择变体。",
+      "EmojiCandidateStyle": "列表显示名称与说明；网格按分类浏览全部 Emoji，输入时自动切换到搜索结果。"
     },
     "optionLabels": {
       "Language.system": "跟随系统",
@@ -136,7 +138,9 @@
       "EmojiDefaultSkinTone.MediumLight": "中浅肤色",
       "EmojiDefaultSkinTone.Medium": "中等肤色",
       "EmojiDefaultSkinTone.MediumDark": "中深肤色",
-      "EmojiDefaultSkinTone.Dark": "深肤色"
+      "EmojiDefaultSkinTone.Dark": "深肤色",
+      "EmojiCandidateStyle.List": "列表",
+      "EmojiCandidateStyle.Grid": "网格"
     },
     "fileTypeFilterNames": {
       "CcCedict": "词典文件（.txt/.csv/.gz/.zip/StarDict）",
@@ -173,7 +177,22 @@
     "copied": "已复制 Emoji",
     "inputFailed": "无法输入到原窗口，请复制 Emoji 后手动粘贴。",
     "loadFailed": "Emoji 数据加载失败：{0}",
-    "hotkeyFailed": "Emoji 全局快捷键不可用，可通过 Tab 切换到 Emoji 模式。"
+    "hotkeyFailed": "Emoji 全局快捷键不可用，可通过 Tab 切换到 Emoji 模式。",
+    "recentTab": "最近使用",
+    "searchResultsTab": "搜索结果",
+    "noRecent": "还没有使用记录，选择分类浏览 Emoji",
+    "gridHint": "←/→ · {previous}/{next} 选择 · Alt+←/→ 分类 · {execute} 输入 · {variants} 肤色 · {copyEmoji} 复制",
+    "categories": {
+      "Smileys & Emotion": "表情",
+      "People & Body": "人物",
+      "Animals & Nature": "自然",
+      "Food & Drink": "饮食",
+      "Travel & Places": "旅行",
+      "Activities": "活动",
+      "Objects": "物品",
+      "Symbols": "符号",
+      "Flags": "旗帜"
+    }
   },
   "configurationWarning": "配置迁移或保存失败，旧文件已保留。打开设置查看详情："
 }

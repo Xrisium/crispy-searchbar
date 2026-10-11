@@ -59,6 +59,8 @@ public partial class MainWindow : Window
             handledEventsToo: true);
         EmojiCandidatesList.AddHandler(PointerReleasedEvent, OnEmojiCandidatePointerReleased,
             RoutingStrategies.Bubble, handledEventsToo: true);
+        EmojiGridList.AddHandler(PointerReleasedEvent, OnEmojiCandidatePointerReleased,
+            RoutingStrategies.Bubble, handledEventsToo: true);
         Closing += OnClosing;
         Activated += OnActivated;
         Deactivated += OnDeactivated;
@@ -245,8 +247,18 @@ public partial class MainWindow : Window
     /// <summary>鼠标左键在候选行上释放时打开对应词条详情。</summary>
     private void OnEmojiSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (EmojiCandidatesList.SelectedItem is { } selected)
-            EmojiCandidatesList.ScrollIntoView(selected);
+        if (sender is ListBox { SelectedItem: { } selected } list)
+            list.ScrollIntoView(selected);
+    }
+
+    private void OnEmojiCategoryPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        if (EmojiCategoriesList.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault() is { } scroll)
+        {
+            scroll.Offset = scroll.Offset.WithX(Math.Clamp(scroll.Offset.X - (e.Delta.X + e.Delta.Y) * 48,
+                0, Math.Max(0, scroll.Extent.Width - scroll.Viewport.Width)));
+            e.Handled = true;
+        }
     }
 
     private void OnEmojiCandidatePointerReleased(object? sender, PointerReleasedEventArgs e)
@@ -349,6 +361,20 @@ public partial class MainWindow : Window
             && _shortcuts.FindAction(pressed) is { } action)
         {
             HandleShortcutAction(action, e);
+            return;
+        }
+
+        if (!ViewModel.IsModeWheelOpen && ViewModel.Emoji is { IsGrid: true } emoji && ViewModel.IsEmojiMode
+            && e.Key is Key.Left or Key.Right)
+        {
+            var direction = e.Key == Key.Left ? -1 : 1;
+            if (e.KeyModifiers == KeyModifiers.Alt)
+                emoji.MoveCategory(direction);
+            else if (e.KeyModifiers == KeyModifiers.None)
+                emoji.MoveSelection(direction);
+            else
+                return;
+            e.Handled = true;
         }
     }
 
@@ -418,11 +444,11 @@ public partial class MainWindow : Window
                 e.Handled = true;
                 break;
             case ShortcutAction.SelectPrevious when ViewModel.IsEmojiMode:
-                ViewModel.Emoji?.MoveSelection(-1);
+                ViewModel.Emoji?.MoveVertical(-1);
                 e.Handled = true;
                 break;
             case ShortcutAction.SelectNext when ViewModel.IsEmojiMode:
-                ViewModel.Emoji?.MoveSelection(1);
+                ViewModel.Emoji?.MoveVertical(1);
                 e.Handled = true;
                 break;
             case ShortcutAction.Execute when ViewModel.IsEmojiMode:
