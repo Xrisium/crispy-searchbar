@@ -24,12 +24,15 @@ public sealed class EmojiInteractionTests
     private sealed class FakeInput : IEmojiTextInputService
     {
         public List<string> Sent { get; } = [];
+        public List<ExternalInputTarget?> Targets { get; } = [];
+        public ExternalInputTarget? TargetToCapture { get; set; } = new(new IntPtr(42), 42, new IntPtr(43));
         public bool Succeed { get; set; } = true;
-        public ExternalInputTarget? CaptureTarget() => new(new IntPtr(42), 42);
+        public ExternalInputTarget? CaptureTarget() => TargetToCapture;
         public Task<bool> InsertAsync(ExternalInputTarget? target, string text, CancellationToken cancellationToken)
         {
             Sent.Add(text);
-            return Task.FromResult(Succeed);
+            Targets.Add(target);
+            return Task.FromResult(Succeed && target is not null);
         }
     }
     private sealed class Fixture : IDisposable
@@ -247,6 +250,46 @@ public sealed class EmojiInteractionTests
         Assert.Equal(12, f.Emoji.Candidates.Count);
         Assert.True(f.Window.FindControl<ListBox>("EmojiCandidatesList")!.IsVisible);
         Assert.False(f.Window.FindControl<ListBox>("EmojiCategoriesList")!.IsVisible);
+    }
+
+    [AvaloniaFact]
+    public async Task RefocusingVisiblePanelAndContinuousInputPreserveOriginalTarget()
+    {
+        using var f = new Fixture(keepOpen: true);
+        await Ready(f, "dianzan");
+        var original = f.Input.TargetToCapture;
+        f.Input.TargetToCapture = null; // Searchbar itself now owns foreground focus.
+        f.Window.ShowFromTray();
+        await f.Window.InsertEmojiAsync();
+        await f.Window.InsertEmojiAsync();
+        Assert.Equal(new[] { original, original }, f.Input.Targets);
+        Assert.True(f.Window.IsVisible);
+    }
+
+    [AvaloniaFact]
+    public async Task ReopeningVisiblePanelFromAnotherAppUpdatesTheTarget()
+    {
+        using var f = new Fixture();
+        await Ready(f, "dianzan");
+        var otherTarget = new ExternalInputTarget(new IntPtr(84), 84, new IntPtr(85));
+        f.Input.TargetToCapture = otherTarget;
+        f.Window.ShowFromTray();
+        await f.Window.InsertEmojiAsync();
+        Assert.Equal(otherTarget, Assert.Single(f.Input.Targets));
+    }
+
+    [AvaloniaFact]
+    public async Task NewSessionWithoutExternalTargetDoesNotReuseThePreviousApp()
+    {
+        using var f = new Fixture();
+        f.Window.HideToTray();
+        f.Input.TargetToCapture = null;
+        f.Window.ShowFromTray();
+        await Ready(f, "dianzan");
+        await f.Window.InsertEmojiAsync();
+        Assert.Null(Assert.Single(f.Input.Targets));
+        Assert.True(f.Window.IsVisible);
+        Assert.NotEmpty(f.Emoji.Status);
     }
 
     [AvaloniaFact]

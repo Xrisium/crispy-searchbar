@@ -12,7 +12,13 @@ public sealed class EmojiInputCoordinator(IEmojiTextInputService service)
     {
         get; private set;
     }
-    public void CaptureTarget() => _target = service.CaptureTarget();
+    public void CaptureTarget(bool preserveExisting = false)
+    {
+        var target = service.CaptureTarget();
+        // Showing an already focused Searchbar must not replace its external target with null.
+        if (target is not null || !preserveExisting)
+            _target = target;
+    }
     public void Cancel()
     {
         _pending?.Cancel();

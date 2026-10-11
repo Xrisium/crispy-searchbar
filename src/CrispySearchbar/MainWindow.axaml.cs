@@ -139,8 +139,7 @@ public partial class MainWindow : Window
     public void ShowFromTray()
     {
         _emojiInput.Cancel();
-        if (!IsVisible)
-            _emojiInput.CaptureTarget();
+        _emojiInput.CaptureTarget(preserveExisting: IsVisible);
         // 先摆好位置再显示，避免启动瞬间出现在系统默认位置后跳动；
         // 显示后再应用一次，覆盖平台窗口刚创建时可能忽略初始坐标的情况。
         ApplySearchBarPosition();
