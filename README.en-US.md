@@ -57,6 +57,25 @@ This app is designed as a self-contained, portable single `.exe` file. Download 
 
 Settings live in `%APPDATA%\CrispySearchbar\settings.json`. No configuration or history files are created beside the executable. Legacy settings are migrated automatically and archived in the configuration directory’s `backups` folder before removal.
 
+## Building and manual review
+
+Install the .NET 10 SDK, PowerShell 7 and Git, then run from the repository root:
+
+```powershell
+dotnet test CrispySearchbar.sln
+pwsh ./scripts/publish-portable.ps1
+```
+
+The publish script produces the current release format: a self-contained win-x64 Portable executable.
+By default it writes to `artifacts/<current HEAD short commit>/crispy-searchbar-{version}-win-x64.exe`
+(for example, `artifacts/086697c/crispy-searchbar-0.1.0-win-x64.exe`) and prints its size and SHA-256.
+The version comes from the project file unless overridden with `-Version`. `-OutputDirectory` overrides the final output directory; relative paths resolve from the repository root.
+
+Every completed task, including documentation or configuration changes, must produce the latest application for manual review.
+When files change, complete the relevant checks and create a local commit before publishing against the final HEAD; a development build or tests alone do not replace publishing.
+The script builds the current working tree and does not commit or check out HEAD automatically; review artifacts should correspond to committed code.
+Run the executable in the matching commit directory to review it. `artifacts/` is ignored by Git and must not be committed.
+
 ## Repository layout
 
 ```text

@@ -57,6 +57,25 @@ Read this in other languages: **简体中文**, [English](README.en-US.md)
 
 配置保存在 `%APPDATA%\CrispySearchbar\settings.json`，程序目录不会生成配置或历史文件。升级时会自动迁移旧配置，先备份再清理旧文件；备份位于用户配置目录的 `backups` 子目录。
 
+## 构建与人工审查
+
+开发环境需要 .NET 10 SDK、PowerShell 7 和 Git。在仓库根目录执行：
+
+```powershell
+dotnet test CrispySearchbar.sln
+pwsh ./scripts/publish-portable.ps1
+```
+
+发布脚本按当前发布标准生成 win-x64 自包含的单文件 Portable 应用，默认保存到
+`artifacts/<当前 HEAD 的短 Commit 编号>/crispy-searchbar-{version}-win-x64.exe`
+（例如 `artifacts/086697c/crispy-searchbar-0.1.0-win-x64.exe`），并输出文件大小与 SHA-256。
+版本号默认从项目文件读取，也可通过 `-Version` 指定；`-OutputDirectory` 可覆盖最终输出目录，相对路径以仓库根目录为基准。
+
+每次任务完成后（包括仅修改文档或配置），均须生成最新应用供人工审查。
+有改动时先完成必要验证并创建本地提交，再针对最终 HEAD 执行发布脚本；仅运行 `dotnet build` 或测试不能代替发布。
+脚本构建当前工作区内容，不会自动提交或切换到 HEAD；人工审查产物应对应已提交的代码。
+审查时直接运行对应 Commit 目录中的 exe。`artifacts/` 已被 Git 忽略，无需提交产物。
+
 ## 仓库结构
 
 ```text
