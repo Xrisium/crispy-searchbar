@@ -18,4 +18,8 @@ public enum ShortcutAction
 
     /// <summary>下移候选/轮盘高亮。</summary>
     SelectNext,
+
+    ShowEmoji,
+    EmojiVariants,
+    CopyEmoji,
 }

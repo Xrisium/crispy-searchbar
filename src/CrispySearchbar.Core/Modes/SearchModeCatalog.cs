@@ -41,6 +41,8 @@ public static class SearchModeCatalog
             [ModePreferenceDefaults.AskAi] = SearchMode.AskAi(
                 ShortcutTextFormatter.Format(strings.AskAiMode, shortcuts, strings.SettingsTexts.ShortcutUnsetText),
                 settings.AskAiUrlTemplate),
+            [ModePreferenceDefaults.Emoji] = SearchMode.Emoji(
+                ShortcutTextFormatter.Format(strings.EmojiMode, shortcuts, strings.SettingsTexts.ShortcutUnsetText)),
             [ModePreferenceDefaults.Dictionary] = SearchMode.Dictionary(
                 ShortcutTextFormatter.Format(strings.DictionaryMode, shortcuts, strings.SettingsTexts.ShortcutUnsetText)),
         };

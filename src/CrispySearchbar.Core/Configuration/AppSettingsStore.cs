@@ -1,150 +1,149 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace CrispySearchbar.Core.Configuration;
 
-/// <summary>读取和保存 JSON 配置文件；损坏或不可读时回退到默认值。
-/// 配置文件默认放在程序（发布目录）同目录，方便用户直接编辑；
-/// 程序目录不可写（例如放进 Program Files 或只读介质）时回退到用户本地数据目录，
-/// 保证便携版仍能保存设置。图形化设置界面读写的就是实际生效的那一份文件。</summary>
+/// <summary>User settings live in roaming AppData. Archive legacy files before removal.</summary>
 public static class AppSettingsStore
 {
     public const string FileName = "settings.json";
-
-    private static string? _effectiveDirectory;
-
+    public static IReadOnlyList<string> LoadWarnings { get; private set; } = [];
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
-
-    /// <summary>默认目录：程序所在目录（开发时是 bin 输出目录，发布后是 exe 同目录）。</summary>
-    public static string GetDefaultDirectoryPath()
-        => AppContext.BaseDirectory;
-
-    /// <summary>程序目录不可写时的回退目录：%LOCALAPPDATA%\CrispySearchbar。</summary>
-    public static string GetFallbackDirectoryPath()
-        => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "CrispySearchbar");
-
-    /// <summary>
-    /// 实际生效的配置文件目录：优先程序目录，不可写时使用回退目录。
-    /// 结果在进程内只解析一次，避免每次读配置都做写盘探测。
-    /// </summary>
-    public static string GetEffectiveDirectoryPath()
-        => _effectiveDirectory ??= ResolveEffectiveDirectory(
-            IsDirectoryWritable,
-            GetDefaultDirectoryPath(),
-            GetFallbackDirectoryPath());
-
-    /// <summary>实际生效的配置文件路径（设置面板展示与打开的就是它）。</summary>
-    public static string GetEffectiveFilePath()
-        => Path.Combine(GetEffectiveDirectoryPath(), FileName);
-
+    public static string GetDefaultDirectoryPath() => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CrispySearchbar");
+    public static string GetEffectiveDirectoryPath() => GetDefaultDirectoryPath();
+    public static string GetEffectiveFilePath() => GetSettingsFilePath();
     public static string GetSettingsFilePath(string? directoryPath = null)
         => Path.Combine(directoryPath ?? GetEffectiveDirectoryPath(), FileName);
 
     public static AppSettings LoadOrDefault(string? directoryPath = null)
+        => LoadAndMigrate(directoryPath ?? GetDefaultDirectoryPath(), directoryPath is null
+            ? [Path.Combine(AppContext.BaseDirectory, FileName), Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CrispySearchbar", FileName)]
+            : []);
+
+    internal static AppSettings LoadAndMigrate(string directory, IReadOnlyList<string> legacyPaths,
+        Action<IReadOnlyList<string>>? reportWarnings = null)
     {
-        var path = GetSettingsFilePath(directoryPath);
+        var warnings = new List<string>();
+        var path = GetSettingsFilePath(directory);
+        AppSettings? settings = null;
+        var verifiedDestination = false;
+        var needsSave = false;
         try
         {
             if (File.Exists(path))
             {
-                var json = File.ReadAllText(path);
-                var existing = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions);
-                if (existing is not null)
-                {
-                    var shouldRewrite = false;
-                    var normalizedModes = ModePreferenceNormalizer.Normalize(
-                        existing.ModePreferences);
-                    if (!ModePreferenceNormalizer.IsEquivalent(
-                            existing.ModePreferences,
-                            normalizedModes))
-                    {
-                        existing.ModePreferences = normalizedModes;
-                        shouldRewrite = true;
-                    }
-
-                    if (ShortcutNormalizer.Normalize(existing))
-                    {
-                        shouldRewrite = true;
-                    }
-
-                    if (shouldRewrite)
-                    {
-                        Save(existing, directoryPath);
-                    }
-
-                    return existing;
-                }
+                var bytes = File.ReadAllBytes(path);
+                settings = Parse(bytes);
+                verifiedDestination = settings is not null;
+                if (settings is null)
+                    Archive(directory, path, bytes);
             }
+            foreach (var legacyPath in legacyPaths.Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                if (Path.GetFullPath(legacyPath).Equals(Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase)
+                    || !File.Exists(legacyPath))
+                    continue;
+                try
+                {
+                    var bytes = File.ReadAllBytes(legacyPath);
+                    var imported = Parse(bytes);
+                    if (settings is null && imported is not null)
+                    {
+                        // Keep readable legacy preferences in memory even when roaming AppData
+                        // cannot be written. Only a verified destination permits source removal.
+                        settings = imported;
+                        Save(imported, directory);
+                        settings = Parse(File.ReadAllBytes(path))
+                            ?? throw new IOException("Unable to verify migrated settings.");
+                        verifiedDestination = true;
+                    }
+                    if (verifiedDestination || imported is null)
+                        Archive(directory, legacyPath, bytes);
+                }
+                catch (Exception ex) when (IsFileError(ex)) { warnings.Add($"{legacyPath}: {ex.Message}"); }
+            }
+            if (settings is null)
+            {
+                settings = new AppSettings();
+                needsSave = true;
+            }
+            var modes = ModePreferenceNormalizer.Normalize(settings.ModePreferences);
+            if (!ModePreferenceNormalizer.IsEquivalent(settings.ModePreferences, modes))
+            {
+                settings.ModePreferences = modes;
+                needsSave = true;
+            }
+            needsSave |= ShortcutNormalizer.Normalize(settings);
+            if (!Enum.IsDefined(settings.EmojiDefaultSkinTone))
+            {
+                settings.EmojiDefaultSkinTone = EmojiSkinTone.Neutral;
+                needsSave = true;
+            }
+            if (needsSave)
+                Save(settings, directory);
+        }
+        catch (Exception ex) when (IsFileError(ex)) { warnings.Add($"{path}: {ex.Message}"); }
+        LoadWarnings = warnings;
+        reportWarnings?.Invoke(warnings);
+        return settings ?? new AppSettings();
+    }
 
-            var defaults = new AppSettings();
-            Save(defaults, directoryPath);
-            return defaults;
-        }
-        catch (Exception ex) when (
-            ex is IOException or UnauthorizedAccessException or JsonException)
+    private static AppSettings? Parse(byte[] bytes)
+    {
+        try
         {
-            return new AppSettings();
+            return JsonSerializer.Deserialize<AppSettings>(bytes, JsonOptions);
         }
+        catch (JsonException) { return null; }
+    }
+
+    private static void Archive(string directory, string source, byte[] bytes)
+    {
+        var backupDirectory = Path.Combine(directory, "backups");
+        Directory.CreateDirectory(backupDirectory);
+        var identity = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Path.GetFullPath(source))))[..12];
+        var hash = Convert.ToHexString(SHA256.HashData(bytes));
+        var backup = Path.Combine(backupDirectory, $"settings-{identity}-{hash}.json");
+        if (!File.Exists(backup))
+            WriteAtomic(backup, bytes);
+        if (!File.ReadAllBytes(backup).AsSpan().SequenceEqual(bytes))
+            throw new IOException("Unable to verify archived settings.");
+        // Preserve a file edited by another instance while migration was in progress.
+        if (!File.ReadAllBytes(source).AsSpan().SequenceEqual(bytes))
+            throw new IOException("Settings changed during migration; the source file was preserved.");
+        File.Delete(source);
     }
 
     public static void Save(AppSettings settings, string? directoryPath = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
-
-        var path = GetSettingsFilePath(directoryPath);
-        var directory = Path.GetDirectoryName(path);
-        if (!string.IsNullOrEmpty(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-
-        File.WriteAllText(path, JsonSerializer.Serialize(settings, JsonOptions));
+        WriteAtomic(GetSettingsFilePath(directoryPath), JsonSerializer.SerializeToUtf8Bytes(settings, JsonOptions));
     }
 
-    /// <summary>
-    /// 目录可写性探测：能落地一份临时文件即视为可写（探测文件立即删除）。
-    /// 只做一次判断，失败一律按不可写处理，避免把异常抛给启动流程。
-    /// </summary>
-    internal static bool IsDirectoryWritable(string directory)
+    internal static void WriteAtomic(string path, byte[] bytes)
     {
-        if (string.IsNullOrWhiteSpace(directory))
-        {
-            return false;
-        }
-
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+        var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
-            Directory.CreateDirectory(directory);
-            var probePath = Path.Combine(directory, $".{FileName}.probe");
-            File.WriteAllText(probePath, string.Empty);
-            File.Delete(probePath);
-            return true;
+            using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                stream.Write(bytes);
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(temporary, path, overwrite: true);
         }
-        catch (Exception ex) when (ex is IOException
-            or UnauthorizedAccessException
-            or NotSupportedException
-            or ArgumentException
-            or PathTooLongException)
-        {
-            return false;
-        }
+        finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
-
-    /// <summary>按“程序目录优先、不可写则回退”的规则选出生效目录。</summary>
-    internal static string ResolveEffectiveDirectory(
-        Func<string, bool> isWritable,
-        string defaultDirectory,
-        string fallbackDirectory)
-    {
-        ArgumentNullException.ThrowIfNull(isWritable);
-        return isWritable(defaultDirectory) ? defaultDirectory : fallbackDirectory;
-    }
+    private static bool IsFileError(Exception ex)
+        => ex is IOException or UnauthorizedAccessException or JsonException;
 }
-

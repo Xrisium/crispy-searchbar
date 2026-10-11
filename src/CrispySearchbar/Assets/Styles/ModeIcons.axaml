@@ -79,4 +79,10 @@
     </Viewbox>
   </DataTemplate>
 
+  <DataTemplate x:Key="ModeIconTemplate-emoji">
+    <Viewbox Width="13" Height="13"><Grid Width="24" Height="24">
+      <Ellipse Width="20" Height="20" Stroke="{DynamicResource TextSecondaryBrush}" StrokeThickness="2" />
+      <Path Data="M8 14 Q12 18 16 14 M8 9h.01 M16 9h.01" Stroke="{DynamicResource TextSecondaryBrush}" StrokeThickness="2" StrokeLineCap="Round" />
+    </Grid></Viewbox>
+  </DataTemplate>
 </ResourceDictionary>

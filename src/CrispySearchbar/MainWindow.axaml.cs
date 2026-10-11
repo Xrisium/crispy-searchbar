@@ -2,12 +2,14 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using System.ComponentModel;
 using CrispySearchbar.Core.Configuration;
 using CrispySearchbar.Core.Modes;
 using CrispySearchbar.Input;
+using CrispySearchbar.Emoji;
 using CrispySearchbar.Platform;
 using CrispySearchbar.ViewModels;
 using PopupPlacementMode = Avalonia.Controls.PlacementMode;
@@ -24,6 +26,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _modeKeyHoldTimer;
     private ShortcutCatalog _shortcuts = ShortcutCatalog.Default;
     private ScreenOffset _searchBarOffset = ScreenOffset.Default;
+    private EmojiInputCoordinator _emojiInput = new(new EmojiTextInputService());
     private bool _allowClose;
     private bool _hideOnEscape = true;
     private bool _modeKeyDown;
@@ -54,12 +57,17 @@ public partial class MainWindow : Window
             OnDictionaryCandidatePointerReleased,
             RoutingStrategies.Bubble,
             handledEventsToo: true);
+        EmojiCandidatesList.AddHandler(PointerReleasedEvent, OnEmojiCandidatePointerReleased,
+            RoutingStrategies.Bubble, handledEventsToo: true);
         Closing += OnClosing;
         Activated += OnActivated;
         Deactivated += OnDeactivated;
     }
 
     private MainWindowViewModel ViewModel => (MainWindowViewModel)DataContext!;
+
+    public void AttachEmojiInput(IEmojiTextInputService service) => _emojiInput = new(service);
+    internal bool IsEmojiInputBusy => _emojiInput.IsBusy;
 
     public void AllowClose() => _allowClose = true;
 
@@ -116,6 +124,8 @@ public partial class MainWindow : Window
     /// <summary>隐藏到托盘；应用保持运行，等待全局快捷键或托盘菜单唤回。</summary>
     public void HideToTray()
     {
+        _emojiInput.Cancel();
+        EmojiPopup.IsOpen = false;
         CancelModeKeyHold();
         ViewModel.CancelModeWheel();
         ViewModel.OnWindowHidden();
@@ -126,6 +136,9 @@ public partial class MainWindow : Window
     /// <summary>从托盘/全局快捷键唤出：显示、恢复、激活并聚焦输入框。</summary>
     public void ShowFromTray()
     {
+        _emojiInput.Cancel();
+        if (!IsVisible)
+            _emojiInput.CaptureTarget();
         // 先摆好位置再显示，避免启动瞬间出现在系统默认位置后跳动；
         // 显示后再应用一次，覆盖平台窗口刚创建时可能忽略初始坐标的情况。
         ApplySearchBarPosition();
@@ -146,6 +159,7 @@ public partial class MainWindow : Window
         QueryBox.CaretIndex = QueryBox.Text?.Length ?? 0;
         ViewModel.OnWindowShown();
         DictionaryPopup.IsOpen = ViewModel.IsDictionaryPopupOpen;
+        EmojiPopup.IsOpen = ViewModel.IsEmojiPopupOpen;
     }
 
     /// <summary>
@@ -184,6 +198,10 @@ public partial class MainWindow : Window
             : PopupPlacementMode.Bottom;
         var verticalOffset = overlaysAbove ? -OverlayGap : OverlayGap;
 
+        ApplicationWarningPopup.Placement = overlaysAbove ? PopupPlacementMode.Bottom : PopupPlacementMode.Top;
+        ApplicationWarningPopup.VerticalOffset = -verticalOffset;
+        EmojiPopup.Placement = placement;
+        EmojiPopup.VerticalOffset = verticalOffset;
         DictionaryPopup.Placement = placement;
         DictionaryPopup.VerticalOffset = verticalOffset;
         ModeWheelPopup.Placement = placement;
@@ -198,6 +216,7 @@ public partial class MainWindow : Window
     {
         // 短暂宽限期避免窗口刚 Show 时被其它前台窗口抢焦点导致立即隐藏。
         if (IsVisible
+            && !_emojiInput.IsBusy
             && _lastActivatedUtc != DateTime.MinValue
             && DateTime.UtcNow - _lastActivatedUtc > TimeSpan.FromMilliseconds(DeactivationGraceMs))
         {
@@ -212,6 +231,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        _emojiInput.Cancel();
+        EmojiPopup.IsOpen = false;
         // 托盘常驻应用：关闭请求（Alt+F4 等）一律转为隐藏。
         e.Cancel = true;
         CancelModeKeyHold();
@@ -222,6 +243,47 @@ public partial class MainWindow : Window
     }
 
     /// <summary>鼠标左键在候选行上释放时打开对应词条详情。</summary>
+    private void OnEmojiSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (EmojiCandidatesList.SelectedItem is { } selected)
+            EmojiCandidatesList.ScrollIntoView(selected);
+    }
+
+    private void OnEmojiCandidatePointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (e.InitialPressMouseButton == MouseButton.Left && e.Source is Visual source
+            && (source as ListBoxItem ?? source.FindAncestorOfType<ListBoxItem>()) is { DataContext: EmojiCandidateViewModel candidate }
+            && ViewModel.Emoji is { } emoji)
+        {
+            emoji.SelectedIndex = emoji.Candidates.IndexOf(candidate);
+            _ = InsertEmojiAsync();
+            e.Handled = true;
+        }
+    }
+    private void OnEmojiVariantsClick(object? sender, RoutedEventArgs e) => ViewModel.Emoji?.OpenVariants();
+    private void OnEmojiCopyClick(object? sender, RoutedEventArgs e) => _ = CopyEmojiAsync();
+    public async Task CopyEmojiAsync()
+    {
+        if (_emojiInput.IsBusy || ViewModel.Emoji?.Selected is not { } selected || Clipboard is not { } clipboard)
+            return;
+        try
+        {
+            await clipboard.SetTextAsync(selected.Entry.Sequence);
+            await ViewModel.Emoji.RecordAsync(selected.Entry.Sequence);
+            ViewModel.Emoji.ReportCopied();
+        }
+        catch (Exception) { ViewModel.Emoji.ReportInputFailed(); }
+    }
+    public Task InsertEmojiAsync()
+    {
+        if (ViewModel.Emoji is not { } emoji)
+            return Task.CompletedTask;
+        return _emojiInput.InsertAsync(emoji,
+            () => { ViewModel.SetWindowVisibility(false); EmojiPopup.IsOpen = false; DictionaryPopup.IsOpen = false; Hide(); },
+            () => { Show(); Activate(); QueryBox.Focus(); ViewModel.SetWindowVisibility(true); EmojiPopup.IsOpen = ViewModel.IsEmojiPopupOpen; },
+            HideToTray);
+    }
+
     private void OnDictionaryCandidatePointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         if (e.InitialPressMouseButton == MouseButton.Left
@@ -258,6 +320,12 @@ public partial class MainWindow : Window
             if (ViewModel.IsModeWheelOpen)
             {
                 CancelModeWheelAndSuppressModeKeyRelease();
+                e.Handled = true;
+                return;
+            }
+
+            if (ViewModel.IsEmojiMode && ViewModel.Emoji?.CancelVariants() == true)
+            {
                 e.Handled = true;
                 return;
             }
@@ -341,6 +409,26 @@ public partial class MainWindow : Window
 
         switch (action)
         {
+            case ShortcutAction.EmojiVariants when ViewModel.IsEmojiMode:
+                ViewModel.Emoji?.OpenVariants();
+                e.Handled = true;
+                break;
+            case ShortcutAction.CopyEmoji when ViewModel.IsEmojiMode:
+                _ = CopyEmojiAsync();
+                e.Handled = true;
+                break;
+            case ShortcutAction.SelectPrevious when ViewModel.IsEmojiMode:
+                ViewModel.Emoji?.MoveSelection(-1);
+                e.Handled = true;
+                break;
+            case ShortcutAction.SelectNext when ViewModel.IsEmojiMode:
+                ViewModel.Emoji?.MoveSelection(1);
+                e.Handled = true;
+                break;
+            case ShortcutAction.Execute when ViewModel.IsEmojiMode:
+                _ = InsertEmojiAsync();
+                e.Handled = true;
+                break;
             case ShortcutAction.Execute:
                 if (ViewModel.ExecuteCurrent())
                 {
@@ -466,7 +554,7 @@ public partial class MainWindow : Window
 
         if (ShortcutInputMapper.TryCreatePointer(e.KeyModifiers, properties, out var pressed)
             && _shortcuts.FindAction(pressed) is { } action
-            && action != ShortcutAction.ToggleVisibility)
+            && action is not (ShortcutAction.ToggleVisibility or ShortcutAction.ShowEmoji))
         {
             // 全局呼出/隐藏由系统热键处理；框内动作在这里直接分发。
             HandleShortcutAction(action, e);

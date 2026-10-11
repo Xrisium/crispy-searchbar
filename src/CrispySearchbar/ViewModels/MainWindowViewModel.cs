@@ -48,10 +48,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         Action<string> openUrl,
         bool clearQueryOnHide = true,
         string? dictionaryEmptyHint = null,
-        Func<Task<DictionaryLoadResult>>? loadDictionary = null)
+        Func<Task<DictionaryLoadResult>>? loadDictionary = null,
+        EmojiModeViewModel? emoji = null)
     {
         ArgumentNullException.ThrowIfNull(strings);
         _strings = strings;
+        Emoji = emoji;
         _modes = modes;
         _openUrl = openUrl;
         _clearQueryOnHide = clearQueryOnHide;
@@ -61,6 +63,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+    public string ApplicationWarning { get; private set; } = "";
+    public bool HasApplicationWarning => IsSearchBarVisible && !IsModeWheelOpen && !string.IsNullOrEmpty(ApplicationWarning);
+    public void SetApplicationWarning(string text)
+    { ApplicationWarning = text; OnPropertyChanged(nameof(ApplicationWarning)); OnPropertyChanged(nameof(HasApplicationWarning)); }
+
 
     /// <summary>设置保存后由 App 调用，运行期切换语言/模式/隐藏行为，不重建窗口。</summary>
     public void ApplyConfiguration(
@@ -87,6 +94,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
         OnPropertyChanged(nameof(CurrentMode));
         OnPropertyChanged(nameof(Modes));
+        OnPropertyChanged(nameof(IsEmojiMode));
+        OnPropertyChanged(nameof(IsEmojiPopupOpen));
+        Emoji?.Update(Query, IsSearchBarVisible && IsEmojiMode);
 
         if (IsDictionaryMode)
         {
@@ -150,6 +160,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             _isModeWheelOpen = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsDictionaryPopupOpen));
+            OnPropertyChanged(nameof(IsEmojiPopupOpen));
+            OnPropertyChanged(nameof(HasApplicationWarning));
         }
     }
 
@@ -167,6 +179,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
+
+    public EmojiModeViewModel? Emoji { get; }
+    public bool IsEmojiMode => CurrentMode.Key == "emoji";
+    public bool IsEmojiPopupOpen => IsSearchBarVisible && IsEmojiMode && !IsModeWheelOpen && Emoji is not null;
+    public bool SelectMode(string key)
+    {
+        var index = FindModeIndexByKey(key);
+        if (index < 0) return false;
+        SetMode(index); return true;
+    }
+    public void SetWindowVisibility(bool visible) => IsSearchBarVisible = visible;
 
     public bool IsDictionaryMode => CurrentMode.Key == DictionaryModeKey;
 
@@ -191,6 +214,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             _isSearchBarVisible = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsDictionaryPopupOpen));
+            OnPropertyChanged(nameof(IsEmojiPopupOpen));
+            OnPropertyChanged(nameof(HasApplicationWarning));
         }
     }
 
@@ -282,6 +307,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
             _query = value;
             OnPropertyChanged();
+            Emoji?.Update(value, IsSearchBarVisible && IsEmojiMode);
 
             if (IsDictionaryMode)
             {
@@ -454,6 +480,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public void OnWindowHidden()
     {
         IsSearchBarVisible = false;
+        Emoji?.Update(Query, false);
         if (_clearQueryOnHide)
         {
             Query = string.Empty;
@@ -467,6 +494,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public void OnWindowShown()
     {
         IsSearchBarVisible = true;
+        Emoji?.Update(Query, IsEmojiMode);
         if (!IsDictionaryMode)
         {
             return;
@@ -486,6 +514,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private void OnModeChanged()
     {
+        OnPropertyChanged(nameof(IsEmojiMode));
+        OnPropertyChanged(nameof(IsEmojiPopupOpen));
+        Emoji?.Update(Query, IsSearchBarVisible && IsEmojiMode);
         if (!IsDictionaryMode)
         {
             ClearDictionaryState();

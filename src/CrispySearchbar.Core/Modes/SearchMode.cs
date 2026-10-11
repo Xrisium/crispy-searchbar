@@ -35,6 +35,9 @@ public sealed record SearchMode(
             texts.ActionHint,
             urlTemplate);
 
+    public static SearchMode Emoji(SearchModeTexts texts)
+        => new(ModePreferenceDefaults.Emoji, texts.Title, texts.Watermark, texts.ActionHint, null);
+
     public static SearchMode Dictionary(SearchModeTexts texts)
         => new(
             ModePreferenceDefaults.Dictionary,

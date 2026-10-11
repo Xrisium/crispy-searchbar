@@ -92,7 +92,12 @@
       "HideOnEscape": "按下 Esc 时隐藏搜索框",
       "ExecuteShortcut": "执行当前项",
       "SelectPreviousShortcut": "上移选择",
-      "SelectNextShortcut": "下移选择"
+      "SelectNextShortcut": "下移选择",
+      "ShowEmojiShortcut": "Emoji 全局快捷键",
+      "EmojiVariantsShortcut": "选择 Emoji 肤色",
+      "CopyEmojiShortcut": "复制 Emoji",
+      "EmojiKeepOpenAfterInsert": "输入 Emoji 后保持面板",
+      "EmojiDefaultSkinTone": "默认 Emoji 肤色"
     },
     "fieldDescriptions": {
       "Language": "保存后立即切换界面语言。",
@@ -109,9 +114,14 @@
       "ToggleVisibilityShortcut": "全局快捷键：搜索框隐藏时呼出，显示时隐藏。默认 Alt+Space；录制时按 Esc 可清除。",
       "CycleModeShortcut": "轻按切换下一个模式；长按呼出模式轮盘，松开确认。需为不带修饰键的单个按键。",
       "HideOnEscape": "启用后，搜索框显示时按下 Esc 会将其隐藏到系统托盘。",
-      "ExecuteShortcut": "网页类模式用浏览器打开结果；词典模式查看释义。",
-      "SelectPreviousShortcut": "在词典候选或模式轮盘中向上移动选择。",
-      "SelectNextShortcut": "在词典候选或模式轮盘中向下移动选择。"
+      "ExecuteShortcut": "执行当前项，包括输入 Emoji。",
+      "SelectPreviousShortcut": "在候选列表和模式轮盘中移动选择。",
+      "SelectNextShortcut": "在候选列表和模式轮盘中移动选择。",
+      "ShowEmojiShortcut": "直接打开 Emoji 模式；再次按下隐藏。默认 Win+.，运行时替代系统面板。",
+      "EmojiVariantsShortcut": "打开当前候选的肤色列表；Enter 确认，Esc 返回。",
+      "CopyEmojiShortcut": "复制当前 Emoji，保留面板；普通 Ctrl+C 仍复制输入框文本。",
+      "EmojiKeepOpenAfterInsert": "输入后回到搜索框，保留查询和选中项，便于连续输入。",
+      "EmojiDefaultSkinTone": "仅应用于支持该肤色的 Emoji；也可逐个选择变体。"
     },
     "optionLabels": {
       "Language.system": "跟随系统",
@@ -120,7 +130,13 @@
       "Theme.Dark": "深色",
       "SearchEngine.Baidu": "百度",
       "SearchEngine.Google": "Google",
-      "SearchEngine.Bing": "必应"
+      "SearchEngine.Bing": "必应",
+      "EmojiDefaultSkinTone.Neutral": "默认中性色",
+      "EmojiDefaultSkinTone.Light": "浅肤色",
+      "EmojiDefaultSkinTone.MediumLight": "中浅肤色",
+      "EmojiDefaultSkinTone.Medium": "中等肤色",
+      "EmojiDefaultSkinTone.MediumDark": "中深肤色",
+      "EmojiDefaultSkinTone.Dark": "深肤色"
     },
     "fileTypeFilterNames": {
       "CcCedict": "词典文件（.txt/.csv/.gz/.zip/StarDict）",
@@ -141,5 +157,23 @@
   "dictionaryLoadFailedTemplate": "词典数据加载失败：{0}",
   "dictionaryReadFailedTemplate": "{0} 词典数据读取失败：{1}",
   "configuredDictionaryFileMissingTemplate": "在 settings.json 中指定的 {0} 词典文件不存在：{1}",
-  "dictionaryDataFileNotFoundTemplate": "未找到 {0} 词典数据文件（{1}）。可将文件放到：{2} 或 {3}。下载地址：{4}"
+  "dictionaryDataFileNotFoundTemplate": "未找到 {0} 词典数据文件（{1}）。可将文件放到：{2} 或 {3}。下载地址：{4}",
+  "emojiMode": {
+    "title": "Emoji",
+    "watermark": "输入英文、中文或拼音搜索 Emoji",
+    "actionHint": "按 {execute} 输入 Emoji"
+  },
+  "emoji": {
+    "loading": "正在加载 Emoji…",
+    "noResults": "没有匹配的 Emoji，试试其他关键词",
+    "recent": "最近使用 · 常用 Emoji",
+    "hint": "{previous}/{next} 选择 · {execute} 输入 · {variants} 肤色 · {copyEmoji} 复制",
+    "variants": "肤色变体",
+    "copy": "复制 Emoji",
+    "copied": "已复制 Emoji",
+    "inputFailed": "无法输入到原窗口，请复制 Emoji 后手动粘贴。",
+    "loadFailed": "Emoji 数据加载失败：{0}",
+    "hotkeyFailed": "Emoji 全局快捷键不可用，可通过 Tab 切换到 Emoji 模式。"
+  },
+  "configurationWarning": "配置迁移或保存失败，旧文件已保留。打开设置查看详情："
 }

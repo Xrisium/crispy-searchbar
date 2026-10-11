@@ -29,6 +29,9 @@ public static class ShortcutTextFormatter
         }
 
         return template
+            .Replace("{emoji}", GetLabel(ShortcutAction.ShowEmoji))
+            .Replace("{variants}", GetLabel(ShortcutAction.EmojiVariants))
+            .Replace("{copyEmoji}", GetLabel(ShortcutAction.CopyEmoji))
             .Replace("{toggle}", GetLabel(ShortcutAction.ToggleVisibility))
             .Replace("{cycle}", GetLabel(ShortcutAction.CycleMode))
             .Replace("{execute}", GetLabel(ShortcutAction.Execute))

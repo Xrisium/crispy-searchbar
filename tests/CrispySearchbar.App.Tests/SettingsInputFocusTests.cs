@@ -19,7 +19,7 @@ public sealed class SettingsInputFocusTests
     public async Task Enter_ReleasesInputFocusAndNormalizesOffsetText()
     {
         TestStyles.Ensure();
-        var window = new SettingsWindow();
+        var window = new SettingsWindow(null, null, configurationDirectory: Path.Combine(Path.GetTempPath(), "crispy-ui-" + Guid.NewGuid().ToString("N")));
         window.Show();
         await PumpAsync();
 
@@ -45,7 +45,7 @@ public sealed class SettingsInputFocusTests
     public async Task ClickingBlankArea_ReleasesInputFocus()
     {
         TestStyles.Ensure();
-        var window = new SettingsWindow();
+        var window = new SettingsWindow(null, null, configurationDirectory: Path.Combine(Path.GetTempPath(), "crispy-ui-" + Guid.NewGuid().ToString("N")));
         window.Show();
         await PumpAsync();
 

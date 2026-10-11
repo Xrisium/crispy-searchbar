@@ -71,8 +71,10 @@ public static class ShortcutValidation
                 PrintableRequiresModifierError);
         }
 
-        if (action != ShortcutAction.ToggleVisibility
-            && IsReservedTextEditingBinding(binding))
+        var emojiCopy = action == ShortcutAction.CopyEmoji
+            && binding.Key == "C" && binding.Modifiers == (ShortcutModifiers.Control | ShortcutModifiers.Shift);
+        if (action is not (ShortcutAction.ToggleVisibility or ShortcutAction.ShowEmoji)
+            && !emojiCopy && IsReservedTextEditingBinding(binding))
         {
             return Issue(
                 action,

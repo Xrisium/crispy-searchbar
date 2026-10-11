@@ -62,7 +62,7 @@
     "shortcutResetText": "Restore default",
     "shortcutUnsetText": "No shortcut set",
     "shortcutResetAllText": "Reset all shortcuts to default",
-    "shortcutGlobalConflictWarning": "Conflicts with another app\u2019s global shortcut and may behave unexpectedly.",
+    "shortcutGlobalConflictWarning": "Conflicts with another app’s global shortcut and may behave unexpectedly.",
     "searchBarPositionHorizontalLabel": "Horizontal X",
     "searchBarPositionVerticalLabel": "Vertical Y",
     "searchBarPositionResetText": "Restore default position",
@@ -92,12 +92,17 @@
       "HideOnEscape": "Hide the search bar with Esc",
       "ExecuteShortcut": "Execute the current item",
       "SelectPreviousShortcut": "Move selection up",
-      "SelectNextShortcut": "Move selection down"
+      "SelectNextShortcut": "Move selection down",
+      "ShowEmojiShortcut": "Open Emoji shortcut",
+      "EmojiVariantsShortcut": "Emoji variants shortcut",
+      "CopyEmojiShortcut": "Copy Emoji shortcut",
+      "EmojiKeepOpenAfterInsert": "Keep Emoji panel open after inserting",
+      "EmojiDefaultSkinTone": "Default Emoji skin tone"
     },
     "fieldDescriptions": {
       "Language": "The UI language updates immediately after saving.",
       "Theme": "Appearance of the search bar and the settings window.",
-      "SearchBarOffset": "Offset from the center of the primary screen\u2019s work area, in DIP; 0 means centered, and positive values move right/down.",
+      "SearchBarOffset": "Offset from the center of the primary screen’s work area, in DIP; 0 means centered, and positive values move right/down.",
       "SearchEngine": "Search engine used by Web Search mode.",
       "ClearQueryOnHide": "Clear the typed query whenever the search bar hides.",
       "LaunchAtStartup": "Starts in the background and stays in the system tray after you sign in to Windows; the search bar does not open automatically.",
@@ -109,9 +114,14 @@
       "ToggleVisibilityShortcut": "Global shortcut: shows the hidden search bar and hides it while visible. Default Alt+Space; press Esc while recording to clear it.",
       "CycleModeShortcut": "Tap to cycle modes; press and hold to open the mode wheel, then release to confirm. Must be a single key without modifiers.",
       "HideOnEscape": "When enabled, pressing Esc while the search bar is visible hides it to the tray.",
-      "ExecuteShortcut": "Opens browser results in web modes and shows dictionary definitions in Dictionary mode.",
-      "SelectPreviousShortcut": "Moves selection up in dictionary candidates or the mode wheel.",
-      "SelectNextShortcut": "Moves selection down in dictionary candidates or the mode wheel."
+      "ExecuteShortcut": "Executes the current item, including inserting Emoji.",
+      "SelectPreviousShortcut": "Moves selection in candidate lists and the mode wheel.",
+      "SelectNextShortcut": "Moves selection in candidate lists and the mode wheel.",
+      "ShowEmojiShortcut": "Opens Emoji mode; press again to hide. Default Win+. replaces the system panel while running.",
+      "EmojiVariantsShortcut": "Opens variants for the selected Emoji; Enter confirms and Esc returns.",
+      "CopyEmojiShortcut": "Copies the selected Emoji and keeps the panel open; Ctrl+C still copies query text.",
+      "EmojiKeepOpenAfterInsert": "Returns to the search bar after inserting, preserving the query and selection.",
+      "EmojiDefaultSkinTone": "Applies to supported Emoji; individual variants remain selectable."
     },
     "optionLabels": {
       "Language.system": "System",
@@ -120,7 +130,13 @@
       "Theme.Dark": "Dark",
       "SearchEngine.Baidu": "Baidu",
       "SearchEngine.Google": "Google",
-      "SearchEngine.Bing": "Bing"
+      "SearchEngine.Bing": "Bing",
+      "EmojiDefaultSkinTone.Neutral": "Neutral",
+      "EmojiDefaultSkinTone.Light": "Light",
+      "EmojiDefaultSkinTone.MediumLight": "Medium light",
+      "EmojiDefaultSkinTone.Medium": "Medium",
+      "EmojiDefaultSkinTone.MediumDark": "Medium dark",
+      "EmojiDefaultSkinTone.Dark": "Dark"
     },
     "fileTypeFilterNames": {
       "CcCedict": "Dictionary file (.txt/.csv/.gz/.zip/StarDict)",
@@ -141,5 +157,23 @@
   "dictionaryLoadFailedTemplate": "Failed to load dictionary data: {0}",
   "dictionaryReadFailedTemplate": "Failed to read {0} dictionary data: {1}",
   "configuredDictionaryFileMissingTemplate": "The {0} dictionary file specified in settings.json does not exist: {1}",
-  "dictionaryDataFileNotFoundTemplate": "Could not find the {0} dictionary data file ({1}). You can place the file at: {2} or {3}. Download URL: {4}"
+  "dictionaryDataFileNotFoundTemplate": "Could not find the {0} dictionary data file ({1}). You can place the file at: {2} or {3}. Download URL: {4}",
+  "emojiMode": {
+    "title": "Emoji",
+    "watermark": "Search Emoji in English, Chinese or pinyin",
+    "actionHint": "Press {execute} to insert Emoji"
+  },
+  "emoji": {
+    "loading": "Loading Emoji…",
+    "noResults": "No matching Emoji. Try another keyword.",
+    "recent": "Recent · Popular Emoji",
+    "hint": "{previous}/{next} select · {execute} insert · {variants} variants · {copyEmoji} copy",
+    "variants": "Skin tone variants",
+    "copy": "Copy Emoji",
+    "copied": "Emoji copied",
+    "inputFailed": "Could not insert into the original window. Copy the Emoji and paste it manually.",
+    "loadFailed": "Could not load Emoji data: {0}",
+    "hotkeyFailed": "Emoji shortcut unavailable. Use Tab to switch to Emoji mode."
+  },
+  "configurationWarning": "Settings migration or saving failed. Original files were preserved. Open settings for details: "
 }

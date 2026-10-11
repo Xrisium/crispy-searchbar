@@ -45,7 +45,8 @@ public sealed partial class SettingsWindow : Window
     public SettingsWindow(
         Func<string, bool>? globalShortcutProbe,
         Func<string, bool>? isCurrentGlobalShortcut,
-        Func<bool, bool>? startupRegistrationUpdater = null)
+        Func<bool, bool>? startupRegistrationUpdater = null,
+        string? configurationDirectory = null)
     {
         InitializeComponent();
 
@@ -57,13 +58,13 @@ public sealed partial class SettingsWindow : Window
         PageScrollViewer.Transitions = new Transitions { _scrollTransition };
         SectionHost.PointerWheelChanged += OnPagePointerWheelChanged;
 
-        var settings = AppSettingsStore.LoadOrDefault();
+        var settings = AppSettingsStore.LoadOrDefault(configurationDirectory);
         var strings = TranslationCatalog.Default.Resolve(settings.Language);
         _strings = strings;
         var viewModel = new SettingsWindowViewModel(
             settings,
             strings,
-            AppSettingsStore.GetEffectiveFilePath(),
+            AppSettingsStore.GetSettingsFilePath(configurationDirectory),
             globalShortcutProbe,
             isCurrentGlobalShortcut,
             startupRegistrationUpdater);

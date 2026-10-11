@@ -7,6 +7,9 @@ public static class ShortcutDefaults
         new Dictionary<ShortcutAction, string>
         {
             [ShortcutAction.ToggleVisibility] = "ToggleVisibilityShortcut",
+            [ShortcutAction.ShowEmoji] = "ShowEmojiShortcut",
+            [ShortcutAction.EmojiVariants] = "EmojiVariantsShortcut",
+            [ShortcutAction.CopyEmoji] = "CopyEmojiShortcut",
             [ShortcutAction.CycleMode] = "CycleModeShortcut",
 
             [ShortcutAction.Execute] = "ExecuteShortcut",
@@ -18,6 +21,9 @@ public static class ShortcutDefaults
         new Dictionary<ShortcutAction, string>
         {
             [ShortcutAction.ToggleVisibility] = "Alt+Space",
+            [ShortcutAction.ShowEmoji] = "Win+.",
+            [ShortcutAction.EmojiVariants] = "Alt+Down",
+            [ShortcutAction.CopyEmoji] = "Ctrl+Shift+C",
             [ShortcutAction.CycleMode] = "Tab",
 
             [ShortcutAction.Execute] = "Enter",
@@ -48,6 +54,9 @@ public static class ShortcutDefaults
         => action switch
         {
             ShortcutAction.ToggleVisibility => settings.ToggleVisibilityShortcut,
+            ShortcutAction.ShowEmoji => settings.ShowEmojiShortcut,
+            ShortcutAction.EmojiVariants => settings.EmojiVariantsShortcut,
+            ShortcutAction.CopyEmoji => settings.CopyEmojiShortcut,
             ShortcutAction.CycleMode => settings.CycleModeShortcut,
 
             ShortcutAction.Execute => settings.ExecuteShortcut,
@@ -60,6 +69,9 @@ public static class ShortcutDefaults
     {
         switch (action)
         {
+            case ShortcutAction.ShowEmoji: settings.ShowEmojiShortcut = value; break;
+            case ShortcutAction.EmojiVariants: settings.EmojiVariantsShortcut = value; break;
+            case ShortcutAction.CopyEmoji: settings.CopyEmojiShortcut = value; break;
             case ShortcutAction.ToggleVisibility:
                 settings.ToggleVisibilityShortcut = value;
                 break;

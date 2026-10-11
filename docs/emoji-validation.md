@@ -1,0 +1,42 @@
+# Emoji 模式与配置迁移验证
+
+验证日期：2026-10-11。开发环境：Windows 10 x64（10.0.19045）、AMD64 Family 25 Model 80、.NET SDK 10.0.400 / Runtime 10.0.11、Python 3.14.7、pypinyin 0.55.0。
+
+## 自动验证
+
+- 核心测试 274 项；应用层测试 55 项。覆盖中英、全拼、空格拼音、首字母、别名、混合输入、错拼、使用记录排序、过期查询、输入与显式复制、连续输入、变体确认／取消、浮层上下定位及配置保存／重置。
+- 迁移覆盖程序目录、旧 LocalAppData、新旧文件同时存在、损坏文件、备份失败、写入失败、重复启动及只读旧文件。断言备份原始字节、保留可读配置、失败时保留源文件、不向程序目录回退。
+- 3,944 个完整序列无重复；保留 UTF-16、ZWJ、肤色与变体选择符。握手及男女牵手分组包含混合肤色；每张内嵌 PNG 都通过原生 Skia 解码并验证为 72×72。
+- Unicode、CLDR、Twemoji、pypinyin 许可原文可从内嵌文档读取。
+- 数据生成脚本连续运行两次，产物 SHA-256 完全一致，与 `scripts/emoji-manifest.json` 一致。
+- Win+. 状态机覆盖精确修饰键、重复按键、先松 Win、注入事件、全屏放行、其他 Win 热键及状态重置。UTF-16 注入数组逐码元验证；这不代替物理键盘实测。
+
+构建／测试命令：
+
+```powershell
+dotnet build CrispySearchbar.sln -p:UsedAvaloniaProducts=
+dotnet test tests/CrispySearchbar.Core.Tests -c Release -p:UsedAvaloniaProducts=
+dotnet test tests/CrispySearchbar.App.Tests -p:UsedAvaloniaProducts= -- --no-progress
+pwsh ./scripts/publish-portable.ps1
+```
+
+`UsedAvaloniaProducts=` 仅用于跳过受限构建环境里的 Avalonia 构建遥测写入，不改变运行时行为。
+
+## 性能与渲染
+
+Release 独立搜索基准：索引预热后，7 种查询循环 70 次，P95 **12.29 ms**，最大 **17.49 ms**。此值只包含 Core 查询，不包含窗口呼出、原生焦点交接或渲染时间。并行运行全套测试时会受到词典加载、图像解码及其他测试的资源竞争影响。
+
+隔离的原生 Avalonia 宿主采用软件渲染，验证中文查询、候选图像、输入框焦点及 Alt+Down 的六种肤色列表；导出 96 DPI 浅／深主题候选渲染并目检。宿主为便于检查临时显示任务栏按钮、关闭失焦隐藏，未写入产品默认行为。验证中发现 ZIP 流不可回退导致原生 PNG 解码失败，现已改为可回退的内存流。
+
+标准发布脚本成功生成约 **77.6 MB** 的自包含单 exe。将发布文件复制到新建空目录，以 `--autostart` 启动 12 秒后检查：进程仍运行，目录前后均只有 exe，生效配置路径位于 `%APPDATA%\CrispySearchbar\settings.json`；测试进程已关闭。Native DLL 的 .NET 单文件解包仍使用系统临时目录。
+
+## 待手工验收
+
+桌面截图服务返回 `FrameArrived timed out` / `window capture timed out`，因此渲染检查使用组件导出图。记事本自动化启动返回 `Computer Use app approval timed out`，未完成跨应用输入实测。以下项目尚未宣称通过：
+
+- 物理 Win+. 不同时打开原生 Emoji 面板、不误开开始菜单；其他 Win 热键正常；改绑、禁用、退出后释放钩子。
+- 记事本、浏览器、VS Code、微信／QQ及 Office 的完整输入链路；IME、管理员窗口、目标关闭及焦点变化；默认剪贴板保持不变。
+- 实际窗口在不同 DPI 和屏幕边缘的视觉检查。
+- 热呼出至可输入 ≤100 ms，以及包含 UI 渲染的查询刷新 P95 ≤50 ms。
+
+管理员应用的输入受 Windows UIPI 限制；失败时面板保留候选并提示显式复制，不自动重发或改写剪贴板。

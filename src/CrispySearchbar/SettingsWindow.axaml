@@ -766,6 +766,9 @@
                          ToolTip.Tip="{Binding ConfigFileOpenText}"
                          Tapped="OnConfigPathTapped" />
             </Grid>
+            <TextBlock Text="{Binding ConfigurationWarning}" IsVisible="{Binding HasConfigurationWarning}"
+                       Foreground="{DynamicResource WarningBrush}" FontSize="11" MaxHeight="64"
+                       TextWrapping="Wrap" ToolTip.Tip="{Binding ConfigurationWarning}" />
             <TextBlock x:Name="StatusTextBlock"
                        Text="{Binding StatusText}"
                        FontSize="12"

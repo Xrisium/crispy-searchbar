@@ -27,20 +27,35 @@ public sealed class SettingsSectionViewModel
         Items = items;
     }
 
-    public SettingsSection Section { get; }
+    public SettingsSection Section
+    {
+        get;
+    }
 
     /// <summary>图标资源键后缀（SettingsIconTemplate-{Key}）。</summary>
     public string Key => Section.ToString().ToLowerInvariant();
 
-    public string Title { get; }
+    public string Title
+    {
+        get;
+    }
 
-    public IReadOnlyList<SettingFieldViewModel> Fields { get; }
+    public IReadOnlyList<SettingFieldViewModel> Fields
+    {
+        get;
+    }
 
     /// <summary>本分类内不绑定 AppSettings 的静态展示行。</summary>
-    public IReadOnlyList<object> StaticItems { get; }
+    public IReadOnlyList<object> StaticItems
+    {
+        get;
+    }
 
     /// <summary>右侧页面实际渲染的行：先设置编辑行，后接静态行。</summary>
-    public IReadOnlyList<object> Items { get; }
+    public IReadOnlyList<object> Items
+    {
+        get;
+    }
 }
 
 /// <summary>
@@ -98,6 +113,10 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
     public event EventHandler<SettingFieldViewModel>? ValidationFailed;
 
     public ObservableCollection<SettingsSectionViewModel> Sections { get; } = [];
+
+    public string ConfigurationWarning => AppSettingsStore.LoadWarnings.Count == 0 ? ""
+        : _strings.ConfigurationWarning + "\n" + string.Join("\n", AppSettingsStore.LoadWarnings);
+    public bool HasConfigurationWarning => !string.IsNullOrEmpty(ConfigurationWarning);
 
     public string WindowTitle => _texts.WindowTitle;
 
@@ -168,6 +187,8 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ConfigFileLabel));
         OnPropertyChanged(nameof(ConfigFilePath));
         OnPropertyChanged(nameof(ConfigFileOpenText));
+        OnPropertyChanged(nameof(ConfigurationWarning));
+        OnPropertyChanged(nameof(HasConfigurationWarning));
         OnPropertyChanged(nameof(IsResetConfirmationVisible));
         OnPropertyChanged(nameof(ResetConfirmationTitle));
         OnPropertyChanged(nameof(ResetConfirmationMessage));
@@ -240,7 +261,7 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
 
         try
         {
-            AppSettingsStore.Save(candidate);
+            AppSettingsStore.Save(candidate, Path.GetDirectoryName(Path.GetFullPath(_configFilePath)));
             _persistedLaunchAtStartup = candidate.LaunchAtStartup;
             return true;
         }
@@ -396,34 +417,20 @@ public sealed class SettingsWindowViewModel : INotifyPropertyChanged
         }
 
         var version = ++_globalProbeVersion;
-        var toggleField = CollectShortcutFields().FirstOrDefault(field =>
-            string.Equals(
-                field.Definition.PropertyName,
-                ShortcutDefaults.GetPropertyName(ShortcutAction.ToggleVisibility),
-                StringComparison.Ordinal));
-        var propertyName = ShortcutDefaults.GetPropertyName(ShortcutAction.ToggleVisibility);
-        if (toggleField is null || toggleField.IsEmpty)
+        foreach (var action in new[] { ShortcutAction.ToggleVisibility, ShortcutAction.ShowEmoji })
         {
-            _globalConflictByProperty[propertyName] = false;
-            ApplyShortcutFeedback();
-            return;
+            var propertyName = ShortcutDefaults.GetPropertyName(action);
+            var field = CollectShortcutFields().FirstOrDefault(f => f.Definition.PropertyName == propertyName);
+            if (field is null || field.IsEmpty || _isCurrentGlobalShortcut?.Invoke(field.Value) == true)
+            {
+                _globalConflictByProperty[propertyName] = false;
+                continue;
+            }
+            var succeeded = await Task.Run(() => TryProbe(field.Value));
+            if (version != _globalProbeVersion)
+                return;
+            _globalConflictByProperty[propertyName] = !succeeded;
         }
-
-        var candidate = toggleField.Value;
-        if (_isCurrentGlobalShortcut?.Invoke(candidate) == true)
-        {
-            _globalConflictByProperty[propertyName] = false;
-            ApplyShortcutFeedback();
-            return;
-        }
-
-        var succeeded = await Task.Run(() => TryProbe(candidate));
-        if (version != _globalProbeVersion)
-        {
-            return;
-        }
-
-        _globalConflictByProperty[propertyName] = !succeeded;
         ApplyShortcutFeedback();
     }
 

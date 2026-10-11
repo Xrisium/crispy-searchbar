@@ -26,6 +26,12 @@ public sealed class AppStrings
 
     public required SearchModeTexts AskAiMode { get; init; }
 
+    public required SearchModeTexts EmojiMode { get; init; }
+
+    public required EmojiTexts Emoji { get; init; }
+
+    public required string ConfigurationWarning { get; init; }
+
     public required SearchModeTexts DictionaryMode { get; init; }
 
     public required string TrayToolTip { get; init; }

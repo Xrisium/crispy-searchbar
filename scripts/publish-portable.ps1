@@ -5,7 +5,7 @@
 .DESCRIPTION
   使用 PortableWinX64 发布配置（见 src/CrispySearchbar/Properties/PublishProfiles/PortableWinX64.pubxml）：
   词典数据与第三方声明/许可证原文全部内嵌进 exe，产物除 exe 本身外不含任何文件，
-  首次运行只会在 exe 同目录自动生成 settings.json。
+  配置保存在 %APPDATA%\CrispySearchbar\settings.json，程序目录不写入运行时数据。
 
   脚本会校验发布目录确实只有那个 exe，然后按 crispy-searchbar-{version}-win-x64.exe
   复制到 artifacts/ 并打印 SHA-256。

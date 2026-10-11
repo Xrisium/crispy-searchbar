@@ -18,7 +18,7 @@ public sealed class SettingsFieldLabelWrapTests
     public async Task SettingFieldLabelsWrapInsteadOfBeingClipped()
     {
         TestStyles.Ensure();
-        var window = new SettingsWindow();
+        var window = new SettingsWindow(null, null, configurationDirectory: Path.Combine(Path.GetTempPath(), "crispy-ui-" + Guid.NewGuid().ToString("N")));
         window.Show();
         await PumpAsync();
 

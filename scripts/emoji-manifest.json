@@ -1,0 +1,18 @@
+{
+  "unicode": "17.0",
+  "cldr": "48",
+  "twemoji": "17.0.3",
+  "pypinyin": "0.55.0",
+  "entries": 3944,
+  "images": 3944,
+  "outputs": {
+    "catalog.json.gz": {
+      "bytes": 298913,
+      "sha256": "eababd8bbfca6d2a14a1e2203c18d2646c41df64bc6a637d4b90628e9e045a4d"
+    },
+    "twemoji.zip": {
+      "bytes": 4664207,
+      "sha256": "759f6a4231edf0db988e2780d4f0f685b493eeb3ee7c6ecddb05082b8a7a4356"
+    }
+  }
+}

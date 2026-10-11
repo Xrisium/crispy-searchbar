@@ -29,8 +29,10 @@ public static class ModePreferenceDefaults
 
     public const string Dictionary = "dictionary";
 
+    public const string Emoji = "emoji";
+
     public static IReadOnlyList<string> BuiltInOrder { get; } =
-        [WebSearch, Wikipedia, AskAi, Dictionary];
+        [WebSearch, Wikipedia, AskAi, Dictionary, Emoji];
 
     public static ModePreference[] AllEnabled()
         => BuiltInOrder
@@ -40,7 +42,7 @@ public static class ModePreferenceDefaults
 
 /// <summary>
 /// 把模式偏好归一化为合法列表：丢弃未知/重复键、按默认序补齐缺失键，并保证至少启用一个模式。
-/// 全禁用/空/无效输入回退为默认四模式全启用。
+/// 全禁用/空/无效输入回退为默认模式全启用。
 /// </summary>
 public static class ModePreferenceNormalizer
 {

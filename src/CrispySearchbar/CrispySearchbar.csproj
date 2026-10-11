@@ -38,6 +38,7 @@
   </Target>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="CrispySearchbar.App.Tests" />
     <ProjectReference Include="..\CrispySearchbar.Core\CrispySearchbar.Core.csproj" />
   </ItemGroup>
 

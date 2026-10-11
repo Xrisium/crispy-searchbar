@@ -9,6 +9,8 @@ using CrispySearchbar.Core.Dictionary;
 using CrispySearchbar.Core.Localization;
 using CrispySearchbar.Core.Modes;
 using CrispySearchbar.Dictionary;
+using CrispySearchbar.Core.Emoji;
+using CrispySearchbar.Emoji;
 using CrispySearchbar.Platform;
 using CrispySearchbar.ViewModels;
 
@@ -24,6 +26,8 @@ public partial class App : Application
     private AppDictionaryResources? _dictionaryResources;
     private Task<DictionaryLoadResult>? _dictionaryLoadTask;
     private IGlobalHotkeyService? _hotkeyService;
+    private EmojiHotkeyService? _emojiHotkey;
+    private EmojiModeViewModel? _emojiViewModel;
     private IGlobalMouseWheelService? _mouseWheelService;
     private TrayIconService? _trayIconService;
     private IStartupRegistrationService? _startupRegistrationService;
@@ -55,6 +59,8 @@ public partial class App : Application
                 _settings.DictionaryFilePath,
                 _settings.EcdictFilePath);
             _dictionaryLoadTask = _dictionaryResources.LoadAsync(CancellationToken.None);
+            _emojiViewModel = new EmojiModeViewModel(_strings, _settings,
+                Task.Run(EmojiResources.LoadIndex), new EmojiHistoryStore(), new EmojiImageCache());
             _viewModel = new MainWindowViewModel(
                 _strings,
                 modes,
@@ -64,7 +70,7 @@ public partial class App : Application
                     _strings.DictionaryEmptyHint,
                     shortcuts,
                     _strings.SettingsTexts.ShortcutUnsetText),
-                loadDictionary: () => _dictionaryLoadTask);
+                loadDictionary: () => _dictionaryLoadTask, emoji: _emojiViewModel);
             var mainWindow = new MainWindow { DataContext = _viewModel };
             _mainWindow = mainWindow;
             _mouseWheelService = GlobalMouseWheelServiceFactory.Create();
@@ -85,6 +91,11 @@ public partial class App : Application
                 _hotkeyService.TryStart(initialGlobal);
             }
 
+            _emojiHotkey = new EmojiHotkeyService(() => _settings.SkipWhenFullscreenAppActive
+                && _fullscreenAppDetector?.IsFullscreenAppActive() == true);
+            _emojiHotkey.Pressed += ToggleEmoji;
+            ApplyEmojiHotkey(shortcuts);
+
             _trayIconService = new TrayIconService(
                 _strings,
                 ToggleSearchBarFromTray,
@@ -96,6 +107,8 @@ public partial class App : Application
             {
                 mainWindow.ShowFromTray();
             }
+            if (AppSettingsStore.LoadWarnings.Count > 0)
+                OpenSettingsWindow();
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -121,6 +134,8 @@ public partial class App : Application
 
         _settings = settings;
         _strings = TranslationCatalog.Default.Resolve(settings.Language);
+        _emojiViewModel?.ApplyConfiguration(_strings, settings);
+        ApplyEmojiHotkey(shortcuts);
         ApplyTheme(settings.Theme);
 
         if (dictionaryPathsChanged)
@@ -165,8 +180,10 @@ public partial class App : Application
 
         var probe = GlobalHotkeyProbeFactory.Create();
         var window = new SettingsWindow(
-            probe.CanRegister,
-            candidate => _hotkeyService?.IsRegistered == true
+            candidate => ShortcutParser.TryParse(candidate, out var parsed) && EmojiHotkeyService.IsShellEmojiBinding(parsed)
+                ? EmojiHotkeyService.CanInstallShellHook() : probe.CanRegister(candidate),
+            candidate => (_emojiHotkey?.IsRegistered == true && string.Equals(_emojiHotkey.CurrentBinding?.ToStorageString(), candidate, StringComparison.OrdinalIgnoreCase))
+                || _hotkeyService?.IsRegistered == true
                 && string.Equals(
                     _hotkeyService.CurrentBinding?.ToStorageString(),
                     candidate,
@@ -221,6 +238,32 @@ public partial class App : Application
                 StartupRegistrationCommand.AutostartArgument,
                 StringComparison.OrdinalIgnoreCase));
 
+    private void ApplyEmojiHotkey(ShortcutCatalog shortcuts)
+    {
+        if (_emojiHotkey is null)
+            return;
+        var enabled = ModePreferenceNormalizer.Normalize(_settings.ModePreferences)
+            .Any(p => p.Key == ModePreferenceDefaults.Emoji && p.Enabled);
+        var binding = enabled && shortcuts.TryGetBinding(ShortcutAction.ShowEmoji, out var value) ? value : null;
+        if (!_emojiHotkey.TryApply(binding))
+            _viewModel?.SetApplicationWarning(_strings.Emoji.HotkeyFailed);
+        else
+            _viewModel?.SetApplicationWarning("");
+    }
+    private void ToggleEmoji()
+    {
+        if (_mainWindow is null || _viewModel is null)
+            return;
+        if (_mainWindow.IsVisible && _viewModel.IsEmojiMode)
+        {
+            _mainWindow.HideToTray();
+            return;
+        }
+        if (!_viewModel.SelectMode(ModePreferenceDefaults.Emoji))
+            return;
+        _mainWindow.ShowFromTray();
+    }
+
     private void ToggleSearchBarFromHotkey()
         => ToggleSearchBar(
             suppressWhenFullscreen: _settings.SkipWhenFullscreenAppActive);
@@ -252,6 +295,8 @@ public partial class App : Application
 
     private void ExitApplication()
     {
+        _emojiHotkey?.Dispose();
+        _emojiViewModel?.Dispose();
         if (_mouseWheelService is not null)
         {
             _mouseWheelService.Dispose();

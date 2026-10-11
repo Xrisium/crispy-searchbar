@@ -2,7 +2,7 @@
 
 本项目的代码使用 MIT License（见根目录 `LICENSE`）。下面的第三方依赖、组件与数据资产各自拥有独立许可证；使用或再分发本项目（含编译产物）时，须遵守这些许可证的条款。
 
-记录生成时间：2026-09-09；最近更新：2026-09-11（词典数据改为 `.gz` 并随程序内嵌，声明与许可证全文也内嵌进可执行文件）。许可证信息读取自 NuGet 包元数据与数据发布页；升级依赖或更新数据后应重新核对并更新本文件。
+记录生成时间：2026-09-09；最近更新：2026-10-11（新增离线 Emoji 数据、图像与拼音索引）。许可证信息读取自 NuGet 包元数据与数据发布页；升级依赖或更新数据后应重新核对并更新本文件。
 
 ## 许可证原文集中管理
 
@@ -15,6 +15,8 @@
 | Apache-2.0 | [licenses/Apache-2.0.txt](licenses/Apache-2.0.txt) |
 | CC BY-SA 4.0 | [licenses/CC-BY-SA-4.0.txt](licenses/CC-BY-SA-4.0.txt) |
 | ISC | [licenses/ISC.txt](licenses/ISC.txt) |
+| Unicode-3.0 | [licenses/Unicode-3.0.txt](licenses/Unicode-3.0.txt) |
+| CC-BY-4.0 | [licenses/CC-BY-4.0.txt](licenses/CC-BY-4.0.txt) |
 
 数据资产（词典、字体等）不再在数据目录旁保留 `LICENSE`/`NOTICE`：许可证全文统一放在 `licenses/`，各数据源的来源、获取日期与署名声明统一登记在本文件“捆绑数据资产”一节。单独再分发某个数据文件时，须一并提供本文件与 `licenses/` 下的许可证原文。
 
@@ -83,10 +85,25 @@
 - 捆绑的 `ecdict.csv.gz` 是上游 `ecdict.csv`（65,933,428 字节，约 77 万条）原样内容的 gzip 重新压缩：词条内容未增加、删除或修改，仅改变分发容器以适应内嵌。文件大小 23,076,755 字节，SHA-256 `0d2fa6ea5ba75890de56231c2d9790e001d6d5a8795a0aacb6ba138ece6da1ce`；解压后即上游文件本身。
 - 许可：MIT License，Copyright (c) 2025 Linwei（[licenses/MIT.txt](licenses/MIT.txt)）。
 
+### Emoji 数据与图像
+
+| 数据 | 文件 | 版本/获取 | 许可证 |
+|---|---|---|---|
+| Unicode Emoji / CLDR annotations | `data/emoji/catalog.json.gz` | Emoji 17.0 / CLDR 48；3,944 个完整序列；2026-10-11 | [Unicode-3.0](licenses/Unicode-3.0.txt) |
+| Twemoji graphics | `data/emoji/twemoji.zip` | jdecked/twemoji v17.0.3；3,944 张 PNG；2026-10-11 | [CC-BY-4.0](licenses/CC-BY-4.0.txt) |
+
+- Unicode 来源：https://www.unicode.org/Public/17.0.0/emoji/emoji-test.txt ；CLDR 来源：https://github.com/unicode-org/cldr/tree/release-48/common/annotations 与 annotationsDerived；Copyright © 1991–2025 Unicode, Inc.。原始名称、关键词及序列经筛选、合并、压缩，并附加项目自有别名和拼音索引。
+- Twemoji 来源：https://github.com/jdecked/twemoji/tree/v17.0.3/assets/72x72 。署名：Twemoji graphics by Twitter, Inc. and other contributors, maintained by jdecked and contributors。图像内容未修改，仅筛选后打包；CC BY 4.0 要求保留署名、来源及许可链接，不表示上游认可本项目。
+- 拼音索引由 [pypinyin 0.55.0](https://github.com/mozillazg/python-pinyin/tree/v0.55.0) 离线生成；[MIT 原文](licenses/MIT-pypinyin.txt)，Copyright (c) 2016 mozillazg, 闲耘 <hotoo.cn@gmail.com>。其单字与词组数据分别来自 [pinyin-data](https://github.com/mozillazg/pinyin-data) 与 [phrase-pinyin-data](https://github.com/mozillazg/phrase-pinyin-data)；原始工具不作为运行时依赖分发。
+- 完整来源 URL 与 SHA-256 固定在 `scripts/emoji-sources.lock.json`，生成脚本为 `scripts/generate-emoji.py`；资源内嵌并离线使用。
+- `catalog.json.gz`：298,913 字节，SHA-256 `eababd8bbfca6d2a14a1e2203c18d2646c41df64bc6a637d4b90628e9e045a4d`。
+- `twemoji.zip`：4,664,207 字节，SHA-256 `759f6a4231edf0db988e2780d4f0f685b493eeb3ee7c6ecddb05082b8a7a4356`。
+
 ## 测试与开发依赖（不进发布产物）
 
 | 包 | 版本 | 许可证 |
 |---|---|---|
+| pypinyin | 0.55.0（仅数据生成） | [MIT](licenses/MIT-pypinyin.txt)，Copyright (c) 2016 mozillazg, 闲耘 |
 | Microsoft.CodeCoverage | 18.9.0 | [MIT](licenses/MIT.txt) |
 | Microsoft.NET.Test.Sdk | 18.9.0 | [MIT](licenses/MIT.txt) |
 | Microsoft.TestPlatform.ObjectModel | 18.9.0 | [MIT](licenses/MIT.txt) |

@@ -20,7 +20,7 @@ public sealed class SettingsToggleTextTests
     public async Task ToggleSwitches_ShowLocalizedOnOffText()
     {
         TestStyles.Ensure();
-        var window = new SettingsWindow();
+        var window = new SettingsWindow(null, null, configurationDirectory: Path.Combine(Path.GetTempPath(), "crispy-ui-" + Guid.NewGuid().ToString("N")));
         window.Show();
         await PumpAsync();
 
@@ -50,7 +50,7 @@ public sealed class SettingsToggleTextTests
     public async Task ToggleSwitch_LabelsAreNotClippedByTheModeRowColumn()
     {
         TestStyles.Ensure();
-        var window = new SettingsWindow();
+        var window = new SettingsWindow(null, null, configurationDirectory: Path.Combine(Path.GetTempPath(), "crispy-ui-" + Guid.NewGuid().ToString("N")));
         window.Show();
         await PumpAsync();
 

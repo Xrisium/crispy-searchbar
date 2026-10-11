@@ -1,5 +1,10 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# Keep upstream license text formatting intact.
+licenses/*.txt whitespace=-blank-at-eol
 data/cc-cedict/*.txt.gz filter=lfs diff=lfs merge=lfs -text
 data/ecdict/*.csv.gz filter=lfs diff=lfs merge=lfs -text
 
+
+data/emoji/*.gz filter=lfs diff=lfs merge=lfs -text
+data/emoji/*.zip filter=lfs diff=lfs merge=lfs -text

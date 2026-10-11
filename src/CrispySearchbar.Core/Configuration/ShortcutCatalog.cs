@@ -9,9 +9,8 @@ public sealed class ShortcutCatalog
     private ShortcutCatalog(IReadOnlyDictionary<ShortcutAction, ShortcutBinding> bindings)
     {
         _bindings = bindings;
-        _actionsByBinding = bindings.ToDictionary(
-            pair => pair.Value,
-            pair => pair.Key);
+        _actionsByBinding = bindings.GroupBy(pair => pair.Value).ToDictionary(
+            group => group.Key, group => group.First().Key);
     }
 
     public static ShortcutCatalog Default { get; } = Create(new AppSettings());

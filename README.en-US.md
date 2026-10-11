@@ -35,15 +35,25 @@ This project has **no** intention of becoming an integrated or all-in-one search
 - **Ask DeepSeek**: ask your question in the [DeepSeek web app](https://chat.deepseek.com/) using the default browser. Requires a DeepSeek account and signing in beforehand in the browser.
 - **Dictionary**: English–Chinese and Chinese–English word lookup with real-time candidates as you type. Lookups run offline using [CC-CEDICT](https://www.mdbg.net/chinese/dictionary?page=cedict) (Chinese → English) and [ECDICT](https://github.com/skywind3000/ECDICT) (English → Chinese). The offline dictionary data ships with the app itself (embedded inside the executable), so no separate download is needed. You can download third-party dictionary sources yourself and configure them; the following dictionary formats are supported: `.txt` (CC-CEDICT text, or generic lines of "headword + tab + definition"), `.csv`, `.gz`/`.zip` archives, and [StarDict](https://en.wikipedia.org/wiki/StarDict) dictionaries (`.ifo`, with `.idx` and `.dict`/`.dict.dz` of the same base name beside it). The parsing direction is decided by whether you point it at the Chinese–English or the English–Chinese setting. The current version does not support dictionaries in additional languages yet.
 
+### Emoji mode
+
+Press **Win+.** or switch modes with Tab. Search in English, Chinese, full pinyin or initials (for example `smile`, `weixiao`, `wx`, `dianzan`, `dz`), with limited typo tolerance. Select with ↑/↓ and insert with Enter or a click. Enable “Keep Emoji panel open after inserting” for repeated input.
+
+- `Alt+↓` opens skin-tone variants; Enter confirms and Esc returns. The default tone is configurable.
+- `Ctrl+Shift+C` copies the selected Emoji. Normal Unicode insertion leaves the clipboard unchanged; use explicit copy for incompatible or elevated applications.
+- Usage history lives in `%LOCALAPPDATA%\CrispySearchbar\emoji-history.json`; queries and target windows are never recorded.
+- Unicode Emoji 17.0, CLDR 48 and Twemoji 17.0.3 are embedded for offline use. Destination applications choose their own rendering.
+- To regenerate data, install the pinned tool with `python -m pip install --require-hashes -r scripts/emoji-requirements.txt`, then run `python scripts/generate-emoji.py`. Sources and hashes are pinned in `scripts/emoji-sources.lock.json`; output metadata is in `scripts/emoji-manifest.json`. Use `--refresh-lock` only for intentional source updates.
+
 ## Requirements
 
 - Windows 10 x64
 
 ## Installation and usage
 
-This app is designed as a self-contained, portable single `.exe` file. Download it, drop it into any directory (avoid special directories that are not writable, such as C:\Program Files) and double-click to run — no additional installation steps are required.
+This app is designed as a self-contained, portable single `.exe` file. Download it, drop it into any directory and double-click to run — no additional installation steps are required.
 
-On start-up, the app creates a `settings.json` configuration file in the same directory.
+Settings live in `%APPDATA%\CrispySearchbar\settings.json`. No configuration or history files are created beside the executable. Legacy settings are migrated automatically and archived in the configuration directory’s `backups` folder before removal.
 
 ## Repository layout
 

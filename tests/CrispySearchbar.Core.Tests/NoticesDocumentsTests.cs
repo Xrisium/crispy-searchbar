@@ -16,7 +16,7 @@ public class NoticesDocumentsTests
         Assert.Equal(NoticeDocumentFormat.Markdown, documents[0].Format);
         Assert.Contains("CC-CEDICT", documents[0].Text, StringComparison.Ordinal);
 
-        foreach (var id in new[] { "Apache-2.0", "BSD-3-Clause", "CC-BY-SA-4.0", "ISC", "MIT" })
+        foreach (var id in new[] { "Apache-2.0", "BSD-3-Clause", "CC-BY-SA-4.0", "ISC", "MIT", "Unicode-3.0", "CC-BY-4.0", "MIT-pypinyin" })
         {
             var document = NoticesDocuments.Find(id);
             Assert.NotNull(document);

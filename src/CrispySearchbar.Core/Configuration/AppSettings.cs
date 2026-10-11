@@ -38,6 +38,21 @@ public sealed class AppSettings
     public string ToggleVisibilityShortcut { get; set; } =
         ShortcutDefaults.GetDefaultValue(ShortcutAction.ToggleVisibility);
 
+    [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 7)]
+    public string ShowEmojiShortcut { get; set; } = "Win+.";
+
+    [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 8)]
+    public string EmojiVariantsShortcut { get; set; } = "Alt+Down";
+
+    [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 9)]
+    public string CopyEmojiShortcut { get; set; } = "Ctrl+Shift+C";
+
+    [Setting(SettingsSection.Search, SettingEditorKind.Toggle, Order = 2)]
+    public bool EmojiKeepOpenAfterInsert { get; set; }
+
+    [Setting(SettingsSection.Search, SettingEditorKind.Choice, Order = 3)]
+    public EmojiSkinTone EmojiDefaultSkinTone { get; set; } = EmojiSkinTone.Neutral;
+
     /// <summary>轻按切换下一模式、长按呼出模式轮盘的单键，默认 Tab。</summary>
     [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 1)]
     public string CycleModeShortcut { get; set; } =

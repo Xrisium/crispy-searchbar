@@ -33,7 +33,7 @@ public class SearchModeTests
         var modes = SearchModeCatalog.Create(settings, strings);
 
         Assert.Equal(
-            new[] { "web-search", "wikipedia", "ask-ai", "dictionary" },
+            new[] { "web-search", "wikipedia", "ask-ai", "dictionary", "emoji" },
             modes.Select(mode => mode.Key));
         Assert.Equal("网页搜索", modes[0].Title);
         Assert.Equal("维基百科", modes[1].Title);
@@ -93,7 +93,7 @@ public class SearchModeTests
         var modes = SearchModeCatalog.Create(settings, strings);
 
         Assert.Equal(
-            new[] { "dictionary", "wikipedia" },
+            new[] { "dictionary", "wikipedia", "emoji" },
             modes.Select(mode => mode.Key));
     }
 
@@ -115,6 +115,7 @@ public class SearchModeTests
                 ModePreferenceDefaults.Dictionary,
                 ModePreferenceDefaults.Wikipedia,
                 ModePreferenceDefaults.AskAi,
+                ModePreferenceDefaults.Emoji,
             },
             normalized.Select(preference => preference.Key));
         Assert.True(normalized.Single(preference =>
@@ -136,6 +137,7 @@ public class SearchModeTests
             new ModePreference(ModePreferenceDefaults.Wikipedia, enabled: false),
             new ModePreference(ModePreferenceDefaults.AskAi, enabled: false),
             new ModePreference(ModePreferenceDefaults.Dictionary, enabled: false),
+            new ModePreference(ModePreferenceDefaults.Emoji, enabled: false),
         ]);
 
         Assert.All(normalized, preference => Assert.True(preference.Enabled));

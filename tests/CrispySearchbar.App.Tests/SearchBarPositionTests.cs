@@ -155,11 +155,13 @@ public sealed class SearchBarPositionTests
         var popups = window
             .GetVisualDescendants()
             .OfType<Popup>()
-            .Where(popup => popup.Name is "DictionaryPopup" or "ModeWheelPopup")
+            .Where(popup => popup.Name is "DictionaryPopup" or "ModeWheelPopup" or "EmojiPopup")
             .ToList();
 
-        Assert.Equal(2, popups.Count);
+        Assert.Equal(3, popups.Count);
         Assert.All(popups, popup => Assert.Equal(expected, popup.Placement));
+        var warning = window.FindControl<Popup>("ApplicationWarningPopup")!;
+        Assert.Equal(expected == PlacementMode.Top ? PlacementMode.Bottom : PlacementMode.Top, warning.Placement);
     }
 
     private static MainWindow CreateMainWindow()

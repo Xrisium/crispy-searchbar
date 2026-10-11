@@ -8,9 +8,9 @@ namespace CrispySearchbar.Core.Tests;
 public class AppSettingsStoreTests
 {
     [Fact]
-    public void DefaultDirectory_IsApplicationBaseDirectory()
+    public void DefaultDirectory_IsRoamingAppData()
     {
-        Assert.Equal(AppContext.BaseDirectory, AppSettingsStore.GetDefaultDirectoryPath());
+        Assert.Equal(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CrispySearchbar"), AppSettingsStore.GetDefaultDirectoryPath());
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class AppSettingsStoreTests
             using var document = JsonDocument.Parse(json);
 
             var names = document.RootElement.EnumerateObject().Select(p => p.Name).ToArray();
-            Assert.Equal(17, names.Length);
+            Assert.Equal(AppSettingsSchema.Discover().Count, names.Length);
             Assert.Contains("language", names);
             Assert.Contains("theme", names);
             Assert.Contains("searchBarOffset", names);
@@ -101,6 +101,7 @@ public class AppSettingsStoreTests
                     new ModePreference(ModePreferenceDefaults.Wikipedia, enabled: true),
                     new ModePreference(ModePreferenceDefaults.AskAi, enabled: true),
                     new ModePreference(ModePreferenceDefaults.Dictionary, enabled: false),
+                    new ModePreference(ModePreferenceDefaults.Emoji, enabled: true),
                 ],
                 DictionaryFilePath = "C:\\dict\\cedict_1_0_ts_utf-8_mdbg.txt",
                 EcdictFilePath = "C:\\dict\\ecdict.csv",
@@ -184,7 +185,7 @@ public class AppSettingsStoreTests
             Assert.True(settings.ClearQueryOnHide);
             Assert.False(settings.LaunchAtStartup);
             Assert.True(settings.SkipWhenFullscreenAppActive);
-            Assert.Equal(4, settings.ModePreferences.Length);
+            Assert.Equal(5, settings.ModePreferences.Length);
             Assert.Null(settings.DictionaryFilePath);
             Assert.Null(settings.EcdictFilePath);
         }
@@ -275,7 +276,8 @@ public class AppSettingsStoreTests
                     { "key": "web-search", "enabled": false },
                     { "key": "wikipedia", "enabled": false },
                     { "key": "ask-ai", "enabled": false },
-                    { "key": "dictionary", "enabled": false }
+                    { "key": "dictionary", "enabled": false },
+                    { "key": "emoji", "enabled": false }
                   ]
                 }
                 """);
