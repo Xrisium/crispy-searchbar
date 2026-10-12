@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Avalonia.Media.Imaging;
 using CrispySearchbar.Core.Configuration;
 using CrispySearchbar.Core.Emoji;
@@ -14,6 +15,9 @@ public sealed record EmojiCandidateViewModel(EmojiEntry Entry, string Title, str
 {
     private Bitmap? _image;
     public Bitmap Image => _image ??= LoadImage();
+    public string UnicodeCode { get; } = string.Join(" ", Entry.Sequence.EnumerateRunes().Select(r => $"U+{r.Value:X4}"));
+    public string DisplaySubtitle => Subtitle.Length > 0 ? $"{Subtitle} · {UnicodeCode}" : UnicodeCode;
+    public string Tooltip => $"{Title} · {UnicodeCode}";
 }
 
 public sealed class EmojiCategoryViewModel(string key, string title) : INotifyPropertyChanged
@@ -181,9 +185,11 @@ public sealed class EmojiModeViewModel : INotifyPropertyChanged, IDisposable
             var usage = _history.Snapshot();
             var tone = _settings.EmojiDefaultSkinTone;
             var grid = IsGrid;
+            var enablePinyin = _strings.Language.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
             var matches = await Task.Run(() => grid && string.IsNullOrWhiteSpace(query)
                 ? index.Entries.DistinctBy(e => e.VariantGroup).Select(e => new EmojiMatch(index.ApplySkinTone(e, tone), "", 0, 0)).ToArray()
-                : index.Search(query, usage, tone, maxResults: grid ? int.MaxValue : 12, cancellationToken: cts.Token), cts.Token);
+                : index.Search(query, usage, tone, maxResults: grid ? int.MaxValue : 12, cancellationToken: cts.Token,
+                    enablePinyin: enablePinyin), cts.Token);
             if (version != _version || !_active)
                 return;
             _index = index;
@@ -216,8 +222,9 @@ public sealed class EmojiModeViewModel : INotifyPropertyChanged, IDisposable
     {
         var chinese = _strings.Language.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
         var title = chinese ? entry.NameZh : entry.NameEn;
-        var subtitle = chinese ? entry.NameEn : entry.NameZh;
-        if (!string.IsNullOrWhiteSpace(matchedTerm) && !title.Contains(matchedTerm, StringComparison.OrdinalIgnoreCase)
+        var subtitle = chinese ? entry.NameEn : "";
+        if (chinese && !string.IsNullOrWhiteSpace(matchedTerm) && matchedTerm.Trim() != entry.Sequence
+            && !title.Contains(matchedTerm, StringComparison.OrdinalIgnoreCase)
             && !subtitle.Contains(matchedTerm, StringComparison.OrdinalIgnoreCase))
             subtitle += " · " + matchedTerm;
         return new(entry, title, subtitle, () => _images.Get(entry.Image), index.GetVariants(entry).Count > 1);

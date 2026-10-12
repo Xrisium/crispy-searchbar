@@ -164,7 +164,7 @@
   "dictionaryDataFileNotFoundTemplate": "Could not find the {0} dictionary data file ({1}). You can place the file at: {2} or {3}. Download URL: {4}",
   "emojiMode": {
     "title": "Emoji",
-    "watermark": "Search Emoji in English, Chinese or pinyin",
+    "watermark": "Search Emoji",
     "actionHint": "Press {execute} to insert Emoji"
   },
   "emoji": {

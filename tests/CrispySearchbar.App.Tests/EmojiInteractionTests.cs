@@ -51,11 +51,12 @@ public sealed class EmojiInteractionTests
             get;
         }
         public FakeInput Input { get; } = new();
-        public Fixture(bool keepOpen = false, EmojiCandidateStyle style = EmojiCandidateStyle.List)
+        public AppStrings Strings { get; }
+        public Fixture(bool keepOpen = false, EmojiCandidateStyle style = EmojiCandidateStyle.List, string language = "zh-Hans")
         {
             TestStyles.Ensure();
             var settings = new AppSettings { EmojiKeepOpenAfterInsert = keepOpen, EmojiCandidateStyle = style };
-            var strings = TranslationCatalog.Default.Resolve("zh-Hans");
+            var strings = Strings = TranslationCatalog.Default.Resolve(language);
             Emoji = new(strings, settings, Index, new EmojiHistoryStore(DirectoryPath), new EmojiImageCache());
             Main = new(strings, [SearchMode.Emoji(strings.EmojiMode), SearchMode.WebSearch(strings.WebSearchMode, "https://example.com?q={0}")], _ => { }, emoji: Emoji);
             Window = new MainWindow { DataContext = Main };
@@ -85,11 +86,65 @@ public sealed class EmojiInteractionTests
     private static async Task SearchFinished(Fixture f, string query)
     {
         f.Main.Query = query;
-        var loading = TranslationCatalog.Default.Resolve("zh-Hans").Emoji.Loading;
+        var loading = f.Strings.Emoji.Loading;
         for (var i = 0; i < 500 && f.Emoji.Status == loading; i++)
             await Task.Delay(10);
         Assert.NotEqual(loading, f.Emoji.Status);
         await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Loaded);
+    }
+
+    [Theory]
+    [InlineData("🥰", "U+1F970")]
+    [InlineData("❤️", "U+2764 U+FE0F")]
+    [InlineData("👍🏿", "U+1F44D U+1F3FF")]
+    [InlineData("🇨🇳", "U+1F1E8 U+1F1F3")]
+    [InlineData("👩🏽‍💻", "U+1F469 U+1F3FD U+200D U+1F4BB")]
+    public async Task UnicodeCodeIncludesEveryScalarInTheSequence(string sequence, string expected)
+    {
+        var entry = (await Index).Entries.Single(e => e.Sequence == sequence);
+        var candidate = new EmojiCandidateViewModel(entry, entry.NameEn, "", () => throw new InvalidOperationException(), false);
+        Assert.Equal(expected, candidate.UnicodeCode);
+        Assert.Equal(expected, candidate.DisplaySubtitle);
+        Assert.Equal($"{entry.NameEn} · {expected}", candidate.Tooltip);
+    }
+
+    [AvaloniaTheory]
+    [InlineData("zh-Hans", EmojiCandidateStyle.List)]
+    [InlineData("en", EmojiCandidateStyle.List)]
+    [InlineData("zh-Hans", EmojiCandidateStyle.Grid)]
+    [InlineData("en", EmojiCandidateStyle.Grid)]
+    public async Task LocalizedCandidatesBindUnicodeToListAndTooltip(string language, EmojiCandidateStyle style)
+    {
+        using var f = new Fixture(style: style, language: language);
+        await Ready(f, "👩🏽‍💻");
+        var candidate = Assert.Single(f.Emoji.Candidates);
+        var chinese = language == "zh-Hans";
+        Assert.Equal(chinese ? candidate.Entry.NameZh : candidate.Entry.NameEn, candidate.Title);
+        Assert.Equal(chinese ? candidate.Entry.NameEn : "", candidate.Subtitle);
+        var expected = chinese ? candidate.Entry.NameEn + " · " + candidate.UnicodeCode : candidate.UnicodeCode;
+        Assert.Equal(expected, candidate.DisplaySubtitle);
+        var list = f.Window.FindControl<ListBox>(style == EmojiCandidateStyle.Grid ? "EmojiGridList" : "EmojiCandidatesList")!;
+        var container = (Control)list.ContainerFromIndex(0)!;
+        Assert.NotNull(container);
+        if (style == EmojiCandidateStyle.Grid)
+            Assert.Equal(candidate.Tooltip, ToolTip.GetTip(container.GetVisualDescendants().OfType<Image>().Single()));
+        else
+            Assert.Contains(container.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == expected);
+    }
+
+    [AvaloniaFact]
+    public async Task EnglishInterfaceDisablesPinyinAndLanguageSwitchRestoresIt()
+    {
+        using var f = new Fixture(language: "en");
+        await SearchFinished(f, "weixiao");
+        Assert.DoesNotContain(f.Emoji.Candidates, c => c.Entry.Sequence == "🙂");
+        await Ready(f, "微笑");
+        Assert.Contains(f.Emoji.Candidates, c => c.Entry.Sequence == "🙂");
+        Assert.All(f.Emoji.Candidates, c => Assert.Equal(c.UnicodeCode, c.DisplaySubtitle));
+        await SearchFinished(f, "weixiao");
+        f.Emoji.ApplyConfiguration(TranslationCatalog.Default.Resolve("zh-Hans"), new AppSettings());
+        await Ready(f, "weixiao");
+        Assert.Contains(f.Emoji.Candidates, c => c.Entry.Sequence == "🙂");
     }
 
     [AvaloniaFact]

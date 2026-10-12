@@ -8,7 +8,7 @@ namespace CrispySearchbar.Core.Emoji;
 /// <summary>Immutable offline index. Search relevance always precedes personal usage.</summary>
 public sealed class EmojiIndex
 {
-    private sealed record Term(string Key, string Label, bool Preferred, EmojiEntry Entry, string[] Words);
+    private sealed record Term(string Key, string Label, bool Preferred, EmojiEntry Entry, string[] Words, bool IsPinyin);
     private sealed record Indexed(Term[] Terms, string[] Initials, EmojiEntry Entry);
     private readonly Indexed[] _entries;
     private readonly Dictionary<string, EmojiEntry[]> _variants;
@@ -27,11 +27,16 @@ public sealed class EmojiIndex
         // Skin variants share most keywords. Score each normalized term once per group rather
         // than repeating the same fuzzy comparison for every skin combination.
         _entries = _variants.Values.Select(group => new Indexed(
-            group.SelectMany(e => e.Terms.Concat(e.Pinyin).Select(t => new Term(Normalize(t), t,
-                e.PreferredTerms.Contains(t), e, t.Split([' ', '-', ':', '/'], StringSplitOptions.RemoveEmptyEntries)
-                    .Select(Normalize).Where(w => w.Length > 0).ToArray())))
+            group.SelectMany(e => e.Terms.Select(t => (Text: t, IsPinyin: false))
+                .Concat(e.Pinyin.Select(t => (Text: t, IsPinyin: true))).Select(source =>
+            {
+                var t = source.Text;
+                return new Term(Normalize(t), t, e.PreferredTerms.Contains(t), e,
+                    t.Split([' ', '-', ':', '/'], StringSplitOptions.RemoveEmptyEntries)
+                        .Select(Normalize).Where(w => w.Length > 0).ToArray(), source.IsPinyin);
+            }))
                 .Where(t => t.Key.Length > 0).OrderByDescending(t => t.Preferred).ThenBy(t => t.Entry.Order)
-                .DistinctBy(t => t.Key).ToArray(),
+                .DistinctBy(t => (t.Key, t.IsPinyin)).ToArray(),
             group.SelectMany(e => e.Initials).Select(Normalize).Distinct().ToArray(), group[0])).ToArray();
     }
 
@@ -55,7 +60,8 @@ public sealed class EmojiIndex
     }
 
     public IReadOnlyList<EmojiMatch> Search(string query, IReadOnlyList<EmojiUsage>? usage = null,
-        EmojiSkinTone tone = EmojiSkinTone.Neutral, int maxResults = 12, CancellationToken cancellationToken = default)
+        EmojiSkinTone tone = EmojiSkinTone.Neutral, int maxResults = 12, CancellationToken cancellationToken = default,
+        bool enablePinyin = true)
     {
         if (maxResults <= 0)
             return [];
@@ -84,6 +90,8 @@ public sealed class EmojiIndex
             var matchedEntry = indexed.Entry;
             foreach (var term in indexed.Terms)
             {
+                if (!enablePinyin && term.IsPinyin)
+                    continue;
                 var key = term.Key;
                 var tier = key == normalized ? 0 : IsPrefix(term, normalized) ? 1
                     : key.Contains(normalized, StringComparison.Ordinal) ? 2 : int.MaxValue;
@@ -96,14 +104,16 @@ public sealed class EmojiIndex
                     matchedEntry = term.Entry;
                 }
             }
-            if (bestTier > 2 && tokens.Length > 1 && tokens.All(t => indexed.Terms.Any(k => k.Key.Contains(t, StringComparison.Ordinal))))
+            if (bestTier > 2 && tokens.Length > 1 && tokens.All(t => indexed.Terms.Any(k =>
+                (enablePinyin || !k.IsPinyin) && k.Key.Contains(t, StringComparison.Ordinal))))
             {
                 bestTier = 2;
-                bestQuality = tokens.Sum(t => indexed.Terms.Where(k => k.Key.Contains(t, StringComparison.Ordinal))
+                bestQuality = tokens.Sum(t => indexed.Terms.Where(k =>
+                    (enablePinyin || !k.IsPinyin) && k.Key.Contains(t, StringComparison.Ordinal))
                     .Min(k => k.Key.Length - t.Length + (k.Preferred ? 0 : 1000)));
                 label = query;
             }
-            if (bestTier > 3 && normalized.Length >= 2 && indexed.Initials.Any(i => i == normalized || i.StartsWith(normalized, StringComparison.Ordinal)))
+            if (enablePinyin && bestTier > 3 && normalized.Length >= 2 && indexed.Initials.Any(i => i == normalized || i.StartsWith(normalized, StringComparison.Ordinal)))
             {
                 bestTier = 3;
                 bestQuality = indexed.Initials.Where(i => i.StartsWith(normalized, StringComparison.Ordinal)).Min(i => i.Length - normalized.Length);
@@ -114,6 +124,8 @@ public sealed class EmojiIndex
                 var limit = normalized.Length >= 8 ? 2 : 1;
                 foreach (var term in indexed.Terms)
                 {
+                    if (!enablePinyin && term.IsPinyin)
+                        continue;
                     var key = term.Key;
                     if (Math.Abs(key.Length - normalized.Length) > limit)
                         continue;

@@ -52,6 +52,39 @@ public class EmojiTests(ITestOutputHelper output)
     public void CommonQueriesPutExpectedEmojiInTopThree(string query, string expected)
         => Assert.Contains(Index.Search(query).Take(3), m => m.Entry.Sequence == expected);
 
+    [Theory]
+    [InlineData("weixiao")]
+    [InlineData("wei xiao")]
+    [InlineData("wēixiào")]
+    [InlineData("wx")]
+    [InlineData("weixiaa")]
+    [InlineData("wei xiaa")]
+    public void DisablingPinyinExcludesFullSpacedInitialAndFuzzyPinyin(string query)
+        => Assert.DoesNotContain(Index.Search(query, maxResults: int.MaxValue, enablePinyin: false),
+            m => m.Entry.Sequence == "🙂");
+
+    [Theory]
+    [InlineData("smile", "🙂")]
+    [InlineData("smilex", "🙂")]
+    [InlineData("微笑", "🙂")]
+    [InlineData("点赞", "👍")]
+    [InlineData("red爱心", "❤️")]
+    [InlineData("👩🏽‍💻", "👩🏽‍💻")]
+    public void DisablingPinyinPreservesEnglishChineseMixedAndLiteralSearch(string query, string expected)
+        => Assert.Contains(Index.Search(query, enablePinyin: false).Take(3), m => m.Entry.Sequence == expected);
+
+    [Fact]
+    public void DisablingPinyinPreservesEnglishTermThatSharesAPinyinKey()
+    {
+        var entry = Index.Search("👍")[0].Entry;
+        var variant = Index.GetVariants(entry).First(e => e.Sequence != entry.Sequence);
+        var index = new EmojiIndex([
+            entry with { Terms = ["thumbs up"], Pinyin = ["shared"], Initials = [] },
+            variant with { Terms = ["shared"], Pinyin = [], Initials = [] }
+        ]);
+        Assert.Equal("shared", Assert.Single(index.Search("shared", enablePinyin: false)).MatchedTerm);
+    }
+
     [Fact]
     public void CatalogAndGraphicsCoverEveryFullyQualifiedSequence()
     {
