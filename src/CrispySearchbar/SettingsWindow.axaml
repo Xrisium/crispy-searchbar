@@ -74,7 +74,6 @@
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource AccentForegroundBrush}" />
-      <Setter Property="BoxShadow" Value="{DynamicResource PrimaryButtonHoverGlow}" />
     </Style>
     <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
@@ -167,7 +166,7 @@
       <Setter Property="HorizontalContentAlignment" Value="Left" />
       <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
-    <Style Selector="Button.shortcutCaptureButton:pointerover">
+    <Style Selector="Button.shortcutCaptureButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
     </Style>
@@ -197,7 +196,7 @@
       <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
     <Style Selector="TextBlock.configPathLink:pointerover">
-      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource LinkBrush}" />
       <Setter Property="TextDecorations" Value="Underline" />
     </Style>
     <Style Selector="TextBlock.aboutLink">
@@ -206,7 +205,7 @@
       <Setter Property="Cursor" Value="Hand" />
     </Style>
     <Style Selector="TextBlock.aboutLink:pointerover">
-      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource LinkBrush}" />
       <Setter Property="TextDecorations" Value="Underline" />
     </Style>
   </Window.Styles>
@@ -699,7 +698,7 @@
           BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
           BorderThickness="1"
           CornerRadius="14"
-          BoxShadow="0 10 24 0 #33000000"
+          BoxShadow="{DynamicResource WindowSurfaceShadow}"
           DragDrop.AllowDrop="True"
           DragDrop.DragOver="OnModeSurfaceDragOver"
           DragDrop.Drop="OnModeSurfaceDrop">
@@ -881,7 +880,7 @@
             IsHitTestVisible="False"
             ZIndex="5" />
     <Border IsVisible="{Binding IsResetConfirmationVisible}"
-            Background="#66000000"
+            Background="{DynamicResource ModalOverlayBrush}"
             ZIndex="1">
       <Border Width="340"
               Padding="22"
@@ -891,7 +890,7 @@
               BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
               BorderThickness="1"
               CornerRadius="14"
-              BoxShadow="0 12 28 0 #40000000">
+              BoxShadow="{DynamicResource DialogSurfaceShadow}">
         <StackPanel Spacing="14">
           <TextBlock Text="{Binding ResetConfirmationTitle}"
                      FontSize="15"

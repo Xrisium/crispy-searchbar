@@ -1,0 +1,58 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- The single source of UI colors. FluentColors maps control states to these colors.
+       #68768A is sampled from the reference screenshot's enabled toggle track.
+       Links keep their own blue; notices use a readable tint of the same slate accent. -->
+  <Color x:Key="AccentColor">#68768A</Color>
+  <Color x:Key="AccentHoverColor">#5C6A7E</Color>
+  <Color x:Key="AccentForegroundColor">#FFFFFF</Color>
+  <Color x:Key="TransparentColor">Transparent</Color>
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Light">
+      <Color x:Key="SearchSurfaceColor">#FBFBFD</Color>
+      <Color x:Key="SearchSurfaceBorderColor">#33000000</Color>
+      <Color x:Key="TextPrimaryColor">#1A1A1E</Color>
+      <Color x:Key="TextSecondaryColor">#6B6B72</Color>
+      <Color x:Key="TextPlaceholderColor">#9A9AA0</Color>
+      <Color x:Key="AccentTextColor">#58677C</Color>
+      <Color x:Key="LinkColor">#3B6EF6</Color>
+      <Color x:Key="DividerColor">#14000000</Color>
+      <Color x:Key="SelectionColor">#2968768A</Color>
+      <Color x:Key="SelectionHoverColor">#3D68768A</Color>
+      <Color x:Key="HoverColor">#1A68768A</Color>
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="Dark">
+      <Color x:Key="SearchSurfaceColor">#222226</Color>
+      <Color x:Key="SearchSurfaceBorderColor">#2EFFFFFF</Color>
+      <Color x:Key="TextPrimaryColor">#F2F2F4</Color>
+      <Color x:Key="TextSecondaryColor">#A6A6AC</Color>
+      <Color x:Key="TextPlaceholderColor">#77777D</Color>
+      <Color x:Key="AccentTextColor">#A7B4C6</Color>
+      <Color x:Key="LinkColor">#6C8CFF</Color>
+      <Color x:Key="DividerColor">#1FFFFFFF</Color>
+      <Color x:Key="SelectionColor">#5268768A</Color>
+      <Color x:Key="SelectionHoverColor">#6B68768A</Color>
+      <Color x:Key="HoverColor">#2E68768A</Color>
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+
+  <SolidColorBrush x:Key="SearchSurfaceBrush" Color="{DynamicResource SearchSurfaceColor}" />
+  <SolidColorBrush x:Key="SearchSurfaceBorderBrush" Color="{DynamicResource SearchSurfaceBorderColor}" />
+  <SolidColorBrush x:Key="TextPrimaryBrush" Color="{DynamicResource TextPrimaryColor}" />
+  <SolidColorBrush x:Key="TextSecondaryBrush" Color="{DynamicResource TextSecondaryColor}" />
+  <SolidColorBrush x:Key="TextPlaceholderBrush" Color="{DynamicResource TextPlaceholderColor}" />
+  <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource AccentColor}" />
+  <SolidColorBrush x:Key="AccentHoverBrush" Color="{DynamicResource AccentHoverColor}" />
+  <SolidColorBrush x:Key="AccentForegroundBrush" Color="{DynamicResource AccentForegroundColor}" />
+  <SolidColorBrush x:Key="LinkBrush" Color="{DynamicResource LinkColor}" />
+  <SolidColorBrush x:Key="DividerBrush" Color="{DynamicResource DividerColor}" />
+  <SolidColorBrush x:Key="SelectionBrush" Color="{DynamicResource SelectionColor}" />
+  <SolidColorBrush x:Key="HoverBrush" Color="{DynamicResource HoverColor}" />
+  <SolidColorBrush x:Key="DangerBrush" Color="{DynamicResource AccentTextColor}" />
+  <SolidColorBrush x:Key="WarningBrush" Color="{DynamicResource AccentTextColor}" />
+
+  <SolidColorBrush x:Key="ModalOverlayBrush" Color="#66000000" />
+  <BoxShadows x:Key="SearchSurfaceShadow">0 8 22 0 #38000000</BoxShadows>
+  <BoxShadows x:Key="WindowSurfaceShadow">0 10 24 0 #33000000</BoxShadows>
+  <BoxShadows x:Key="DialogSurfaceShadow">0 12 28 0 #40000000</BoxShadows>
+</ResourceDictionary>

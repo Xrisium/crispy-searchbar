@@ -88,7 +88,7 @@
           BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
           BorderThickness="1"
           CornerRadius="14"
-          BoxShadow="0 10 24 0 #33000000">
+          BoxShadow="{DynamicResource WindowSurfaceShadow}">
     <DockPanel>
       <Border DockPanel.Dock="Top"
               Height="50"

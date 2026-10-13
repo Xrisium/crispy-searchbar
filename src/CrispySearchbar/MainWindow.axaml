@@ -27,7 +27,7 @@
             Background="{DynamicResource SearchSurfaceBrush}"
             BorderBrush="{DynamicResource SearchSurfaceBorderBrush}"
             BorderThickness="1"
-            BoxShadow="0 8 22 0 #38000000"
+            BoxShadow="{DynamicResource SearchSurfaceShadow}"
             PointerPressed="OnCapsulePointerPressed"
             PointerWheelChanged="OnCapsulePointerWheelChanged">
       <Grid ColumnDefinitions="*,Auto">
@@ -222,7 +222,7 @@
                                Content="{Binding DictionaryWebDefinitionText}"
                                FontSize="13"
                                HorizontalAlignment="Left"
-                               Foreground="{DynamicResource AccentBrush}"
+                               Foreground="{DynamicResource LinkBrush}"
                                Padding="0"
                                Focusable="False"
                                Cursor="Hand"
