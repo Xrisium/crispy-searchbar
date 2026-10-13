@@ -155,6 +155,7 @@
     }
   },
   "dictionaryEmptyHint": "输入英文单词或中文词语，{previous}/{next} 选择，{execute} 查看释义",
+  "dictionaryWebDefinitionText": "网页词典释义",
   "dictionaryLoadingHint": "正在加载词典数据…",
   "dictionaryDataSourceNotConfigured": "词典数据源未配置。",
   "dictionaryNoResultsTemplate": "没有找到“{0}”的条目",

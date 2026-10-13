@@ -218,6 +218,25 @@
               <TextBlock Text="{Binding DictionaryDetailSource}"
                          FontSize="11"
                          Foreground="{DynamicResource TextPlaceholderBrush}" />
+              <HyperlinkButton x:Name="WebDictionaryLink"
+                               Content="{Binding DictionaryWebDefinitionText}"
+                               FontSize="13"
+                               HorizontalAlignment="Left"
+                               Foreground="{DynamicResource AccentBrush}"
+                               Padding="0"
+                               Focusable="False"
+                               Cursor="Hand"
+                               Click="OnWebDictionaryLinkClick">
+                <HyperlinkButton.Template>
+                  <ControlTemplate TargetType="HyperlinkButton">
+                    <Border Background="Transparent">
+                      <TextBlock Text="{TemplateBinding Content}"
+                                 Foreground="{TemplateBinding Foreground}"
+                                 TextDecorations="Underline" />
+                    </Border>
+                  </ControlTemplate>
+                </HyperlinkButton.Template>
+              </HyperlinkButton>
             </StackPanel>
           </ScrollViewer>
         </Grid>

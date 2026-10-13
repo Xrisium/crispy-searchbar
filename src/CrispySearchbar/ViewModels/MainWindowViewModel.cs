@@ -81,6 +81,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
         var previousModeKey = _modes.Count > 0 ? _modes[_modeIndex].Key : null;
         _strings = strings;
+        OnPropertyChanged(nameof(DictionaryWebDefinitionText));
         _modes = modes;
         _clearQueryOnHide = clearQueryOnHide;
         _dictionaryEmptyHint = dictionaryEmptyHint ?? strings.DictionaryEmptyHint;
@@ -295,6 +296,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public string DictionaryDetailSource => DictionaryDetailHit?.Source ?? string.Empty;
 
+    public string DictionaryWebDefinitionText => _strings.DictionaryWebDefinitionText;
+
     public string Query
     {
         get => _query;
@@ -446,6 +449,25 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
         DictionarySelectedIndex = index;
         return OpenSelectedDictionaryEntry();
+    }
+
+    /// <summary>按当前详情词条的方向与词头，在默认浏览器打开剑桥词典。</summary>
+    public void OpenWebDictionary()
+    {
+        var hit = DictionaryDetailHit;
+        var template = hit switch
+        {
+            ChineseDictionaryCandidateViewModel =>
+                "https://dictionary.cambridge.org/dictionary/chinese-simplified-english/{0}",
+            EnglishDictionaryCandidateViewModel =>
+                "https://dictionary.cambridge.org/dictionary/english-chinese-simplified/{0}",
+            _ => null,
+        };
+
+        if (template is not null && !string.IsNullOrWhiteSpace(hit?.DetailTitle))
+        {
+            _openUrl(OpenUrlBuilder.Build(template, hit.DetailTitle));
+        }
     }
 
     /// <summary>
@@ -707,6 +729,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(DictionaryDetailHasSubtitle));
         OnPropertyChanged(nameof(DictionaryDetailDefinitionText));
         OnPropertyChanged(nameof(DictionaryDetailSource));
+        OnPropertyChanged(nameof(DictionaryWebDefinitionText));
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

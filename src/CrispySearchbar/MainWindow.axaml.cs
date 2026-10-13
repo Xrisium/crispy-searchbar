@@ -306,6 +306,12 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnWebDictionaryLinkClick(object? sender, RoutedEventArgs e)
+    {
+        ViewModel.OpenWebDictionary();
+        e.Handled = true;
+    }
+
     private void OnDictionaryPopupPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         // 鼠标只是候补：点击浮层后立即把输入焦点还给搜索框。

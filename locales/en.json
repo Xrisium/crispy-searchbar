@@ -155,6 +155,7 @@
     }
   },
   "dictionaryEmptyHint": "Type an English word or Chinese term; use {previous}/{next} to select and press {execute} to view the definition",
+  "dictionaryWebDefinitionText": "Web dictionary definition",
   "dictionaryLoadingHint": "Loading dictionary data…",
   "dictionaryDataSourceNotConfigured": "Dictionary data sources are not configured.",
   "dictionaryNoResultsTemplate": "No entries found for “{0}”.",

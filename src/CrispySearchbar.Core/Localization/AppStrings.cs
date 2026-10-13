@@ -46,6 +46,8 @@ public sealed class AppStrings
 
     public required string DictionaryEmptyHint { get; init; }
 
+    public required string DictionaryWebDefinitionText { get; init; }
+
     public required string DictionaryLoadingHint { get; init; }
 
     public required string DictionaryDataSourceNotConfigured { get; init; }
