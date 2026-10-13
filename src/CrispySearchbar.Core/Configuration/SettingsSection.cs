@@ -8,9 +8,11 @@ public enum SettingsSection
 {
     General,
     Appearance,
-    Search,
     Modes,
-    Shortcuts,
+    Search,
     Dictionary,
+    Emoji,
+    // 后续模式的独立设置放在这里，快捷键与关于始终置于末尾。
+    Shortcuts,
     About,
 }

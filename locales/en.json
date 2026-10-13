@@ -69,10 +69,11 @@
     "sectionTitles": {
       "General": "General",
       "Appearance": "Appearance",
-      "Search": "Search",
       "Modes": "Modes",
-      "Shortcuts": "Shortcuts",
+      "Search": "Search",
       "Dictionary": "Dictionary",
+      "Emoji": "Emoji",
+      "Shortcuts": "Shortcuts",
       "About": "About"
     },
     "fieldLabels": {

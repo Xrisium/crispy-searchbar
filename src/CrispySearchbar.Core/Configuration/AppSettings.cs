@@ -47,10 +47,10 @@ public sealed class AppSettings
     [Setting(SettingsSection.Shortcuts, SettingEditorKind.ShortcutKey, Order = 9)]
     public string CopyEmojiShortcut { get; set; } = "Ctrl+Shift+C";
 
-    [Setting(SettingsSection.Search, SettingEditorKind.Toggle, Order = 2)]
+    [Setting(SettingsSection.Emoji, SettingEditorKind.Toggle, Order = 0)]
     public bool EmojiKeepOpenAfterInsert { get; set; }
 
-    [Setting(SettingsSection.Search, SettingEditorKind.Choice, Order = 3)]
+    [Setting(SettingsSection.Emoji, SettingEditorKind.Choice, Order = 1)]
     public EmojiSkinTone EmojiDefaultSkinTone { get; set; } = EmojiSkinTone.Neutral;
 
     [Setting(SettingsSection.Appearance, SettingEditorKind.Choice, Order = 2)]

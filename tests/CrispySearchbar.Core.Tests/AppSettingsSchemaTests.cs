@@ -142,17 +142,18 @@ public class AppSettingsSchemaTests
     }
 
     [Fact]
-    public void DisplayCategories_KeepAboutLast()
+    public void DisplayCategories_KeepModeSettingsBeforeShortcutsAndAbout()
     {
         Assert.Equal(
             new[]
             {
                 SettingsSection.General,
                 SettingsSection.Appearance,
-                SettingsSection.Search,
                 SettingsSection.Modes,
-                SettingsSection.Shortcuts,
+                SettingsSection.Search,
                 SettingsSection.Dictionary,
+                SettingsSection.Emoji,
+                SettingsSection.Shortcuts,
                 SettingsSection.About,
             },
             Enum.GetValues<SettingsSection>());

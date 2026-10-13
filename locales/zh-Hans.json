@@ -69,10 +69,11 @@
     "sectionTitles": {
       "General": "通用",
       "Appearance": "外观",
-      "Search": "搜索",
       "Modes": "模式",
-      "Shortcuts": "快捷键",
+      "Search": "搜索",
       "Dictionary": "词典",
+      "Emoji": "Emoji",
+      "Shortcuts": "快捷键",
       "About": "关于"
     },
     "fieldLabels": {

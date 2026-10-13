@@ -194,6 +194,22 @@
     </Viewbox>
   </DataTemplate>
 
+  <!-- 与 Emoji 模式共用的笑脸图形。 -->
+  <DataTemplate x:Key="SettingsIconTemplate-emoji">
+    <Viewbox Width="13" Height="13">
+      <Grid Width="24" Height="24">
+        <Ellipse Width="20"
+                 Height="20"
+                 Stroke="{DynamicResource TextSecondaryBrush}"
+                 StrokeThickness="2" />
+        <Path Data="M8 14 Q12 18 16 14 M8 9h.01 M16 9h.01"
+              Stroke="{DynamicResource TextSecondaryBrush}"
+              StrokeThickness="2"
+              StrokeLineCap="Round" />
+      </Grid>
+    </Viewbox>
+  </DataTemplate>
+
   <!-- Lucide info（关于）。原件：lucide-icons/lucide@a537cb6 icons/info.svg -->
   <DataTemplate x:Key="SettingsIconTemplate-about">
     <Viewbox Width="13" Height="13">
